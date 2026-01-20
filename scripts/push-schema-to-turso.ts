@@ -36,10 +36,11 @@ async function pushSchemaToTurso() {
       throw new Error('migration.sql file not found. Please run: npx prisma migrate diff --from-empty --to-schema-datamodel --script > migration.sql')
     }
 
-    const migrationSQL = fs.readFileSync(migrationPath, 'utf-8')
+    // Read file and remove BOM character
+    const sqlContent = fs.readFileSync(migrationPath, 'utf8').replace(/^\uFEFF/, '')
 
     // Split SQL into individual statements (by semicolon)
-    const statements = migrationSQL
+    const statements = sqlContent
       .split(';')
       .map(stmt => stmt.trim())
       .filter(stmt => stmt.length > 0 && !stmt.startsWith('--'))
