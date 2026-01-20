@@ -22,35 +22,47 @@ async function seedCloudDatabase() {
     console.log(`📥 Importing ${foods.length} foods...`)
     console.log(`📥 Importing ${activities.length} activities...`)
 
-    // Insert foods (using createMany for efficiency)
-    if (foods.length > 0) {
-      await prisma.food.createMany({
-        data: foods.map((food: any) => ({
+    // Create upsert promises for foods
+    console.log('🍽️ Preparing food upsert operations...')
+    const foodUpserts = foods.map((food) =>
+      prisma.food.upsert({
+        where: { id: food.id },
+        update: {}, // Do nothing if exists
+        create: {
+          id: food.id,
           name: food.name,
-          description: food.description,
+          description: food.description || null,
           category: food.category,
-          image_url: food.image_url,
+          image_url: food.image_url || null,
           created_at: new Date(food.created_at),
           updated_at: new Date(food.updated_at)
-        })),
-        skipDuplicates: true
+        }
       })
-      console.log('✅ Foods imported successfully')
-    }
+    )
 
-    // Insert activities (using createMany for efficiency)
-    if (activities.length > 0) {
-      await prisma.activity.createMany({
-        data: activities.map((activity: any) => ({
+    // Create upsert promises for activities
+    console.log('🎯 Preparing activity upsert operations...')
+    const activityUpserts = activities.map((activity) =>
+      prisma.activity.upsert({
+        where: { id: activity.id },
+        update: {}, // Do nothing if exists
+        create: {
+          id: activity.id,
           name: activity.name,
-          location: activity.location,
-          type: activity.type,
-          description: activity.description
-        })),
-        skipDuplicates: true
+          location: activity.location || null,
+          type: activity.type || null,
+          description: activity.description || null
+        }
       })
-      console.log('✅ Activities imported successfully')
-    }
+    )
+
+    // Execute all upserts in a transaction
+    console.log('⚡ Executing upsert operations in transaction...')
+    const allOperations = [...foodUpserts, ...activityUpserts]
+
+    await prisma.$transaction(allOperations)
+
+    console.log(`✅ Successfully migrated ${foods.length} foods and ${activities.length} activities`)
 
     console.log('🎉 Cloud seeding complete!')
 
