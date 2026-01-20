@@ -1,6 +1,4 @@
 import { createClient } from '@libsql/client'
-import fs from 'fs'
-import path from 'path'
 import dotenv from 'dotenv'
 import { execSync } from 'child_process'
 
@@ -39,15 +37,13 @@ async function pushSchemaToTurso() {
     // Debug: Show first 50 characters to verify generation
     console.log(`📝 SQL starts with: ${sqlContent.substring(0, 50).replace(/\n/g, ' ')}...`)
 
-    // Clean up any encoding artifacts that might still be present
-    let cleanSqlContent = sqlContent.replace(/^\uFEFF/, '').replace(/\0/g, '')
-    cleanSqlContent = cleanSqlContent.replace(/^[^a-zA-Z0-9\s\-(]+/, '')
-
-    // Split SQL into individual statements (by semicolon)
-    const statements = cleanSqlContent
+    // Simple split by semicolon and clean up
+    const statements = sqlContent
       .split(';')
       .map(stmt => stmt.trim())
-      .filter(stmt => stmt.length > 0 && !stmt.startsWith('--'))
+      .filter(stmt => stmt.length > 0)
+
+    console.log(`📄 Parsed ${statements.length} statements from SQL`)
 
     console.log(`📄 Found ${statements.length} SQL statements to execute`)
 
