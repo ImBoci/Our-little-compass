@@ -8,17 +8,25 @@ dotenv.config()
 
 async function pushSchemaToTurso() {
   const databaseUrl = process.env.TURSO_DATABASE_URL
+  const authToken = process.env.TURSO_AUTH_TOKEN
 
   if (!databaseUrl) {
     throw new Error('TURSO_DATABASE_URL environment variable is not set. Please add it to your .env file.')
   }
 
+  if (!authToken) {
+    throw new Error('TURSO_AUTH_TOKEN environment variable is not set. Please add it to your .env file.')
+  }
+
+  // Debug: Show first 5 characters of token
+  console.log(`🔑 Token starts with: ${authToken.substring(0, 5)}...`)
   console.log('🔄 Pushing schema to Turso database...')
 
   try {
     // Connect to Turso
     const client = createClient({
       url: databaseUrl,
+      authToken: authToken,
     })
 
     // Read the migration SQL file
