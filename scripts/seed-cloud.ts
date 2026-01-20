@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient, Food, Activity } from '@prisma/client'
 import fs from 'fs'
 import path from 'path'
 
@@ -16,8 +16,8 @@ async function seedCloudDatabase() {
       throw new Error('Backup files not found. Please run export script first.')
     }
 
-    const foods = JSON.parse(fs.readFileSync(foodsPath, 'utf-8'))
-    const activities = JSON.parse(fs.readFileSync(activitiesPath, 'utf-8'))
+    const foods = JSON.parse(fs.readFileSync(foodsPath, 'utf-8')) as Food[]
+    const activities = JSON.parse(fs.readFileSync(activitiesPath, 'utf-8')) as Activity[]
 
     console.log(`📥 Importing ${foods.length} foods...`)
     console.log(`📥 Importing ${activities.length} activities...`)
