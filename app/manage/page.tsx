@@ -3,6 +3,8 @@ import { getFoods } from "@/app/actions"
 import { UnauthorizedMessage } from "@/components/UnauthorizedMessage"
 import { ManageDashboard } from "./ManageDashboard"
 
+export const dynamic = 'force-dynamic';
+
 export default async function ManagePage() {
   const session = await getServerAuthSession()
 
