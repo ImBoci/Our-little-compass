@@ -17,7 +17,7 @@ function createPrismaClient() {
       url: tursoUrl,
       authToken: tursoAuthToken,
     })
-    const adapter = new PrismaLibSql(tursoClient)
+    const adapter = new PrismaLibSql(tursoClient as any)
     return new PrismaClient({ adapter })
   } else {
     // Local Development: Use standard PrismaClient with SQLite
