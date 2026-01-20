@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client'
-import { PrismaLibSQL } from '@prisma/adapter-libsql'
+import { PrismaLibSql } from '@prisma/adapter-libsql'
 import { createClient } from '@libsql/client'
 
 const globalForPrisma = globalThis as unknown as {
@@ -17,7 +17,7 @@ function createPrismaClient() {
       url: tursoUrl,
       authToken: tursoAuthToken,
     })
-    const adapter = new PrismaLibSQL(tursoClient)
+    const adapter = new PrismaLibSql(tursoClient)
     return new PrismaClient({ adapter })
   } else {
     // Local Development: Use standard PrismaClient with SQLite
