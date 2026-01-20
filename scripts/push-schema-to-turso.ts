@@ -2,6 +2,7 @@ import { createClient } from '@libsql/client'
 import fs from 'fs'
 import path from 'path'
 import dotenv from 'dotenv'
+import { execSync } from 'child_process'
 
 // Load environment variables
 dotenv.config()
@@ -29,26 +30,21 @@ async function pushSchemaToTurso() {
       authToken: authToken,
     })
 
-    // Read the migration SQL file
-    const migrationPath = path.join(process.cwd(), 'migration.sql')
+    // Generate SQL directly from Prisma schema
+    console.log('⚙️ Generating SQL from Prisma Schema...')
+    const sqlContent = execSync(
+      'npx prisma migrate diff --from-empty --to-schema-datamodel prisma/schema.prisma --script'
+    ).toString('utf8')
 
-    if (!fs.existsSync(migrationPath)) {
-      throw new Error('migration.sql file not found. Please run: npx prisma migrate diff --from-empty --to-schema-datamodel --script > migration.sql')
-    }
+    // Debug: Show first 50 characters to verify generation
+    console.log(`📝 SQL starts with: ${sqlContent.substring(0, 50).replace(/\n/g, ' ')}...`)
 
-    // Aggressive encoding cleanup for PowerShell-generated files
-    const buffer = fs.readFileSync(migrationPath)
-    let sqlContent = buffer.toString('utf8')
-
-    // Remove BOM and null bytes (common in UTF-16 reads)
-    sqlContent = sqlContent.replace(/^\uFEFF/, '').replace(/\0/g, '')
-
-    // Remove any non-ASCII characters from the very start of the string
-    // (Keeps standard SQL characters, spaces, and comments)
-    sqlContent = sqlContent.replace(/^[^a-zA-Z0-9\s\-(]+/, '')
+    // Clean up any encoding artifacts that might still be present
+    let cleanSqlContent = sqlContent.replace(/^\uFEFF/, '').replace(/\0/g, '')
+    cleanSqlContent = cleanSqlContent.replace(/^[^a-zA-Z0-9\s\-(]+/, '')
 
     // Split SQL into individual statements (by semicolon)
-    const statements = sqlContent
+    const statements = cleanSqlContent
       .split(';')
       .map(stmt => stmt.trim())
       .filter(stmt => stmt.length > 0 && !stmt.startsWith('--'))
