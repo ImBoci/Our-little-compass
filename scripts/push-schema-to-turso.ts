@@ -36,8 +36,16 @@ async function pushSchemaToTurso() {
       throw new Error('migration.sql file not found. Please run: npx prisma migrate diff --from-empty --to-schema-datamodel --script > migration.sql')
     }
 
-    // Read file and remove BOM character
-    const sqlContent = fs.readFileSync(migrationPath, 'utf8').replace(/^\uFEFF/, '')
+    // Aggressive encoding cleanup for PowerShell-generated files
+    const buffer = fs.readFileSync(migrationPath)
+    let sqlContent = buffer.toString('utf8')
+
+    // Remove BOM and null bytes (common in UTF-16 reads)
+    sqlContent = sqlContent.replace(/^\uFEFF/, '').replace(/\0/g, '')
+
+    // Remove any non-ASCII characters from the very start of the string
+    // (Keeps standard SQL characters, spaces, and comments)
+    sqlContent = sqlContent.replace(/^[^a-zA-Z0-9\s\-(]+/, '')
 
     // Split SQL into individual statements (by semicolon)
     const statements = sqlContent
