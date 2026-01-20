@@ -78,7 +78,7 @@ export default function DatePage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b border-border bg-card">
+      <header className="border-b border-border bg-white/90 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Link href="/">
@@ -107,7 +107,7 @@ export default function DatePage() {
 
           {/* Activity Display */}
           {selectedActivity && (
-            <Card className="mb-8 mx-auto max-w-md">
+            <Card className="mb-8 mx-auto max-w-md bg-white/80 backdrop-blur-sm">
               <CardHeader className="text-center">
                 <div className="mx-auto mb-4 p-4 bg-primary/10 rounded-full w-fit">
                   <Sparkles className="w-8 h-8 text-primary" />
@@ -169,7 +169,7 @@ export default function DatePage() {
 
           {/* Add Activity Form */}
           {showAddForm && (
-            <Card className="mx-auto max-w-md">
+            <Card className="mx-auto max-w-md bg-white/80 backdrop-blur-sm">
               <CardHeader>
                 <CardTitle>Add New Activity</CardTitle>
                 <CardDescription>

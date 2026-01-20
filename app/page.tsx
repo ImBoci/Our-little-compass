@@ -11,19 +11,19 @@ export default function LandingPage() {
         <div className="max-w-4xl mx-auto text-center">
           {/* Title */}
           <h1 className="text-6xl md:text-7xl font-bold text-foreground mb-6">
-            WhatToCook
+            Our Little Compass
           </h1>
 
           {/* Subtitle */}
           <p className="text-xl md:text-2xl text-muted-foreground mb-16">
-            Your personal kitchen assistant.
+            Guiding our adventures, together.
           </p>
 
           {/* Feature Cards */}
           <div className="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto">
             {/* Find a Meal Card */}
             <Link href="/cook" className="block">
-              <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer border-2 hover:border-primary/20">
+              <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer border-2 hover:border-primary/20 bg-white/80 backdrop-blur-sm">
                 <CardHeader className="text-center pb-4">
                   <div className="mx-auto mb-4 p-4 bg-primary/10 rounded-full w-fit">
                     <Dices className="w-8 h-8 text-primary" />
@@ -40,7 +40,7 @@ export default function LandingPage() {
 
             {/* WhatToDo Card */}
             <Link href="/date" className="block">
-              <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer border-2 hover:border-primary/20">
+              <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer border-2 hover:border-primary/20 bg-white/80 backdrop-blur-sm">
                 <CardHeader className="text-center pb-4">
                   <div className="mx-auto mb-4 p-4 bg-primary/10 rounded-full w-fit">
                     <Heart className="w-8 h-8 text-primary" />
@@ -57,15 +57,6 @@ export default function LandingPage() {
           </div>
         </div>
       </main>
-
-      {/* Footer */}
-      <footer className="border-t border-border bg-card mt-16">
-        <div className="container mx-auto px-4 py-4 text-center">
-          <Link href="/manage" className="text-sm text-muted-foreground hover:text-primary transition-colors">
-            Admin Login
-          </Link>
-        </div>
-      </footer>
     </div>
   );
 }

@@ -7,7 +7,10 @@
     "build": "npx prisma generate && next build",
     "postinstall": "prisma generate",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "db:generate-sql": "prisma migrate diff --from-empty --to-schema-datamodel prisma/schema.prisma --script > migration.sql",
+    "db:push-turso": "npx tsx scripts/push-schema-to-turso.ts",
+    "deploy:db": "npm run db:generate-sql && npm run db:push-turso"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

@@ -1,0 +1,408 @@
+[
+  {
+    "id": 1,
+    "name": "Arán pékség - Pest",
+    "location": "1117 Budapest, Móricz Zsigmond körtér 16/a",
+    "type": "Reggeliző, Kávézó",
+    "description": null
+  },
+  {
+    "id": 2,
+    "name": "Arán pékség - Buda",
+    "location": "1077 Budapest, Wesselényi utca 23.",
+    "type": "Reggeliző, Kávézó",
+    "description": null
+  },
+  {
+    "id": 3,
+    "name": "Brácsa Brunch",
+    "location": "1074 Budapest, Dohány utca 84.",
+    "type": "Reggeliző",
+    "description": null
+  },
+  {
+    "id": 4,
+    "name": "Dumaszínház",
+    "location": "Több helyszín",
+    "type": "Beltéri program",
+    "description": null
+  },
+  {
+    "id": 5,
+    "name": "Színház",
+    "location": "Több helyszín",
+    "type": "Beltéri program",
+    "description": null
+  },
+  {
+    "id": 6,
+    "name": "Buddha Park",
+    "location": "3073 Tar, Kőrösi Csoma Sándor Emlékpark",
+    "type": "Kültéri program",
+    "description": null
+  },
+  {
+    "id": 7,
+    "name": "Niki kürtőskalács (fagyis)",
+    "location": "1053 Budapest, Múzeum krt. 7.",
+    "type": "Desszert",
+    "description": null
+  },
+  {
+    "id": 8,
+    "name": "Kaiserin - A császármorzsázó",
+    "location": "1092 Budapest, Ráday u. 5.",
+    "type": "Desszert",
+    "description": null
+  },
+  {
+    "id": 9,
+    "name": "ELTE füvészkert",
+    "location": "1083 Budapest, Illés u. 25.",
+    "type": "Kültéri program",
+    "description": null
+  },
+  {
+    "id": 10,
+    "name": "Awake Brunch",
+    "location": "1092 Budapest, Ráday u. 3.",
+    "type": "Reggeliző",
+    "description": null
+  },
+  {
+    "id": 11,
+    "name": "Pinocchio Pizzéria",
+    "location": "1034 Budapest, Bécsi út 121.",
+    "type": "Pizzázó",
+    "description": null
+  },
+  {
+    "id": 12,
+    "name": "Csók Bisztró",
+    "location": "1062 Budapest, Andrássy út 112.",
+    "type": "Reggeliző, Vacsora, Ebéd, Desszert",
+    "description": null
+  },
+  {
+    "id": 13,
+    "name": "Zuglói Japánkert",
+    "location": "1149 Budapest, Kövér Lajos út 1.",
+    "type": "Kültéri program",
+    "description": null
+  },
+  {
+    "id": 14,
+    "name": "Made by you",
+    "location": "1053 Budapest, Királyi Pál u. 11.",
+    "type": "Kreatív, Beltéri program",
+    "description": null
+  },
+  {
+    "id": 15,
+    "name": "Földalatti vasúti múzeum",
+    "location": "1051 Budapest, Erzsébet tér 14.",
+    "type": "Beltéri program",
+    "description": null
+  },
+  {
+    "id": 16,
+    "name": "Tropicarium",
+    "location": "1222 Budapest, Nagytétényi út 37-43.",
+    "type": "Beltéri program",
+    "description": null
+  },
+  {
+    "id": 17,
+    "name": "Pénzmúzeum",
+    "location": "1122 Budapest, Krisztina krt. 6.",
+    "type": "Beltéri program",
+    "description": null
+  },
+  {
+    "id": 18,
+    "name": "Flava Kitchen",
+    "location": "1051 Budapest, Október 6. u. 26.",
+    "type": "Reggeliző, Ebéd, Vacsora",
+    "description": null
+  },
+  {
+    "id": 19,
+    "name": "Krumpli",
+    "location": "1117 Budapest, Móricz Zsigmond körtér 16.",
+    "type": "Vacsora, Ebéd",
+    "description": null
+  },
+  {
+    "id": 20,
+    "name": "Budapest Baristas",
+    "location": "1053 Budapest, Múzeum krt 15.",
+    "type": "Reggeliző, Kávézó",
+    "description": null
+  },
+  {
+    "id": 21,
+    "name": "Szimplakert",
+    "location": "1075 Budapest, Kazinczy u. 14.",
+    "type": "Kültéri program",
+    "description": null
+  },
+  {
+    "id": 22,
+    "name": "Hopp Ferenc Ázsiai Művészeti Múzeum",
+    "location": "1062 Budapest, Andrássy út 103.",
+    "type": "Kültéri program",
+    "description": null
+  },
+  {
+    "id": 23,
+    "name": "Moto Pizza",
+    "location": "Több helyszín",
+    "type": "Pizzázó",
+    "description": null
+  },
+  {
+    "id": 24,
+    "name": "Krumpello",
+    "location": "1142 Budapest, Tatai u. 95.",
+    "type": "Vacsora, Ebéd",
+    "description": null
+  },
+  {
+    "id": 25,
+    "name": "Halászbástya",
+    "location": "1014 Budapest, Budai vár",
+    "type": "Kültéri program",
+    "description": null
+  },
+  {
+    "id": 26,
+    "name": "Margit szigeti piknik",
+    "location": "Margit-sziget",
+    "type": "Kültéri program",
+    "description": null
+  },
+  {
+    "id": 27,
+    "name": "József Nándor tér",
+    "location": "1051 Budapest, József Nándor tér",
+    "type": "Kültéri program",
+    "description": null
+  },
+  {
+    "id": 28,
+    "name": "The Spot Budapest by J&J",
+    "location": "1011 Budapest, Batthyány tér 7.",
+    "type": "Kültéri program, Ebéd, Beltéri program, Vacsora",
+    "description": null
+  },
+  {
+    "id": 29,
+    "name": "Móricz Zsigmond körtér",
+    "location": "Móricz Zsigmond körtér",
+    "type": "Kültéri program",
+    "description": null
+  },
+  {
+    "id": 30,
+    "name": "Mad Garden",
+    "location": "1033 Budapest, Miklós tér 1.",
+    "type": "Kültéri program",
+    "description": null
+  },
+  {
+    "id": 31,
+    "name": "Zui Brunch",
+    "location": "1075 Budapest, Kazinczy u. 52.",
+    "type": "Reggeliző",
+    "description": null
+  },
+  {
+    "id": 32,
+    "name": "TODO Mexican Kitchen",
+    "location": "1052 Budapest, Szervita tér 8.",
+    "type": "Ebéd, Vacsora",
+    "description": null
+  },
+  {
+    "id": 33,
+    "name": "Rudas Bistro",
+    "location": "1013, Budapest Rudas gyógyfürdő, Döbrentei tér 9.",
+    "type": "Ebéd, Vacsora",
+    "description": null
+  },
+  {
+    "id": 34,
+    "name": "Cirkusz",
+    "location": "Több helyszín",
+    "type": "Beltéri program",
+    "description": null
+  },
+  {
+    "id": 35,
+    "name": "Mozi",
+    "location": "Több helyszín",
+    "type": "Beltéri program",
+    "description": null
+  },
+  {
+    "id": 36,
+    "name": "Mom Park",
+    "location": "1123 Budapest, Alkotás út 53.",
+    "type": "Kültéri program",
+    "description": null
+  },
+  {
+    "id": 37,
+    "name": "The Donut Box",
+    "location": "Több helyszín",
+    "type": "Desszert",
+    "description": null
+  },
+  {
+    "id": 38,
+    "name": "Tejmadár - Westend",
+    "location": "1062 Budapest, Westend földszint, Váci út 1-3.",
+    "type": "Desszert",
+    "description": null
+  },
+  {
+    "id": 39,
+    "name": "Tejmadár - Etele",
+    "location": "1119 Budapest, Hadak útja 1. I. emelet",
+    "type": "Desszert",
+    "description": null
+  },
+  {
+    "id": 40,
+    "name": "Palacsinta Palota",
+    "location": "1077 Budapest, Király u. 41.",
+    "type": "Desszert",
+    "description": null
+  },
+  {
+    "id": 41,
+    "name": "Nagyi Lángos",
+    "location": "1077 Budapest, Wesselényi utca 30.",
+    "type": "Reggeliző, Ebéd, Vacsora",
+    "description": null
+  },
+  {
+    "id": 42,
+    "name": "Unicorn bistro",
+    "location": "1065 Budapest, Nagymező u. 64.",
+    "type": "Reggeliző, Ebéd, Vacsora",
+    "description": null
+  },
+  {
+    "id": 43,
+    "name": "Random Bagel",
+    "location": "1052 Budapest, Semmelweis u. 19.",
+    "type": "Reggeliző",
+    "description": null
+  },
+  {
+    "id": 44,
+    "name": "Cinnahaven",
+    "location": "1072 Budapest, Rákóczi út 32.",
+    "type": "Reggeliző",
+    "description": null
+  },
+  {
+    "id": 45,
+    "name": "Street Food Karaván",
+    "location": "1075 Budapest, Kazinczy u. 18.",
+    "type": "Reggeliző, Ebéd, Vacsora",
+    "description": null
+  },
+  {
+    "id": 46,
+    "name": "Budapest Garden",
+    "location": "1036 Budapest, Árpád fejedelem útja 125.",
+    "type": "Kültéri program",
+    "description": null
+  },
+  {
+    "id": 47,
+    "name": "Papilonia Budapest",
+    "location": "1056 Budapest, Belgrád rkp. 6.",
+    "type": "Beltéri program",
+    "description": null
+  },
+  {
+    "id": 48,
+    "name": "Teufel",
+    "location": "1084 Budapest, Német u. 16.",
+    "type": "Kültéri program, Beltéri program",
+    "description": null
+  },
+  {
+    "id": 49,
+    "name": "Epreskert",
+    "location": "1062 Budapest, Bajza u. 41.",
+    "type": "Kültéri program",
+    "description": null
+  },
+  {
+    "id": 50,
+    "name": "TATI Farm to Table",
+    "location": "1076 Budapest, Dohány u. 58-62.",
+    "type": "Vacsora",
+    "description": null
+  },
+  {
+    "id": 51,
+    "name": "Gozsdu udvar",
+    "location": "1075 Budapest, Gozsdu udvar",
+    "type": "Kültéri program",
+    "description": null
+  },
+  {
+    "id": 52,
+    "name": "Szabó Ervin Könyvtár",
+    "location": "1088 Budapest, Szabó Ervin tér 1.",
+    "type": "Beltéri program",
+    "description": null
+  },
+  {
+    "id": 53,
+    "name": "Budai zsibvásár",
+    "location": "1112 Budapest, Budaörsi út 172-178.",
+    "type": "Kültéri program",
+    "description": null
+  },
+  {
+    "id": 54,
+    "name": "Budapesti gyermekvasút",
+    "location": "Megállótól függ",
+    "type": "Kültéri program",
+    "description": null
+  },
+  {
+    "id": 55,
+    "name": "Jánoshegyi libegő",
+    "location": "1121 Budapest, Jánoshegyi út",
+    "type": "Kültéri program",
+    "description": null
+  },
+  {
+    "id": 56,
+    "name": "Ikono",
+    "location": "1052 Budapest, Váci u. 27.",
+    "type": "Beltéri program",
+    "description": null
+  },
+  {
+    "id": 57,
+    "name": "Aero park",
+    "location": "1185 Budapest, Liszt Ferenc Repülőtér",
+    "type": "Kültéri program",
+    "description": null
+  },
+  {
+    "id": 58,
+    "name": "Panorámaterem",
+    "location": "2500 Esztergom, Szent István tér 1.",
+    "type": "Beltéri program",
+    "description": null
+  }
+]

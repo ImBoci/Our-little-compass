@@ -1,0 +1,47 @@
+[
+  {
+    "id": "cmkldfctc0004ednkrjx2z4vf",
+    "name": "Burger",
+    "description": "Juicy beef patty with lettuce, tomato, and cheese",
+    "category": "American",
+    "image_url": null,
+    "created_at": "2026-01-19T16:19:57.985Z",
+    "updated_at": "2026-01-19T16:19:57.985Z"
+  },
+  {
+    "id": "cmkldfcta0003ednkqpxrh5aa",
+    "name": "Pad Thai",
+    "description": "Stir-fried rice noodles with shrimp, peanuts, and lime",
+    "category": "Thai",
+    "image_url": null,
+    "created_at": "2026-01-19T16:19:57.982Z",
+    "updated_at": "2026-01-19T16:19:57.982Z"
+  },
+  {
+    "id": "cmkldfct70002ednk7nqscl98",
+    "name": "Tacos",
+    "description": "Soft corn tortillas with seasoned meat, cheese, and salsa",
+    "category": "Mexican",
+    "image_url": null,
+    "created_at": "2026-01-19T16:19:57.980Z",
+    "updated_at": "2026-01-19T16:19:57.980Z"
+  },
+  {
+    "id": "cmkldfct40001ednkummfhq9a",
+    "name": "Sushi Rolls",
+    "description": "Fresh salmon and avocado rolls with soy sauce",
+    "category": "Japanese",
+    "image_url": null,
+    "created_at": "2026-01-19T16:19:57.977Z",
+    "updated_at": "2026-01-19T16:19:57.977Z"
+  },
+  {
+    "id": "cmkldfct00000ednkm9m1p27n",
+    "name": "Pizza Margherita",
+    "description": "Classic Italian pizza with tomato sauce, mozzarella, and basil",
+    "category": "Italian",
+    "image_url": null,
+    "created_at": "2026-01-19T16:19:57.972Z",
+    "updated_at": "2026-01-19T16:19:57.972Z"
+  }
+]
