@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Food, FoodInsert } from "@/hooks/useFoods";
+import { Food, FoodInsert } from "@/app/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";

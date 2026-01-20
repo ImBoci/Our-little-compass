@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Food } from "@/hooks/useFoods";
+import { Food } from "@/app/actions";
 import { UtensilsCrossed } from "lucide-react";
 
 interface FoodSpinnerProps {
@@ -51,15 +51,15 @@ export const FoodSpinner = ({ foods, isSpinning, onSpinComplete }: FoodSpinnerPr
   }
 
   return (
-    <div 
+    <div
       className={`w-full max-w-md rounded-lg bg-card border border-border overflow-hidden transition-all duration-200 ${
         isSpinning ? "animate-pulse" : ""
       }`}
     >
       <div className="h-48 bg-gradient-to-br from-primary/20 to-accent flex items-center justify-center">
         {displayFood?.image_url ? (
-          <img 
-            src={displayFood.image_url} 
+          <img
+            src={displayFood.image_url}
             alt={displayFood.name}
             className="w-full h-full object-cover"
           />

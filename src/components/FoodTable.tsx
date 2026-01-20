@@ -1,4 +1,4 @@
-import { Food } from "@/hooks/useFoods";
+import { Food } from "@/app/actions";
 import { Button } from "@/components/ui/button";
 import {
   Table,
