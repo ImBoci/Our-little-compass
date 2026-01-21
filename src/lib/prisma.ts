@@ -5,6 +5,12 @@ import { createClient } from '@libsql/client'
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient }
 
 const makePrismaClient = () => {
+  // During Next.js build time, use standard PrismaClient to avoid .bind errors
+  if (typeof window === 'undefined' && process.env.npm_lifecycle_event === 'build') {
+    console.log("🔌 Build time detected (npm build). Using standard PrismaClient.");
+    return new PrismaClient();
+  }
+
   // 1. Get the URL from EITHER variable
   const url = process.env.TURSO_DATABASE_URL || process.env.DATABASE_URL;
   const authToken = process.env.TURSO_AUTH_TOKEN;
