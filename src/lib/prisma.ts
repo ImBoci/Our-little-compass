@@ -5,6 +5,12 @@ import { createClient } from '@libsql/client'
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient }
 
 const makePrismaClient = () => {
+  // During Next.js build time, always use standard PrismaClient to avoid .bind errors
+  if (typeof window === 'undefined' && process.env.npm_lifecycle_event === 'build') {
+    console.log("🔌 Build time detected (npm build). Using standard PrismaClient.");
+    return new PrismaClient();
+  }
+
   // 1. Check which URL we have
   const url = process.env.TURSO_DATABASE_URL || process.env.DATABASE_URL;
   const authToken = process.env.TURSO_AUTH_TOKEN;
@@ -18,12 +24,17 @@ const makePrismaClient = () => {
 
   if (isLibSQL) {
     console.log("✅ Detected LibSQL URL. Using Turso Adapter.");
-    const tursoClient = createClient({
-      url: url!,
-      authToken: authToken,
-    });
-    const adapter = new PrismaLibSql(tursoClient as any);
-    return new PrismaClient({ adapter: adapter as any });
+    try {
+      const tursoClient = createClient({
+        url: url!,
+        authToken: authToken,
+      });
+      const adapter = new PrismaLibSql(tursoClient as any);
+      return new PrismaClient({ adapter: adapter as any });
+    } catch (error) {
+      console.log("⚠️ Turso adapter failed, using standard client");
+      return new PrismaClient();
+    }
   } else {
     // 3. Fallback to Local File
     console.log("⚠️ No LibSQL URL found. Using standard SQLite file.");
