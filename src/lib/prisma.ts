@@ -5,35 +5,42 @@ import { createClient } from '@libsql/client'
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient }
 
 const makePrismaClient = () => {
-  // During Next.js build time, use standard PrismaClient to avoid .bind errors
-  if (typeof window === 'undefined' && process.env.npm_lifecycle_event === 'build') {
-    console.log("🔌 Build time detected (npm build). Using standard PrismaClient.");
-    return new PrismaClient();
-  }
-
-  // 1. Get the URL from EITHER variable
+  // 1. Identify if we have Turso credentials
   const url = process.env.TURSO_DATABASE_URL || process.env.DATABASE_URL;
   const authToken = process.env.TURSO_AUTH_TOKEN;
 
-  // 2. Debug Log (Visible in Vercel Logs)
-  console.log("🔌 DB Init - URL found:", url ? "Yes" : "No");
-  console.log("🔌 DB Init - Protocol:", url?.split(':')[0]);
-
-  // 3. Check if it is a Turso/LibSQL URL
+  // Check if it looks like a LibSQL URL
   const isLibSQL = url?.startsWith("libsql://") || url?.startsWith("https://");
 
   if (isLibSQL) {
-    console.log("✅ Using Turso (LibSQL) Adapter");
-    const tursoClient = createClient({
-      url: url!,
-      authToken: authToken,
-    });
-    const adapter = new PrismaLibSql(tursoClient as any);
-    return new PrismaClient({ adapter: adapter as any });
-  } else {
-    console.log("⚠️ Using Local SQLite Fallback (Expect empty data on Vercel)");
-    return new PrismaClient();
+    try {
+      console.log("🔌 Attempting to connect to Turso...");
+      const tursoClient = createClient({
+        url: url!,
+        authToken: authToken,
+      });
+
+      // Cast to any to avoid TypeScript strictness issues during build
+      const adapter = new PrismaLibSql(tursoClient as any);
+      return new PrismaClient({ adapter: adapter as any });
+
+    } catch (error) {
+      console.error("⚠️ Turso Adapter failed to initialize (Expected during build):", error);
+      // FALL THROUGH to the fallback below
+    }
   }
+
+  // 2. FALLBACK: Standard SQLite (Build-Safe)
+  // We explicitly set the URL to a local file to override the 'libsql://' env var
+  // This prevents the "URL must start with file:" error during fallback.
+  console.log("⚠️ Using Local SQLite Fallback.");
+  return new PrismaClient({
+    datasources: {
+      db: {
+        url: "file:./dev.db"
+      }
+    }
+  });
 }
 
 export const prisma = globalForPrisma.prisma || makePrismaClient()
