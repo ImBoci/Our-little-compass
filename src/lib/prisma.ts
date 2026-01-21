@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client'
 import { PrismaLibSql } from '@prisma/adapter-libsql'
-import { createClient } from '@libsql/client'
+import { createClient } from '@libsql/client/web'
 
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient }
 
@@ -26,6 +26,8 @@ const makePrismaClient = () => {
 
     } catch (error) {
       console.error("⚠️ Turso Adapter failed to initialize (Expected during build):", error);
+      // Capture error for debug visibility
+      (globalThis as any)._prismaInitError = error;
       // FALL THROUGH to the fallback below
     }
   }
