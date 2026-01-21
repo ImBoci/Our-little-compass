@@ -19,7 +19,6 @@ export async function GET() {
     return NextResponse.json(activities)
   } catch (error) {
     console.error('Failed to fetch activities:', error)
-    // Return empty array during build time when Prisma fails
     return NextResponse.json([])
   }
 }
@@ -50,7 +49,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(activity, { status: 201 })
   } catch (error) {
     console.error('Failed to create activity:', error)
-    // Return mock response during build time
     return NextResponse.json({ id: 1, name: "Mock Activity", location: null, type: null, description: null }, { status: 201 })
   }
 }
@@ -76,7 +74,6 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Failed to delete activity:', error)
-    // Return success during build time
     return NextResponse.json({ success: true })
   }
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,74 +8,117 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-// import { getRandomActivity, addActivity } from "@/app/activity-actions";
-import type { Activity, ActivityInsert } from "@/app/actions";
 import { Heart, Loader2, Sparkles, ArrowLeft, MapPin } from "lucide-react";
 import { toast } from "sonner";
-import { useEffect } from "react";
+
+interface Activity {
+  id: number
+  name: string
+  location: string | null
+  type: string | null
+  description: string | null
+}
 
 export default function DatePage() {
-  const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null);
+  const [activities, setActivities] = useState<Activity[]>([]);
+  const [randomActivity, setRandomActivity] = useState<Activity | null>(null);
   const [isSpinning, setIsSpinning] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
-  const [formData, setFormData] = useState<ActivityInsert>({
-    name: '',
-    location: '',
-    type: '',
-    description: ''
-  });
+  const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSpin = () => {
-    setIsSpinning(true);
-  };
-
-  const handleSpinComplete = useCallback(async () => {
-    try {
-      // Temporarily disabled
-      // const activity = await getRandomActivity();
-      // if (activity) {
-      //   setSelectedActivity(activity);
-      //   toast.success(`Your activity: ${activity.name}!`);
-      // } else {
-        toast.error("Activities temporarily disabled");
-      // }
-    } catch (error) {
-      toast.error("Failed to get random activity");
-    } finally {
-      setIsSpinning(false);
-    }
+  // Load activities on component mount
+  useEffect(() => {
+    const loadActivities = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch('/api/activity');
+        if (response.ok) {
+          const activitiesData = await response.json();
+          setActivities(activitiesData);
+          // Pick initial random activity
+          if (activitiesData.length > 0) {
+            const randomIndex = Math.floor(Math.random() * activitiesData.length);
+            setRandomActivity(activitiesData[randomIndex]);
+          }
+        } else {
+          toast.error("Failed to load activities");
+        }
+      } catch (error) {
+        console.error('Failed to load activities:', error);
+        toast.error("Failed to load activities");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadActivities();
   }, []);
 
-  useEffect(() => {
-    if (isSpinning) {
-      // Simulate spinning animation
-      const timer = setTimeout(() => {
-        handleSpinComplete();
-      }, 1500);
-      return () => clearTimeout(timer);
+  const pickRandomActivity = () => {
+    if (activities.length === 0) {
+      toast.error("No activities available. Add some activities first!");
+      return;
     }
-  }, [isSpinning, handleSpinComplete]);
 
-  const handleAddActivity = async (e: React.FormEvent) => {
+    setIsSpinning(true);
+
+    // Simulate spinning animation
+    setTimeout(() => {
+      const randomIndex = Math.floor(Math.random() * activities.length);
+      const selectedActivity = activities[randomIndex];
+      setRandomActivity(selectedActivity);
+      setIsSpinning(false);
+      toast.success(`Your activity: ${selectedActivity.name}!`);
+    }, 1500);
+  };
+
+  const handleAddActivity = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!formData.name.trim()) {
+    const formData = new FormData(e.currentTarget);
+    const data = {
+      name: formData.get('name') as string,
+      location: formData.get('location') as string,
+      type: formData.get('type') as string,
+      description: formData.get('description') as string
+    };
+
+    if (!data.name.trim()) {
       toast.error("Activity name is required");
       return;
     }
 
     setIsSubmitting(true);
     try {
-      // await addActivity(formData);
-      toast.success("Activity addition temporarily disabled");
-      setFormData({ name: '', location: '', type: '', description: '' });
-      setShowAddForm(false);
+      const response = await fetch('/api/activity', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      if (response.ok) {
+        const newActivity = await response.json();
+        setActivities(prev => [newActivity, ...prev]);
+        setShowAddForm(false);
+        toast.success("Activity added successfully!");
+        e.currentTarget.reset();
+      } else {
+        toast.error("Failed to add activity");
+      }
     } catch (error) {
+      console.error('Error adding activity:', error);
       toast.error("Failed to add activity");
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -94,6 +137,12 @@ export default function DatePage() {
               <h1 className="text-xl font-bold text-foreground">WhatToDo</h1>
             </div>
           </div>
+          <Link href="/manage">
+            <Button variant="outline" size="sm" className="gap-2">
+              <Sparkles className="w-4 h-4" />
+              Manage Activities
+            </Button>
+          </Link>
         </div>
       </header>
 
@@ -108,29 +157,29 @@ export default function DatePage() {
           </p>
 
           {/* Activity Display */}
-          {selectedActivity && (
+          {randomActivity && (
             <Card className="mb-8 mx-auto max-w-md bg-white/80 backdrop-blur-sm">
               <CardHeader className="text-center">
                 <div className="mx-auto mb-4 p-4 bg-primary/10 rounded-full w-fit">
                   <Sparkles className="w-8 h-8 text-primary" />
                 </div>
-                <CardTitle className="text-2xl">{selectedActivity.name}</CardTitle>
+                <CardTitle className="text-2xl">{randomActivity.name}</CardTitle>
               </CardHeader>
               <CardContent className="text-center space-y-3">
-                {selectedActivity.type && (
+                {randomActivity.type && (
                   <Badge variant="secondary" className="bg-primary/10 text-primary">
-                    {selectedActivity.type}
+                    {randomActivity.type}
                   </Badge>
                 )}
-                {selectedActivity.location && (
+                {randomActivity.location && (
                   <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
                     <MapPin className="w-4 h-4" />
-                    <span>{selectedActivity.location}</span>
+                    <span>{randomActivity.location}</span>
                   </div>
                 )}
-                {selectedActivity.description && (
+                {randomActivity.description && (
                   <CardDescription className="text-base">
-                    {selectedActivity.description}
+                    {randomActivity.description}
                   </CardDescription>
                 )}
               </CardContent>
@@ -140,8 +189,8 @@ export default function DatePage() {
           {/* Spin Button */}
           <Button
             size="lg"
-            onClick={handleSpin}
-            disabled={isSpinning}
+            onClick={pickRandomActivity}
+            disabled={isSpinning || activities.length === 0}
             className="gap-2 text-lg px-8 py-6 mb-8"
           >
             {isSpinning ? (
@@ -152,7 +201,7 @@ export default function DatePage() {
             ) : (
               <>
                 <Heart className="w-5 h-5" />
-                Find Random Activity
+                Pick Random Activity
               </>
             )}
           </Button>
@@ -184,8 +233,7 @@ export default function DatePage() {
                     <Label htmlFor="name">Activity Name *</Label>
                     <Input
                       id="name"
-                      value={formData.name}
-                      onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                      name="name"
                       placeholder="e.g., Go for a walk"
                       required
                     />
@@ -194,8 +242,7 @@ export default function DatePage() {
                     <Label htmlFor="location">Location (Optional)</Label>
                     <Input
                       id="location"
-                      value={formData.location || ''}
-                      onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
+                      name="location"
                       placeholder="e.g., Central Park, Budapest"
                     />
                   </div>
@@ -203,8 +250,7 @@ export default function DatePage() {
                     <Label htmlFor="type">Type (Optional)</Label>
                     <Input
                       id="type"
-                      value={formData.type || ''}
-                      onChange={(e) => setFormData(prev => ({ ...prev, type: e.target.value }))}
+                      name="type"
                       placeholder="e.g., Outdoor activity, Restaurant"
                     />
                   </div>
@@ -212,8 +258,7 @@ export default function DatePage() {
                     <Label htmlFor="description">Description (Optional)</Label>
                     <Textarea
                       id="description"
-                      value={formData.description || ''}
-                      onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                      name="description"
                       placeholder="Add more details about this activity..."
                       rows={3}
                     />
@@ -232,6 +277,10 @@ export default function DatePage() {
               </CardContent>
             </Card>
           )}
+
+          <p className="mt-8 text-sm text-muted-foreground">
+            {activities.length} activit{activities.length !== 1 ? "ies" : "y"} in the database
+          </p>
         </div>
       </main>
     </div>
