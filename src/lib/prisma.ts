@@ -5,39 +5,27 @@ import { createClient } from '@libsql/client'
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient }
 
 const makePrismaClient = () => {
-  // During Next.js build time, always use standard PrismaClient to avoid .bind errors
-  if (typeof window === 'undefined' && process.env.npm_lifecycle_event === 'build') {
-    console.log("🔌 Build time detected (npm build). Using standard PrismaClient.");
-    return new PrismaClient();
-  }
-
-  // 1. Check which URL we have
+  // 1. Get the URL from EITHER variable
   const url = process.env.TURSO_DATABASE_URL || process.env.DATABASE_URL;
   const authToken = process.env.TURSO_AUTH_TOKEN;
 
-  console.log("🔌 Initializing Prisma Client...")
-  console.log("Database URL:", url ? (url.startsWith("libsql://") ? "LibSQL URL" : "Other URL") : "None")
-  console.log("Auth Token:", authToken ? "Present" : "Missing")
+  // 2. Debug Log (Visible in Vercel Logs)
+  console.log("🔌 DB Init - URL found:", url ? "Yes" : "No");
+  console.log("🔌 DB Init - Protocol:", url?.split(':')[0]);
 
-  // 2. Is it a Turso/LibSQL URL?
-  const isLibSQL = url?.startsWith("libsql://");
+  // 3. Check if it is a Turso/LibSQL URL
+  const isLibSQL = url?.startsWith("libsql://") || url?.startsWith("https://");
 
   if (isLibSQL) {
-    console.log("✅ Detected LibSQL URL. Using Turso Adapter.");
-    try {
-      const tursoClient = createClient({
-        url: url!,
-        authToken: authToken,
-      });
-      const adapter = new PrismaLibSql(tursoClient as any);
-      return new PrismaClient({ adapter: adapter as any });
-    } catch (error) {
-      console.log("⚠️ Turso adapter failed, using standard client");
-      return new PrismaClient();
-    }
+    console.log("✅ Using Turso (LibSQL) Adapter");
+    const tursoClient = createClient({
+      url: url!,
+      authToken: authToken,
+    });
+    const adapter = new PrismaLibSql(tursoClient as any);
+    return new PrismaClient({ adapter: adapter as any });
   } else {
-    // 3. Fallback to Local File
-    console.log("⚠️ No LibSQL URL found. Using standard SQLite file.");
+    console.log("⚠️ Using Local SQLite Fallback (Expect empty data on Vercel)");
     return new PrismaClient();
   }
 }
