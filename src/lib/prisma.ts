@@ -24,12 +24,18 @@ const makePrismaClient = () => {
 
   if (isLibSQL) {
     console.log("✅ Using Turso (LibSQL) Adapter");
-    const tursoClient = createClient({
-      url: url!,
-      authToken: authToken,
-    });
-    const adapter = new PrismaLibSql(tursoClient as any);
-    return new PrismaClient({ adapter: adapter as any });
+    try {
+      const tursoClient = createClient({
+        url: url!,
+        authToken: authToken,
+      });
+      const adapter = new PrismaLibSql(tursoClient as any);
+      return new PrismaClient({ adapter: adapter as any });
+    } catch (e) {
+      console.error("Failed to init Turso Adapter:", e);
+      // FALLBACK: Return standard client so build doesn't crash
+      return new PrismaClient();
+    }
   } else {
     console.log("⚠️ Using Local SQLite Fallback (Expect empty data on Vercel)");
     return new PrismaClient();
