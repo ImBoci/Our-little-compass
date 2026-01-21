@@ -35,13 +35,11 @@ export async function DELETE(req: Request) {
     const id = searchParams.get("id");
     if (!id) return NextResponse.json({ error: "ID missing" }, { status: 400 });
 
-    // Handle both number and string IDs safely
+    // Strict number check for integer IDs
     const numId = Number(id);
-    if (!isNaN(numId)) {
-      await prisma.activity.delete({ where: { id: numId } });
-    } else {
-      await prisma.activity.delete({ where: { id: id } });
-    }
+    if (isNaN(numId)) return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
+
+    await prisma.activity.delete({ where: { id: numId } });
     return NextResponse.json({ success: true });
   } catch (error) {
     return NextResponse.json({ error: "Failed to delete activity" }, { status: 500 });
