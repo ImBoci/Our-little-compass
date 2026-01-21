@@ -5,43 +5,41 @@ import { createClient } from '@libsql/client/web'
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient }
 
 const makePrismaClient = () => {
-  // 1. Identify if we have Turso credentials
-  const url = process.env.TURSO_DATABASE_URL || process.env.DATABASE_URL;
+  let url = process.env.TURSO_DATABASE_URL || process.env.DATABASE_URL;
   const authToken = process.env.TURSO_AUTH_TOKEN;
 
-  // Check if it looks like a LibSQL URL
-  const isLibSQL = url?.startsWith("libsql://") || url?.startsWith("https://");
+  // FIX: The web client works best with https://
+  if (url?.startsWith("libsql://")) {
+    url = url.replace("libsql://", "https://");
+  }
 
-  if (isLibSQL) {
+  const isTurso = url?.startsWith("https://") && url.includes("turso.io");
+
+  if (isTurso) {
     try {
-      console.log("🔌 Attempting to connect to Turso...");
+      console.log("🔌 Connecting to Turso via HTTPS...");
       const tursoClient = createClient({
         url: url!,
         authToken: authToken,
       });
-
-      // Cast to any to avoid TypeScript strictness issues during build
       const adapter = new PrismaLibSql(tursoClient as any);
       return new PrismaClient({ adapter: adapter as any });
-
     } catch (error) {
-      console.error("⚠️ Turso Adapter failed to initialize (Expected during build):", error);
-      // Capture error for debug visibility
-      (globalThis as any)._prismaInitError = error;
-      // FALL THROUGH to the fallback below
+      const err = error as Error;
+      console.error("❌ Turso Adapter Failed:", err);
+      // Capture error for the debug page
+      (globalThis as any)._prismaInitError = {
+          message: err.message,
+          stack: err.stack
+      };
+      // Fall through to fallback
     }
   }
 
-  // 2. FALLBACK: Standard SQLite (Build-Safe)
-  // We explicitly set the URL to a local file to override the 'libsql://' env var
-  // This prevents the "URL must start with file:" error during fallback.
-  console.log("⚠️ Using Local SQLite Fallback.");
+  // Fallback
+  console.log("⚠️ Using Local Fallback");
   return new PrismaClient({
-    datasources: {
-      db: {
-        url: "file:./dev.db"
-      }
-    }
+    datasources: { db: { url: "file:./dev.db" } }
   });
 }
 
