@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client'
-import { PrismaLibSql } from '@prisma/adapter-libsql'
+import { PrismaLibSQL } from '@prisma/adapter-libsql'
 import { createClient } from '@libsql/client'
 
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient }
@@ -27,7 +27,7 @@ const makePrismaClient = () => {
 
       // Try initializing WITHOUT 'as any' casting first.
       // If versions are synced, this should work.
-      const adapter = new PrismaLibSql(tursoClient);
+      const adapter = new PrismaLibSQL(tursoClient);
       return new PrismaClient({ adapter });
 
     } catch (error) {
