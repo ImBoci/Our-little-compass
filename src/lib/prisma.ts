@@ -5,30 +5,53 @@ import { createClient } from '@libsql/client'
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient }
 
 const makePrismaClient = () => {
-  const url = process.env.TURSO_DATABASE_URL || process.env.DATABASE_URL;
+  // 1. Setup Variables
+  // We prioritize TURSO_ vars, but check DATABASE_URL too
+  let url = process.env.TURSO_DATABASE_URL || process.env.DATABASE_URL;
   const authToken = process.env.TURSO_AUTH_TOKEN;
 
-  // Check if it is a LibSQL URL (Turso)
-  const isLibSQL = url?.startsWith("libsql://") || url?.startsWith("https://");
+  // 2. Protocol Check (LibSQL works best with https:// for the HTTP client)
+  if (url?.startsWith("libsql://")) {
+    url = url.replace("libsql://", "https://");
+  }
 
-  if (isLibSQL) {
+  const isTurso = url?.startsWith("https://") && url.includes("turso.io");
+
+  if (isTurso) {
     try {
-      console.log("🔌 Connecting to Turso...");
+      console.log("🔌 Attempting Turso Connection...");
+
       const tursoClient = createClient({
         url: url!,
         authToken: authToken,
       });
+
       const adapter = new PrismaLibSql(tursoClient as any);
       return new PrismaClient({ adapter: adapter as any });
+
     } catch (error) {
-      console.error("❌ Turso Init Failed:", error);
-      (globalThis as any)._prismaInitError = error;
+      const e = error as Error;
+      console.error("❌ Turso Init Failed:", e);
+
+      // Save the error text globally so the Debug Route can see it
+      (globalThis as any)._prismaInitError = {
+        name: e.name,
+        message: e.message,
+        stack: e.stack
+      };
     }
   }
 
-  // Fallback
-  console.log("⚠️ Using Local Fallback");
-  return new PrismaClient();
+  // 3. Fallback (Build-Safe)
+  // We Explicitly set the URL to a dummy file to bypass the "must start with file:" error
+  console.log("⚠️ Using Local Fallback (Standard Client)");
+  return new PrismaClient({
+    datasources: {
+      db: {
+        url: "file:./dev.db"
+      }
+    }
+  });
 }
 
 export const prisma = globalForPrisma.prisma || makePrismaClient()
