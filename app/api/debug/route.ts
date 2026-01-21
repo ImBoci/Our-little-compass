@@ -11,7 +11,8 @@ export async function GET() {
     nodeEnv: process.env.NODE_ENV,
     connectionTest: "Pending",
     error: null as any,
-    counts: { foods: -1 }
+    counts: { foods: -1 },
+    prismaInitError: (globalThis as any)._prismaInitError || null
   };
 
   try {
