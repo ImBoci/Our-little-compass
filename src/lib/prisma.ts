@@ -22,8 +22,8 @@ const makePrismaClient = () => {
       url: url!,
       authToken: authToken,
     });
-    const adapter = new PrismaLibSql(tursoClient);
-    return new PrismaClient({ adapter });
+    const adapter = new PrismaLibSql(tursoClient as any);
+    return new PrismaClient({ adapter: adapter as any });
   } else {
     // 3. Fallback to Local File
     console.log("⚠️ No LibSQL URL found. Using standard SQLite file.");
