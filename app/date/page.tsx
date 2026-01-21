@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { getRandomActivity, addActivity } from "@/app/activity-actions";
+// import { getRandomActivity, addActivity } from "@/app/activity-actions";
 import type { Activity, ActivityInsert } from "@/app/actions";
 import { Heart, Loader2, Sparkles, ArrowLeft, MapPin } from "lucide-react";
 import { toast } from "sonner";
@@ -32,13 +32,14 @@ export default function DatePage() {
 
   const handleSpinComplete = useCallback(async () => {
     try {
-      const activity = await getRandomActivity();
-      if (activity) {
-        setSelectedActivity(activity);
-        toast.success(`Your activity: ${activity.name}!`);
-      } else {
-        toast.error("No activities available. Add some activities first!");
-      }
+      // Temporarily disabled
+      // const activity = await getRandomActivity();
+      // if (activity) {
+      //   setSelectedActivity(activity);
+      //   toast.success(`Your activity: ${activity.name}!`);
+      // } else {
+        toast.error("Activities temporarily disabled");
+      // }
     } catch (error) {
       toast.error("Failed to get random activity");
     } finally {
@@ -65,8 +66,8 @@ export default function DatePage() {
 
     setIsSubmitting(true);
     try {
-      await addActivity(formData);
-      toast.success("Activity added successfully!");
+      // await addActivity(formData);
+      toast.success("Activity addition temporarily disabled");
       setFormData({ name: '', location: '', type: '', description: '' });
       setShowAddForm(false);
     } catch (error) {

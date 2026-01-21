@@ -4,7 +4,7 @@ import { useState, useCallback } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { FoodSpinner } from "@/components/FoodSpinner";
-import { getFoods, getRandomFood } from "@/app/food-actions";
+// import { getFoods, getRandomFood } from "@/app/food-actions";
 import type { Food } from "@/app/actions";
 import { Dices, LayoutDashboard, Loader2, UtensilsCrossed, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
@@ -19,8 +19,9 @@ export default function CookPage() {
   useEffect(() => {
     const loadFoods = async () => {
       try {
-        const foodsData = await getFoods();
-        setFoods(foodsData);
+        // const foodsData = await getFoods();
+        // setFoods(foodsData);
+        toast.error("Food loading temporarily disabled");
       } catch (error) {
         toast.error("Failed to load foods");
       } finally {
