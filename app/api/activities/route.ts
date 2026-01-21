@@ -33,15 +33,13 @@ export async function DELETE(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("id");
-    if (id) {
-       // Handle Number vs String ID safely
-       const numId = Number(id);
-       if (!isNaN(numId)) {
-         await prisma.activity.delete({ where: { id: numId } });
-       } else {
-         await prisma.activity.delete({ where: { id } });
-       }
-    }
+    if (!id) return NextResponse.json({ error: "ID missing" }, { status: 400 });
+
+    // Convert to number and validate
+    const numId = Number(id);
+    if (isNaN(numId)) return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
+
+    await prisma.activity.delete({ where: { id: numId } });
     return NextResponse.json({ success: true });
   } catch (error) {
     return NextResponse.json({ error: "Failed" }, { status: 500 });
