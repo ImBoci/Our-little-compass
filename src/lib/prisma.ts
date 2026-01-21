@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client'
 import { PrismaLibSql } from '@prisma/adapter-libsql'
-import { createClient } from '@libsql/client/web'
+import { createClient } from '@libsql/client/http' // <--- HTTP CLIENT
 
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient }
 
@@ -8,7 +8,7 @@ const makePrismaClient = () => {
   let url = process.env.TURSO_DATABASE_URL || process.env.DATABASE_URL;
   const authToken = process.env.TURSO_AUTH_TOKEN;
 
-  // FIX: The web client works best with https://
+  // Ensure URL uses https:// for the HTTP client
   if (url?.startsWith("libsql://")) {
     url = url.replace("libsql://", "https://");
   }
@@ -17,7 +17,7 @@ const makePrismaClient = () => {
 
   if (isTurso) {
     try {
-      console.log("🔌 Connecting to Turso via HTTPS...");
+      console.log("🔌 Connecting to Turso via HTTP Client...");
       const tursoClient = createClient({
         url: url!,
         authToken: authToken,
