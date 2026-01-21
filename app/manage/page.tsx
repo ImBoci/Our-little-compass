@@ -26,6 +26,7 @@ export default function ManagePage() {
   const [foods, setFoods] = useState<Food[]>([])
   const [activities, setActivities] = useState<Activity[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   // Fetch data on component mount
   useEffect(() => {
@@ -37,22 +38,31 @@ export default function ManagePage() {
   const fetchData = async () => {
     try {
       setLoading(true)
+      setError(null)
+
       const [foodsRes, activitiesRes] = await Promise.all([
         fetch('/api/food'),
         fetch('/api/activity')
       ])
 
-      if (foodsRes.ok) {
-        const foodsData = await foodsRes.json()
-        setFoods(foodsData)
+      if (!foodsRes.ok) {
+        throw new Error(`Failed to fetch foods: ${foodsRes.status} ${foodsRes.statusText}`)
       }
 
-      if (activitiesRes.ok) {
-        const activitiesData = await activitiesRes.json()
-        setActivities(activitiesData)
+      if (!activitiesRes.ok) {
+        throw new Error(`Failed to fetch activities: ${activitiesRes.status} ${activitiesRes.statusText}`)
       }
+
+      const [foodsData, activitiesData] = await Promise.all([
+        foodsRes.json(),
+        activitiesRes.json()
+      ])
+
+      setFoods(foodsData)
+      setActivities(activitiesData)
     } catch (error) {
       console.error('Failed to fetch data:', error)
+      setError(error instanceof Error ? error.message : 'An unknown error occurred')
     } finally {
       setLoading(false)
     }
@@ -78,11 +88,14 @@ export default function ManagePage() {
         const newFood = await response.json()
         setFoods(prev => [newFood, ...prev])
         e.currentTarget.reset()
+        setError(null) // Clear any previous errors
       } else {
-        console.error('Failed to add food')
+        const errorText = await response.text()
+        setError(`Failed to add food: ${response.status} ${response.statusText} - ${errorText}`)
       }
     } catch (error) {
       console.error('Error adding food:', error)
+      setError(error instanceof Error ? `Error adding food: ${error.message}` : 'Unknown error adding food')
     }
   }
 
@@ -94,11 +107,14 @@ export default function ManagePage() {
 
       if (response.ok) {
         setFoods(prev => prev.filter(f => f.id !== id))
+        setError(null) // Clear any previous errors
       } else {
-        console.error('Failed to delete food')
+        const errorText = await response.text()
+        setError(`Failed to delete food: ${response.status} ${response.statusText} - ${errorText}`)
       }
     } catch (error) {
       console.error('Error deleting food:', error)
+      setError(error instanceof Error ? `Error deleting food: ${error.message}` : 'Unknown error deleting food')
     }
   }
 
@@ -123,11 +139,14 @@ export default function ManagePage() {
         const newActivity = await response.json()
         setActivities(prev => [newActivity, ...prev])
         e.currentTarget.reset()
+        setError(null) // Clear any previous errors
       } else {
-        console.error('Failed to add activity')
+        const errorText = await response.text()
+        setError(`Failed to add activity: ${response.status} ${response.statusText} - ${errorText}`)
       }
     } catch (error) {
       console.error('Error adding activity:', error)
+      setError(error instanceof Error ? `Error adding activity: ${error.message}` : 'Unknown error adding activity')
     }
   }
 
@@ -139,11 +158,14 @@ export default function ManagePage() {
 
       if (response.ok) {
         setActivities(prev => prev.filter(a => a.id !== id))
+        setError(null) // Clear any previous errors
       } else {
-        console.error('Failed to delete activity')
+        const errorText = await response.text()
+        setError(`Failed to delete activity: ${response.status} ${response.statusText} - ${errorText}`)
       }
     } catch (error) {
       console.error('Error deleting activity:', error)
+      setError(error instanceof Error ? `Error deleting activity: ${error.message}` : 'Unknown error deleting activity')
     }
   }
 
@@ -172,6 +194,19 @@ export default function ManagePage() {
           Log Out
         </button>
       </div>
+
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
+          <strong className="font-bold">Error:</strong>
+          <span className="block sm:inline ml-2">{error}</span>
+          <button
+            onClick={fetchData}
+            className="ml-4 bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700"
+          >
+            Retry
+          </button>
+        </div>
+      )}
 
       {loading && <div className="text-center">Loading data...</div>}
 
