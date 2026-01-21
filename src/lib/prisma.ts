@@ -7,11 +7,16 @@ const globalForPrisma = globalThis as unknown as {
 }
 
 function createPrismaClient() {
+  console.log("🔌 Initializing Prisma Client...")
+  console.log("Checking Turso URL:", process.env.TURSO_DATABASE_URL ? "Exists" : "Missing")
+  console.log("Checking Turso Token:", process.env.TURSO_AUTH_TOKEN ? "Exists" : "Missing")
+
   // Check if we're using Turso (production) and have all required env vars
   const tursoUrl = process.env.TURSO_DATABASE_URL
   const tursoAuthToken = process.env.TURSO_AUTH_TOKEN
 
   if (tursoUrl && tursoAuthToken) {
+    console.log("✅ Using Turso (LibSQL) Adapter")
     try {
       // Production: Use LibSQL adapter for Turso
       const tursoClient = createClient({
@@ -25,6 +30,7 @@ function createPrismaClient() {
       return new PrismaClient()
     }
   } else {
+    console.log("⚠️ Using Local SQLite Fallback (This will be empty on Vercel)")
     // Local Development or Build Time: Use standard PrismaClient
     return new PrismaClient()
   }
