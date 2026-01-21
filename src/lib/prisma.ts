@@ -18,8 +18,8 @@ const makePrismaClient = () => {
         url: url!,
         authToken: authToken,
       });
-      const adapter = new PrismaLibSql(tursoClient);
-      return new PrismaClient({ adapter });
+      const adapter = new PrismaLibSql(tursoClient as any);
+      return new PrismaClient({ adapter: adapter as any });
     } catch (error) {
       console.error("❌ Turso Init Failed:", error);
       (globalThis as any)._prismaInitError = error;
