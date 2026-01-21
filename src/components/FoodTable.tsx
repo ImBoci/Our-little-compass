@@ -1,4 +1,4 @@
-import { Food } from "@/app/actions";
+import type { Food } from "@/app/actions";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -9,16 +9,15 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Pencil, Trash2, UtensilsCrossed } from "lucide-react";
+import { Pencil, UtensilsCrossed } from "lucide-react";
+import { DeleteFoodButton } from "./DeleteFoodButton";
 
 interface FoodTableProps {
   foods: Food[];
   onEdit: (food: Food) => void;
-  onDelete: (food: Food) => void;
-  isDeleting?: boolean;
 }
 
-export const FoodTable = ({ foods, onEdit, onDelete, isDeleting }: FoodTableProps) => {
+export const FoodTable = ({ foods, onEdit }: FoodTableProps) => {
   if (foods.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
@@ -73,15 +72,7 @@ export const FoodTable = ({ foods, onEdit, onDelete, isDeleting }: FoodTableProp
                   >
                     <Pencil className="h-4 w-4" />
                   </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => onDelete(food)}
-                    disabled={isDeleting}
-                    className="h-8 w-8 text-destructive hover:text-destructive"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  <DeleteFoodButton foodId={food.id} />
                 </div>
               </TableCell>
             </TableRow>

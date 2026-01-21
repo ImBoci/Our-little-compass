@@ -1,5 +1,5 @@
 import { getServerAuthSession } from "@/lib/auth"
-import { getFoods } from "@/app/actions"
+import { getFoods } from "@/app/food-actions"
 import { UnauthorizedMessage } from "@/components/UnauthorizedMessage"
 import { ManageDashboard } from "./ManageDashboard"
 

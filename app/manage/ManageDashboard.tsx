@@ -5,24 +5,9 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { FoodTable } from "@/components/FoodTable";
 import { FoodForm } from "@/components/FoodForm";
-import {
-  addFood,
-  updateFood,
-  deleteFood,
-  getFoods,
-  Food,
-  FoodInsert,
-} from "@/app/actions";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { getFoods, addFood, updateFood } from "@/app/food-actions";
+import type { Food, FoodInsert } from "@/app/actions";
+import { useRouter } from "next/navigation";
 import { ArrowLeft, Loader2, Plus, UtensilsCrossed, LogOut } from "lucide-react";
 import { toast } from "sonner";
 import { signOut } from "next-auth/react";
@@ -36,8 +21,6 @@ export function ManageDashboard({ initialFoods }: ManageDashboardProps) {
 
   const [formOpen, setFormOpen] = useState(false);
   const [editingFood, setEditingFood] = useState<Food | null>(null);
-  const [deletingFood, setDeletingFood] = useState<Food | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleAdd = () => {
     setEditingFood(null);
@@ -71,22 +54,6 @@ export function ManageDashboard({ initialFoods }: ManageDashboardProps) {
     }
   };
 
-  const handleDelete = async () => {
-    if (!deletingFood) return;
-    setIsDeleting(true);
-    try {
-      await deleteFood(deletingFood.id);
-      toast.success("Food deleted successfully!");
-      // Refresh foods
-      const updatedFoods = await getFoods();
-      setFoods(updatedFoods);
-      setDeletingFood(null);
-    } catch (err) {
-      toast.error("Failed to delete food. Please try again.");
-    } finally {
-      setIsDeleting(false);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -132,8 +99,6 @@ export function ManageDashboard({ initialFoods }: ManageDashboardProps) {
         <FoodTable
           foods={foods}
           onEdit={handleEdit}
-          onDelete={setDeletingFood}
-          isDeleting={isDeleting}
         />
       </main>
 
@@ -146,30 +111,6 @@ export function ManageDashboard({ initialFoods }: ManageDashboardProps) {
         isLoading={false}
       />
 
-      {/* Delete Confirmation */}
-      <AlertDialog
-        open={!!deletingFood}
-        onOpenChange={(open) => !open && setDeletingFood(null)}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete "{deletingFood?.name}"?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete this food
-              from the database.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              {isDeleting ? "Deleting..." : "Delete"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }

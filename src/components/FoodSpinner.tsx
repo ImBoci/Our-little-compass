@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Food } from "@/app/actions";
+import type { Food } from "@/app/actions";
 import { UtensilsCrossed } from "lucide-react";
 
 interface FoodSpinnerProps {
