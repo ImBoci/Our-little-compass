@@ -26,8 +26,9 @@ async function deleteActivityAction(formData: FormData) {
 async function addFoodAction(formData: FormData) {
   "use server";
   const name = formData.get("name") as string;
-  const description = formData.get("description") as string;
-  await prisma.food.create({ data: { name, description } });
+  const description = formData.get("description") as string || null;
+  const category = formData.get("category") as string || "Other";
+  await prisma.food.create({ data: { name, description, category } });
   revalidatePath("/manage");
 }
 
@@ -79,6 +80,7 @@ export default async function ManagePage() {
         <form action={addFoodAction} className="mb-6 flex gap-2 flex-wrap">
           <input name="name" placeholder="Food Name" required className="border p-2 rounded flex-1" />
           <input name="description" placeholder="Description" className="border p-2 rounded flex-1" />
+          <input name="category" placeholder="Category" defaultValue="Other" className="border p-2 rounded w-32" />
           <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Add</button>
         </form>
 
