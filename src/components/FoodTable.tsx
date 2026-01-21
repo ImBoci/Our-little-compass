@@ -10,7 +10,6 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Pencil, UtensilsCrossed } from "lucide-react";
-import { DeleteFoodButton } from "./DeleteFoodButton";
 
 interface FoodTableProps {
   foods: Food[];
@@ -72,7 +71,7 @@ export const FoodTable = ({ foods, onEdit }: FoodTableProps) => {
                   >
                     <Pencil className="h-4 w-4" />
                   </Button>
-                  <DeleteFoodButton foodId={food.id} />
+                  <button disabled className="text-gray-400">Delete</button>
                 </div>
               </TableCell>
             </TableRow>
