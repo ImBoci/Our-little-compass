@@ -42,7 +42,7 @@ export default function ManagePage() {
 
       const [foodsRes, activitiesRes] = await Promise.all([
         fetch('/api/food'),
-        fetch('/api/activity')
+        fetch('/api/activities')
       ])
 
       if (!foodsRes.ok) {
@@ -129,7 +129,7 @@ export default function ManagePage() {
     }
 
     try {
-      const response = await fetch('/api/activity', {
+      const response = await fetch('/api/activities', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
@@ -152,7 +152,7 @@ export default function ManagePage() {
 
   const handleDeleteActivity = async (id: number) => {
     try {
-      const response = await fetch(`/api/activity?id=${id}`, {
+      const response = await fetch(`/api/activities?id=${id}`, {
         method: 'DELETE'
       })
 

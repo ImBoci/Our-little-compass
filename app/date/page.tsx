@@ -32,7 +32,7 @@ export default function DatePage() {
     const loadActivities = async () => {
       try {
         setIsLoading(true);
-        const response = await fetch('/api/activity');
+        const response = await fetch('/api/activities');
         if (response.ok) {
           const activitiesData = await response.json();
           setActivities(activitiesData);
@@ -89,7 +89,7 @@ export default function DatePage() {
 
     setIsSubmitting(true);
     try {
-      const response = await fetch('/api/activity', {
+      const response = await fetch('/api/activities', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
