@@ -73,9 +73,16 @@ export default function DatePage() {
             </div>
 
             {randomActivity.location && (
-              <div className="flex items-center gap-2 text-slate-600 font-medium bg-white/40 px-4 py-2 rounded-full">
-                <MapPin size={18} /> {randomActivity.location}
-              </div>
+              <a
+                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(randomActivity.location)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 text-slate-600 font-medium bg-white/40 px-4 py-2 rounded-full transition-all duration-300 hover:bg-white/70 hover:text-purple-700 hover:scale-105 hover:shadow-sm cursor-pointer"
+                title="Open in Google Maps"
+              >
+                <MapPin size={18} />
+                <span>{randomActivity.location}</span>
+              </a>
             )}
 
             {randomActivity.description && (
