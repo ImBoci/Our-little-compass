@@ -12,7 +12,7 @@ body {
   margin: 0;
   padding: 0;
   min-height: 100vh;
-  background: linear-gradient(135deg, #ffd5e3 0%, #ddddf8 50%, #dcf9fd 100%);
+  background: linear-gradient(135deg, #fdc2d6 0%, #cbcbff 50%, #caf4fa 100%);
   background-attachment: fixed; /* Keeps gradient in place when scrolling */
   color: #4a4a4a;
 }
