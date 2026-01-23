@@ -184,7 +184,14 @@ export default function ManagePage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-8">
+    <div
+      className="max-w-4xl mx-auto p-8 space-y-8"
+      style={{
+        background: "rgba(255, 255, 255, 0.4)",
+        backdropFilter: "blur(20px)",
+        WebkitBackdropFilter: "blur(20px)"
+      }}
+    >
       <div className="flex justify-between items-center">
         <div>
           <Link href="/" className="text-gray-500 hover:text-black text-sm mb-2 block">
@@ -224,12 +231,12 @@ export default function ManagePage() {
             name="name"
             placeholder="Name"
             required
-            className="border p-2 rounded flex-1"
+            className="border p-2 rounded flex-1 bg-white/60"
           />
           <input
             name="description"
             placeholder="Description"
-            className="border p-2 rounded flex-1"
+            className="border p-2 rounded flex-1 bg-white/60"
           />
           <input
             name="category"
@@ -272,12 +279,12 @@ export default function ManagePage() {
             name="name"
             placeholder="Name"
             required
-            className="border p-2 rounded flex-1"
+            className="border p-2 rounded flex-1 bg-white/60"
           />
           <input
             name="location"
             placeholder="Location"
-            className="border p-2 rounded flex-1"
+            className="border p-2 rounded flex-1 bg-white/60"
           />
           <input
             name="type"

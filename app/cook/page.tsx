@@ -1,123 +1,81 @@
 "use client";
-
 import { useState, useEffect } from "react";
+import { UtensilsCrossed, Shuffle, ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { Shuffle, Sparkles, Loader2 } from "lucide-react";
-
-interface Food {
-  id: string;
-  name: string;
-  description: string | null;
-  category: string;
-  created_at: string;
-  updated_at: string;
-}
 
 export default function CookPage() {
-  const [foods, setFoods] = useState<Food[]>([]);
-  const [randomFood, setRandomFood] = useState<Food | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSpinning, setIsSpinning] = useState(false);
+  const [foods, setFoods] = useState<any[]>([]);
+  const [randomFood, setRandomFood] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadFoods = async () => {
-      try {
-        const response = await fetch("/api/food");
-        if (response.ok) {
-          const foodsData = await response.json();
-          setFoods(foodsData);
-          if (foodsData.length > 0) {
-            const randomIndex = Math.floor(Math.random() * foodsData.length);
-            setRandomFood(foodsData[randomIndex]);
-          }
-        }
-      } catch (error) {
-        console.error("Failed to load foods:", error);
-      } finally {
-        setIsLoading(false);
+    fetch("/api/food").then(res => res.json()).then(data => {
+      if (Array.isArray(data)) {
+        setFoods(data);
+        if (data.length > 0) setRandomFood(data[Math.floor(Math.random() * data.length)]);
       }
-    };
-    loadFoods();
+      setLoading(false);
+    }).catch(() => setLoading(false));
   }, []);
 
-  const pickRandomFood = () => {
-    if (foods.length === 0) return;
-
-    setIsSpinning(true);
-    setTimeout(() => {
-      const randomIndex = Math.floor(Math.random() * foods.length);
-      setRandomFood(foods[randomIndex]);
-      setIsSpinning(false);
-    }, 1500);
+  const handleShuffle = () => {
+    if (foods.length > 0) {
+      let newFood;
+      do {
+        newFood = foods[Math.floor(Math.random() * foods.length)];
+      } while (foods.length > 1 && newFood === randomFood); // Avoid same result twice
+      setRandomFood(newFood);
+    }
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen">
-        <Loader2 className="w-8 h-8 animate-spin text-rose-600" />
-      </div>
-    );
-  }
+  if (loading) return <div className="flex min-h-screen items-center justify-center text-rose-800 animate-pulse">Loading Menu...</div>;
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-4 text-center">
-      <h1 className="font-serif text-4xl md:text-5xl text-slate-800 mb-2 tracking-tight">
-        What should I cook?
-      </h1>
-      <p className="font-sans text-lg text-slate-600 mb-8 italic">
-        Let fate decide your next meal
-      </p>
+    <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-transparent">
+      <Link href="/" className="absolute top-8 left-8 text-slate-600 hover:text-rose-600 transition flex items-center gap-2 font-medium">
+        <ArrowLeft size={20} /> Back Home
+      </Link>
 
-      {randomFood && (
-        <div className="bg-white/60 backdrop-blur-md border-2 border-white/50 rounded-3xl p-8 shadow-xl max-w-md w-full text-center">
-          <div className="mb-6">
-            <Sparkles className="w-12 h-12 text-rose-400 mx-auto mb-4" />
-            <h2 className="font-serif text-3xl font-bold text-slate-800 mb-2">
+      <div className="mb-8 text-center">
+        <div className="inline-block p-4 rounded-full bg-rose-100/80 text-rose-600 mb-4 shadow-lg">
+          <UtensilsCrossed size={48} />
+        </div>
+        <h1 className="font-serif text-4xl text-slate-800 font-bold drop-shadow-sm">Tonight's Menu</h1>
+      </div>
+
+      {/* Glass Card */}
+      <div
+        className="w-full max-w-md p-10 rounded-3xl border-2 border-white/40 text-center relative transition-all duration-500"
+        style={{
+          background: "rgba(255, 255, 255, 0.25)",
+          backdropFilter: "blur(16px)",
+          WebkitBackdropFilter: "blur(16px)",
+          boxShadow: "0 0 40px rgba(244, 63, 94, 0.2)"
+        }}
+      >
+        {randomFood ? (
+          <div className="space-y-6 animate-in fade-in zoom-in duration-500">
+            <h2 className="font-serif text-4xl font-bold text-slate-900 leading-tight">
               {randomFood.name}
             </h2>
-            <span className="inline-block bg-rose-100 text-rose-700 text-sm px-3 py-1 rounded-full mb-4">
-              {randomFood.category}
-            </span>
             {randomFood.description && (
-              <p className="text-slate-600 italic text-lg">
-                {randomFood.description}
+              <p className="text-xl text-slate-700 font-light italic">
+                "{randomFood.description}"
               </p>
             )}
           </div>
-        </div>
-      )}
+        ) : (
+          <div className="text-slate-600">No foods found! Go add some.</div>
+        )}
+      </div>
 
       <button
-        onClick={pickRandomFood}
-        disabled={isSpinning || foods.length === 0}
-        className="bg-rose-500 hover:bg-rose-600 disabled:bg-rose-300 text-white px-8 py-4 rounded-full text-lg font-medium transition-all duration-300 flex items-center gap-3 mx-auto mt-8 disabled:cursor-not-allowed"
+        onClick={handleShuffle}
+        className="mt-12 group relative inline-flex items-center gap-3 bg-rose-500 text-white px-8 py-4 rounded-full font-bold text-lg transition-all duration-300 hover:scale-105 hover:bg-rose-600 hover:shadow-[0_0_30px_#f43f5e]"
       >
-        {isSpinning ? (
-          <>
-            <Loader2 className="w-5 h-5 animate-spin" />
-            Picking your meal...
-          </>
-        ) : (
-          <>
-            <Shuffle className="w-5 h-5" />
-            Shuffle Food
-          </>
-        )}
+        <Shuffle className="group-hover:rotate-180 transition-transform duration-500" />
+        Shuffle Again
       </button>
-
-      {foods.length === 0 && (
-        <p className="mt-6 text-slate-600">
-          No foods available.{" "}
-          <Link href="/manage" className="text-rose-600 hover:underline">
-            Add some foods
-          </Link>{" "}
-          first.
-        </p>
-      )}
-
-      <Link href="/" className="mt-12 text-slate-500 hover:text-slate-700 text-sm">
-        ← Back to Home
-      </Link>
     </div>
   );
 }
