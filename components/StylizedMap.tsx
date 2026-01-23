@@ -1,197 +1,144 @@
 "use client";
+import { useState, useEffect } from "react";
+import { MapPin, Heart, ArrowLeft, Navigation } from "lucide-react";
+import { useRouter } from "next/navigation";
 
-import { useState } from "react";
-import { Heart, MapPin, ArrowLeft } from "lucide-react";
-
-interface Activity {
-  id: number;
-  name: string;
-  location: string | null;
-  type: string | null;
-  description: string | null;
-}
-
-interface StylizedMapProps {
-  activities: Activity[];
-}
-
-// Simple hash function to generate deterministic positions based on activity name
-const hashString = (str: string): number => {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash; // Convert to 32bit integer
-  }
-  return Math.abs(hash);
-};
-
-// Generate deterministic position percentages for Budapest view
-const getDeterministicPosition = (activityName: string) => {
-  const hash = hashString(activityName);
-  const topPercent = 10 + (hash % 70); // 10-80% to avoid edges
-  const leftPercent = 10 + ((hash >> 8) % 70); // 10-80% to avoid edges
-  return { top: `${topPercent}%`, left: `${leftPercent}%` };
-};
-
-export default function StylizedMap({ activities }: StylizedMapProps) {
+export default function StylizedMap() {
   const [view, setView] = useState<'country' | 'city'>('country');
-  const [hoveredActivity, setHoveredActivity] = useState<Activity | null>(null);
+  const [activities, setActivities] = useState<any[]>([]);
+  const router = useRouter();
 
-  // Filter activities
-  const budapestActivities = activities.filter(activity =>
-    activity.location?.toLowerCase().includes('budapest')
-  );
-  const countrysideActivities = activities.filter(activity =>
-    !activity.location?.toLowerCase().includes('budapest')
-  );
+  useEffect(() => {
+    fetch("/api/activities").then(r => r.json()).then(data => {
+      if(Array.isArray(data)) setActivities(data);
+    });
+  }, []);
 
-  // Simplified Hungary outline path (stylized, not geographically accurate)
-  const hungaryPath = "M 50 10 C 30 10, 20 20, 15 35 C 10 50, 15 65, 25 75 C 35 85, 45 80, 55 75 C 65 70, 75 65, 80 55 C 85 45, 80 35, 75 25 C 70 15, 60 10, 50 10 Z";
-
-  // Danube River path for Budapest view
-  const danubePath = "M 10 45 Q 25 40, 40 50 Q 55 60, 70 55 Q 85 50, 90 45";
-
-  const handleActivityClick = (activity: Activity) => {
-    if (activity.location) {
-      const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(activity.location)}`;
-      window.open(googleMapsUrl, '_blank');
-    }
+  // Deterministic hash for position (0% to 100%)
+  const getPos = (str: string) => {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    const x = Math.abs(Math.sin(hash) * 10000) % 80 + 10; // Keep within 10-90%
+    const y = Math.abs(Math.cos(hash) * 10000) % 80 + 10;
+    return { x, y };
   };
 
+  const budapestActs = activities.filter(a => a.location.includes("Budapest") || a.location.includes("Bp"));
+  const countryActs = activities.filter(a => !a.location.includes("Budapest") && !a.location.includes("Bp"));
+
   return (
-    <div className="relative w-full h-96 bg-gradient-to-br from-rose-50 to-purple-50 rounded-2xl overflow-hidden shadow-xl">
-      {/* Tooltip */}
-      {hoveredActivity && (
-        <div className="absolute top-2 left-2 bg-slate-800 text-white px-3 py-2 rounded-lg text-sm z-10 shadow-lg">
-          {hoveredActivity.name}
-        </div>
-      )}
+    <div className="flex flex-col h-full w-full items-center">
+      <div className="flex w-full justify-between items-center mb-4 px-4">
+         <button onClick={() => router.push('/date')} className="flex items-center gap-2 text-slate-600 hover:text-purple-600 font-medium transition">
+            <ArrowLeft size={20} /> List
+         </button>
+         <h2 className="font-serif text-2xl text-slate-800 font-bold">
+            {view === 'country' ? 'Hungary' : 'Budapest'}
+         </h2>
+         <div className="w-20" /> {/* Spacer */}
+      </div>
 
-      {/* Back Button for City View */}
-      {view === 'city' && (
-        <button
-          onClick={() => setView('country')}
-          className="absolute top-4 left-4 z-10 bg-white/80 hover:bg-white/90 text-slate-700 hover:text-slate-900 px-3 py-2 rounded-full shadow-lg transition-all duration-300 flex items-center gap-2"
-        >
-          <ArrowLeft size={16} />
-          <span className="text-sm font-medium">Back to Country</span>
-        </button>
-      )}
+      <div className="relative w-full max-w-2xl aspect-[4/3] bg-white/40 backdrop-blur-md border-2 border-white/50 rounded-3xl shadow-xl overflow-hidden p-4 transition-all duration-500">
 
-      <svg
-        viewBox="0 0 100 90"
-        className="w-full h-full"
-        style={{ filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.1))' }}
-      >
-        {view === 'country' ? (
-          /* Country View - Hungary */
-          <>
-            {/* Hungary Shape */}
-            <path
-              d={hungaryPath}
-              fill="rgba(255, 255, 255, 0.4)"
-              stroke="#fb7185"
-              strokeWidth="0.8"
-              className="transition-all duration-300"
-            />
-
-            {/* Countryside Markers */}
-            {countrysideActivities.map((activity, index) => {
-              const hash = hashString(activity.name + index);
-              const x = 20 + (hash % 60); // Scatter across Hungary area
-              const y = 20 + ((hash >> 8) % 50);
-
-              return (
-                <circle
-                  key={activity.id}
-                  cx={x}
-                  cy={y}
-                  r="1.5"
-                  fill="#a855f7"
-                  className="cursor-pointer hover:r-2 transition-all duration-300 opacity-70 hover:opacity-100"
-                  onMouseEnter={() => setHoveredActivity(activity)}
-                  onMouseLeave={() => setHoveredActivity(null)}
-                  onClick={() => handleActivityClick(activity)}
-                />
-              );
-            })}
-
-            {/* Budapest Heart Button */}
-            <g
-              className="cursor-pointer animate-pulse hover:animate-none"
-              onClick={() => setView('city')}
-              onMouseEnter={() => setHoveredActivity({ id: -1, name: 'Budapest - Click to explore!', location: null, type: null, description: null })}
-              onMouseLeave={() => setHoveredActivity(null)}
-            >
-              <Heart
-                size={20}
-                fill="#ec4899"
-                className="text-rose-500 hover:text-rose-600 hover:scale-110 transition-all duration-300"
-                style={{
-                  position: 'absolute',
-                  top: '35%',
-                  left: '52%',
-                  transform: 'translate(-50%, -50%)',
-                }}
+        {/* --- HUNGARY VIEW --- */}
+        {view === 'country' && (
+          <div className="w-full h-full relative animate-in fade-in zoom-in duration-500">
+            <svg viewBox="0 0 300 200" className="w-full h-full drop-shadow-lg">
+              {/* Simplified Hungary Shape */}
+              <path
+                d="M 20,80 Q 40,40 90,30 L 160,20 Q 240,10 270,50 Q 290,90 260,130 L 220,160 Q 180,180 120,170 Q 50,160 30,120 Z"
+                fill="rgba(255,255,255,0.8)"
+                stroke="#fb7185"
+                strokeWidth="2"
+                className="hover:fill-rose-50 transition-colors duration-500"
               />
-            </g>
-          </>
-        ) : (
-          /* City View - Budapest */
-          <>
-            {/* Budapest Rectangle */}
-            <rect
-              x="5"
-              y="10"
-              width="90"
-              height="70"
-              fill="rgba(255, 255, 255, 0.6)"
-              stroke="#8b5cf6"
-              strokeWidth="1"
-              rx="8"
-              className="transition-all duration-300"
-            />
+            </svg>
 
-            {/* Danube River */}
-            <path
-              d={danubePath}
-              stroke="#3b82f6"
-              strokeWidth="2"
-              fill="none"
-              strokeLinecap="round"
-              className="opacity-60"
-            />
+            {/* Budapest Heart Trigger */}
+            <button
+              onClick={() => setView('city')}
+              className="absolute top-[35%] left-[55%] -translate-x-1/2 -translate-y-1/2 group z-10"
+            >
+              <div className="relative">
+                <div className="absolute inset-0 bg-rose-400 rounded-full animate-ping opacity-75"></div>
+                <div className="bg-gradient-to-br from-rose-400 to-rose-600 p-3 rounded-full shadow-lg hover:scale-110 transition-transform cursor-pointer border-2 border-white">
+                  <Heart fill="white" size={24} className="text-white" />
+                </div>
+                <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-white/90 px-2 py-0.5 rounded text-xs font-bold text-rose-600 whitespace-nowrap shadow-sm">
+                  Click to Zoom
+                </span>
+              </div>
+            </button>
 
-            {/* Activity Pins */}
-            {budapestActivities.map((activity) => {
-              const position = getDeterministicPosition(activity.name);
-
+            {/* Countryside Pins */}
+            {countryActs.map(a => {
+              const pos = getPos(a.name);
               return (
-                <g
-                  key={activity.id}
-                  className="cursor-pointer"
-                  onMouseEnter={() => setHoveredActivity(activity)}
-                  onMouseLeave={() => setHoveredActivity(null)}
-                  onClick={() => handleActivityClick(activity)}
-                  style={{
-                    position: 'absolute',
-                    top: position.top,
-                    left: position.left,
-                    transform: 'translate(-50%, -50%)',
-                  }}
+                <a
+                  key={a.id}
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(a.location)}`}
+                  target="_blank"
+                  className="absolute group"
+                  style={{ top: `${pos.y}%`, left: `${pos.x}%` }}
                 >
-                  <MapPin
-                    size={16}
-                    fill="#ec4899"
-                    className="text-rose-600 hover:text-rose-700 hover:scale-110 transition-all duration-300"
-                  />
-                </g>
-              );
+                  <MapPin size={20} className="text-purple-600 drop-shadow-md hover:scale-125 transition-transform" />
+                </a>
+              )
             })}
-          </>
+          </div>
         )}
-      </svg>
+
+        {/* --- BUDAPEST VIEW --- */}
+        {view === 'city' && (
+          <div className="w-full h-full relative bg-[#fdf6e3]/50 rounded-2xl overflow-hidden animate-in fade-in zoom-in duration-500">
+            <button
+              onClick={() => setView('country')}
+              className="absolute top-4 left-4 z-20 bg-white/80 px-3 py-1 rounded-full text-sm font-bold text-slate-600 hover:bg-white shadow-sm flex items-center gap-1"
+            >
+              <ArrowLeft size={14} /> Zoom Out
+            </button>
+
+            {/* River Danube */}
+            <svg viewBox="0 0 300 200" className="absolute inset-0 w-full h-full opacity-50 pointer-events-none">
+              <path
+                d="M 140,0 C 140,50 180,80 160,120 C 140,160 150,180 150,200"
+                fill="none"
+                stroke="#60a5fa"
+                strokeWidth="15"
+                strokeLinecap="round"
+              />
+            </svg>
+
+            {/* Labels */}
+            <div className="absolute top-1/2 left-[20%] text-6xl font-serif text-slate-900/5 -rotate-12 pointer-events-none">Buda</div>
+            <div className="absolute top-1/2 right-[20%] text-6xl font-serif text-slate-900/5 -rotate-12 pointer-events-none">Pest</div>
+
+            {/* City Pins */}
+            {budapestActs.map(a => {
+              const pos = getPos(a.name);
+              return (
+                <a
+                  key={a.id}
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(a.location)}`}
+                  target="_blank"
+                  className="absolute group z-10"
+                  style={{ top: `${pos.y}%`, left: `${pos.x}%` }}
+                >
+                  <div className="relative flex flex-col items-center">
+                    <MapPin size={24} fill="#a855f7" className="text-purple-700 drop-shadow-md hover:scale-125 transition-transform" />
+                    <span className="opacity-0 group-hover:opacity-100 transition-opacity absolute bottom-full mb-1 bg-white/90 px-2 py-1 rounded text-xs font-bold text-slate-700 whitespace-nowrap shadow-sm pointer-events-none">
+                      {a.name}
+                    </span>
+                  </div>
+                </a>
+              )
+            })}
+          </div>
+        )}
+      </div>
+      <p className="mt-4 text-slate-500 text-sm italic">
+        {view === 'country' ? 'Tap the heart to explore Budapest' : 'Locations are approximate artistic representations'}
+      </p>
     </div>
   );
 }
