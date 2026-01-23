@@ -1,19 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import dynamic from "next/dynamic";
 import Link from "next/link";
 import { ArrowLeft, MapPin } from "lucide-react";
-
-// Dynamically import the map component to avoid SSR issues
-const MapComponent = dynamic(() => import("@/components/MapComponent"), {
-  ssr: false,
-  loading: () => (
-    <div className="flex items-center justify-center h-96">
-      <div className="text-slate-600 animate-pulse">Loading map...</div>
-    </div>
-  ),
-});
+import StylizedMap from "@/components/StylizedMap";
 
 interface Activity {
   id: number;
@@ -84,7 +74,7 @@ export default function MapPage() {
           boxShadow: "0 0 40px rgba(168, 85, 247, 0.2)"
         }}
       >
-        <MapComponent activities={activities} />
+        <StylizedMap activities={activities} />
 
         <div className="mt-4 text-sm text-slate-600">
           {activities.length} activit{activities.length !== 1 ? "ies" : "y"} mapped
