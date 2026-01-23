@@ -11,12 +11,13 @@ export default function RomanticBackground() {
 
   if (!mounted) return null;
 
-  // Create 15 floating hearts with random positions/delays
-  const hearts = Array.from({ length: 15 }).map((_, i) => ({
+  // Generate 50 particles for a denser effect
+  const hearts = Array.from({ length: 50 }).map((_, i) => ({
     id: i,
     left: `${Math.random() * 100}%`,
     size: Math.random() * 20 + 10, // 10px to 30px
-    duration: `${Math.random() * 10 + 10}s`, // 10-20s float time
+    // Faster speed: Random between 6s and 15s
+    duration: `${Math.random() * 9 + 6}s`,
     delay: `${Math.random() * 5}s`,
   }));
 
