@@ -3,31 +3,33 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 50, 30, 40;
-  --background-start-rgb: 255, 240, 245; /* Soft Rose */
-  --background-end-rgb: 230, 230, 250;   /* Lavender */
+  --font-playfair: 'Playfair Display', serif;
+  --font-lato: 'Lato', sans-serif;
 }
 
-body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(to bottom right, rgb(var(--background-start-rgb)), rgb(var(--background-end-rgb)));
-  min-height: 100vh;
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  /* Fallback color if gradient fails */
+  background-color: #fdf2f8;
+  /* Stronger Gradient */
+  background: linear-gradient(135deg, #fff1f2 0%, #f3e8ff 50%, #e0f2fe 100%);
+  background-attachment: fixed;
 }
 
-/* Floating Animation */
-@keyframes floatUp {
-  0% { transform: translateY(100vh) scale(0); opacity: 0; }
-  20% { opacity: 0.6; }
-  80% { opacity: 0.6; }
-  100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+@keyframes float {
+  0% { transform: translateY(0px) rotate(0deg); opacity: 0; }
+  20% { opacity: 0.8; }
+  100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
 }
 
-.particle {
+.floating-heart {
   position: fixed;
-  bottom: -10vh;
-  background: white;
-  border-radius: 50%;
-  pointer-events: none;
-  animation: floatUp 15s linear infinite;
+  bottom: -20px;
+  color: #fda4af; /* Rose-300 */
+  opacity: 0;
+  animation: float 15s linear infinite;
   z-index: -1;
+  pointer-events: none;
 }
