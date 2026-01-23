@@ -14,7 +14,7 @@ export default function Home() {
       <div className="grid md:grid-cols-2 gap-8 max-w-4xl w-full px-4">
         {/* Food Card */}
         <Link href="/cook" className="group">
-          <div className="bg-white/60 backdrop-blur-md border-2 border-rose-200 rounded-2xl p-8 shadow-lg hover:shadow-rose-100/50 hover:scale-105 hover:border-rose-400 transition-all duration-300 cursor-pointer h-full flex flex-col items-center justify-center gap-4">
+          <div className="bg-white/30 backdrop-blur-md border-2 border-white/50 rounded-2xl p-8 shadow-xl hover:shadow-2xl hover:bg-white/50 hover:scale-105 transition-all duration-300 cursor-pointer h-full flex flex-col items-center justify-center gap-4">
             <div className="bg-rose-100 p-4 rounded-full text-rose-600 group-hover:bg-rose-200 transition-colors">
               <UtensilsCrossed size={48} />
             </div>
@@ -25,7 +25,7 @@ export default function Home() {
 
         {/* Date Card */}
         <Link href="/date" className="group">
-          <div className="bg-white/60 backdrop-blur-md border-2 border-purple-200 rounded-2xl p-8 shadow-lg hover:shadow-purple-100/50 hover:scale-105 hover:border-purple-400 transition-all duration-300 cursor-pointer h-full flex flex-col items-center justify-center gap-4">
+          <div className="bg-white/30 backdrop-blur-md border-2 border-white/50 rounded-2xl p-8 shadow-xl hover:shadow-2xl hover:bg-white/50 hover:scale-105 transition-all duration-300 cursor-pointer h-full flex flex-col items-center justify-center gap-4">
             <div className="bg-purple-100 p-4 rounded-full text-purple-600 group-hover:bg-purple-200 transition-colors">
               <CalendarHeart size={48} />
             </div>
