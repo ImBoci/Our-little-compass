@@ -7,6 +7,7 @@ export default function DatePage() {
   const [activities, setActivities] = useState<any[]>([]);
   const [randomActivity, setRandomActivity] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [isAnimating, setIsAnimating] = useState(false);
 
   useEffect(() => {
     fetch("/api/activities").then(res => res.json()).then(data => {
@@ -20,11 +21,15 @@ export default function DatePage() {
 
   const handleShuffle = () => {
     if (activities.length > 0) {
-      let newAct;
-      do {
-        newAct = activities[Math.floor(Math.random() * activities.length)];
-      } while (activities.length > 1 && newAct === randomActivity);
-      setRandomActivity(newAct);
+      setIsAnimating(true);
+      setTimeout(() => {
+        let newAct;
+        do {
+          newAct = activities[Math.floor(Math.random() * activities.length)];
+        } while (activities.length > 1 && newAct === randomActivity);
+        setRandomActivity(newAct);
+        setIsAnimating(false);
+      }, 300); // Matches CSS duration
     }
   };
 
@@ -54,7 +59,7 @@ export default function DatePage() {
         }}
       >
         {randomActivity ? (
-          <div className="space-y-6 animate-in fade-in zoom-in duration-500 flex flex-col items-center">
+          <div className={`space-y-6 transition-all duration-300 ease-in-out flex flex-col items-center ${isAnimating ? 'opacity-0 scale-95 blur-md translate-y-4' : 'opacity-100 scale-100 blur-0 translate-y-0'}`}>
             <h2 className="font-serif text-4xl font-bold text-slate-900 leading-tight">
               {randomActivity.name}
             </h2>

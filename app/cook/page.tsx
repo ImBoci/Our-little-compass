@@ -7,6 +7,7 @@ export default function CookPage() {
   const [foods, setFoods] = useState<any[]>([]);
   const [randomFood, setRandomFood] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [isAnimating, setIsAnimating] = useState(false);
 
   useEffect(() => {
     fetch("/api/food").then(res => res.json()).then(data => {
@@ -20,11 +21,15 @@ export default function CookPage() {
 
   const handleShuffle = () => {
     if (foods.length > 0) {
-      let newFood;
-      do {
-        newFood = foods[Math.floor(Math.random() * foods.length)];
-      } while (foods.length > 1 && newFood === randomFood); // Avoid same result twice
-      setRandomFood(newFood);
+      setIsAnimating(true);
+      setTimeout(() => {
+        let newFood;
+        do {
+          newFood = foods[Math.floor(Math.random() * foods.length)];
+        } while (foods.length > 1 && newFood === randomFood); // Avoid same result twice
+        setRandomFood(newFood);
+        setIsAnimating(false);
+      }, 300); // Matches CSS duration
     }
   };
 
@@ -54,7 +59,7 @@ export default function CookPage() {
         }}
       >
         {randomFood ? (
-          <div className="space-y-6 animate-in fade-in zoom-in duration-500">
+          <div className={`space-y-6 transition-all duration-300 ease-in-out ${isAnimating ? 'opacity-0 scale-95 blur-md translate-y-4' : 'opacity-100 scale-100 blur-0 translate-y-0'}`}>
             <h2 className="font-serif text-4xl font-bold text-slate-900 leading-tight">
               {randomFood.name}
             </h2>
