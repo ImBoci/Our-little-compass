@@ -7,15 +7,14 @@
   --font-lato: 'Lato', sans-serif;
 }
 
-html, body {
-  height: 100%;
+/* Force the gradient on the body */
+body {
   margin: 0;
   padding: 0;
-  /* Fallback color if gradient fails */
-  background-color: #fdf2f8;
-  /* Stronger Gradient */
-  background: linear-gradient(135deg, #fff1f2 0%, #f3e8ff 50%, #e0f2fe 100%);
-  background-attachment: fixed;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #fff0f5 0%, #e6e6fa 50%, #e0f7fa 100%);
+  background-attachment: fixed; /* Keeps gradient in place when scrolling */
+  color: #4a4a4a;
 }
 
 @keyframes float {
