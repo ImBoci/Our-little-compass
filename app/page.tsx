@@ -20,7 +20,7 @@ export default function LandingPage() {
         <div className="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto">
           {/* Find a Meal Card */}
           <Link href="/cook" className="block group">
-            <Card className="h-full transition-all duration-300 cursor-pointer border-white/50 bg-white/40 backdrop-blur-md shadow-xl hover:shadow-2xl hover:scale-105 hover:bg-white/50">
+            <Card className="h-full transition-all duration-300 cursor-pointer border-white/50 bg-white/30 backdrop-blur-md shadow-xl hover:shadow-2xl hover:scale-105 hover:bg-white/40">
               <CardHeader className="text-center pb-4">
                 <div className="mx-auto mb-4 p-4 bg-rose-100/60 rounded-full w-fit group-hover:bg-rose-200/60 transition-colors">
                   <Dices className="w-8 h-8 text-rose-600" />
@@ -37,7 +37,7 @@ export default function LandingPage() {
 
           {/* WhatToDo Card */}
           <Link href="/date" className="block group">
-            <Card className="h-full transition-all duration-300 cursor-pointer border-white/50 bg-white/40 backdrop-blur-md shadow-xl hover:shadow-2xl hover:scale-105 hover:bg-white/50">
+            <Card className="h-full transition-all duration-300 cursor-pointer border-white/50 bg-white/30 backdrop-blur-md shadow-xl hover:shadow-2xl hover:scale-105 hover:bg-white/40">
               <CardHeader className="text-center pb-4">
                 <div className="mx-auto mb-4 p-4 bg-purple-100/60 rounded-full w-fit group-hover:bg-purple-200/60 transition-colors">
                   <Heart className="w-8 h-8 text-purple-600" />
