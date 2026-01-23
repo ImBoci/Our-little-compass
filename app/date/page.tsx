@@ -1,69 +1,134 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { MapPin, Sparkles, Shuffle } from "lucide-react";
+import Link from "next/link";
+import { MapPin, Shuffle, Sparkles, Loader2 } from "lucide-react";
+
+interface Activity {
+  id: number;
+  name: string;
+  location: string | null;
+  type: string | null;
+  description: string | null;
+}
 
 export default function DatePage() {
-  const [activities, setActivities] = useState<any[]>([]);
-  const [randomActivity, setRandomActivity] = useState<any>(null);
+  const [activities, setActivities] = useState<Activity[]>([]);
+  const [randomActivity, setRandomActivity] = useState<Activity | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isSpinning, setIsSpinning] = useState(false);
 
   useEffect(() => {
-    fetch("/api/activities")
-      .then((res) => res.json())
-      .then((data) => {
-        if (Array.isArray(data)) {
-          setActivities(data);
-          if (data.length > 0) {
-            setRandomActivity(data[Math.floor(Math.random() * data.length)]);
+    const loadActivities = async () => {
+      try {
+        const response = await fetch("/api/activities");
+        if (response.ok) {
+          const activitiesData = await response.json();
+          setActivities(activitiesData);
+          if (activitiesData.length > 0) {
+            const randomIndex = Math.floor(Math.random() * activitiesData.length);
+            setRandomActivity(activitiesData[randomIndex]);
           }
         }
+      } catch (error) {
+        console.error("Failed to load activities:", error);
+      } finally {
         setLoading(false);
-      })
-      .catch(() => setLoading(false));
+      }
+    };
+    loadActivities();
   }, []);
 
   const handleShuffle = () => {
-    if (activities.length > 0) {
-      const random = activities[Math.floor(Math.random() * activities.length)];
-      setRandomActivity(random);
-    }
+    if (activities.length === 0) return;
+
+    setIsSpinning(true);
+    setTimeout(() => {
+      const randomIndex = Math.floor(Math.random() * activities.length);
+      setRandomActivity(activities[randomIndex]);
+      setIsSpinning(false);
+    }, 1500);
   };
 
-  if (loading) return <div className="p-10 text-center">Loading...</div>;
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
+      </div>
+    );
+  }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-4 space-y-6">
-      <h1 className="text-3xl font-bold text-center">What should we do?</h1>
+    <div className="flex flex-col items-center justify-center min-h-screen p-4 text-center">
+      <h1 className="font-serif text-4xl md:text-5xl text-slate-800 mb-2 tracking-tight">
+        What should we do?
+      </h1>
+      <p className="font-sans text-lg text-slate-600 mb-8 italic">
+        Let fate decide our next adventure
+      </p>
 
-      {randomActivity ? (
-        <div className="bg-white/80 p-8 rounded-xl shadow-lg text-center max-w-md w-full">
-          <h2 className="text-2xl font-bold mb-2">{randomActivity.name}</h2>
-          {randomActivity.type && (
-            <span className="inline-block bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full mb-4">
-              {randomActivity.type}
-            </span>
-          )}
-          {randomActivity.location && (
-            <div className="flex items-center justify-center gap-2 text-gray-600 mb-4">
-              <MapPin size={16} />
-              <span>{randomActivity.location}</span>
+      {randomActivity && (
+        <div className="bg-white/60 backdrop-blur-md border-2 border-white/50 rounded-3xl p-8 shadow-xl max-w-md w-full text-center">
+          <div className="mb-6">
+            <Sparkles className="w-12 h-12 text-purple-400 mx-auto mb-4" />
+            <h2 className="font-serif text-3xl font-bold text-slate-800 mb-4">
+              {randomActivity.name}
+            </h2>
+
+            <div className="flex flex-wrap gap-2 justify-center mb-4">
+              {randomActivity.type && (
+                <span className="bg-purple-100 text-purple-700 text-sm px-3 py-1 rounded-full">
+                  {randomActivity.type}
+                </span>
+              )}
+              {randomActivity.location && (
+                <div className="bg-blue-100 text-blue-700 text-sm px-3 py-1 rounded-full flex items-center gap-1">
+                  <MapPin size={14} />
+                  {randomActivity.location}
+                </div>
+              )}
             </div>
-          )}
-          <p className="text-gray-700 italic">{randomActivity.description}</p>
+
+            {randomActivity.description && (
+              <p className="text-slate-600 italic text-lg">
+                {randomActivity.description}
+              </p>
+            )}
+          </div>
         </div>
-      ) : (
-        <p>No activities found. Go add some!</p>
       )}
 
       <button
         onClick={handleShuffle}
-        className="flex items-center gap-2 bg-purple-600 text-white px-6 py-3 rounded-full hover:bg-purple-700 transition"
+        disabled={isSpinning || activities.length === 0}
+        className="bg-purple-500 hover:bg-purple-600 disabled:bg-purple-300 text-white px-8 py-4 rounded-full text-lg font-medium transition-all duration-300 flex items-center gap-3 mx-auto mt-8 disabled:cursor-not-allowed"
       >
-        <Shuffle size={20} /> Shuffle
+        {isSpinning ? (
+          <>
+            <Loader2 className="w-5 h-5 animate-spin" />
+            Finding your adventure...
+          </>
+        ) : (
+          <>
+            <Shuffle className="w-5 h-5" />
+            Shuffle Activity
+          </>
+        )}
       </button>
 
-      <a href="/" className="text-sm underline mt-4">Back Home</a>
+      {activities.length === 0 && (
+        <p className="mt-6 text-slate-600">
+          No activities available.{" "}
+          <Link href="/manage" className="text-purple-600 hover:underline">
+            Add some activities
+          </Link>{" "}
+          first.
+        </p>
+      )}
+
+      <Link href="/" className="mt-12 text-slate-500 hover:text-slate-700 text-sm">
+        ← Back to Home
+      </Link>
     </div>
   );
 }
