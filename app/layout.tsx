@@ -11,6 +11,11 @@ const lato = Lato({ weight: ["400", "700"], subsets: ["latin"], variable: "--fon
 export const metadata: Metadata = {
   title: "Our Little Compass",
   description: "Guiding our adventures together",
+  icons: {
+    icon: "/favicon/favicon.ico", // or "/favicon/icon.png" depending on your file
+    shortcut: "/favicon/favicon.ico",
+    apple: "/favicon/apple-touch-icon.png", // optional if you have it
+  },
 };
 
 export default function RootLayout({
