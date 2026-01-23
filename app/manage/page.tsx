@@ -186,7 +186,12 @@ export default function ManagePage() {
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-8">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Manage Database</h1>
+        <div>
+          <Link href="/" className="text-gray-500 hover:text-black text-sm mb-2 block">
+            ← Back to Home
+          </Link>
+          <h1 className="text-3xl font-bold">Manage Database</h1>
+        </div>
         <button
           onClick={() => signOut({ callbackUrl: '/' })}
           className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700"
