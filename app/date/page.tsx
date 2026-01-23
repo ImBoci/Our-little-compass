@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { CalendarHeart, MapPin, Shuffle, ArrowLeft } from "lucide-react";
+import { CalendarHeart, MapPin, Shuffle, ArrowLeft, Map } from "lucide-react";
 import Link from "next/link";
 
 export default function DatePage() {
@@ -37,9 +37,14 @@ export default function DatePage() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-transparent">
-      <Link href="/" className="absolute top-8 left-8 text-slate-600 hover:text-purple-600 transition flex items-center gap-2 font-medium">
-        <ArrowLeft size={20} /> Back Home
-      </Link>
+      <div className="absolute top-8 left-8 flex flex-col gap-3">
+        <Link href="/" className="text-slate-600 hover:text-purple-600 transition flex items-center gap-2 font-medium">
+          <ArrowLeft size={20} /> Back Home
+        </Link>
+        <Link href="/date/map" className="text-slate-600 hover:text-purple-600 transition flex items-center gap-2 font-medium">
+          <Map size={20} /> View Map
+        </Link>
+      </div>
 
       <div className="mb-8 text-center">
         <div className="inline-block p-4 rounded-full bg-purple-100/80 text-purple-600 mb-4 shadow-lg">
