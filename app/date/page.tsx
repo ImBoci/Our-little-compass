@@ -61,7 +61,9 @@ export default function DatePage() {
           
           {/* === FRONT FACE (Info) === */}
           <div 
-            className="absolute inset-0 backface-hidden flex flex-col items-center justify-center p-8 rounded-3xl border-2 border-white/40 shadow-[0_0_40px_rgba(168,85,247,0.15)] text-center"
+            className={`absolute inset-0 backface-hidden flex flex-col items-center justify-center p-8 rounded-3xl border-2 border-white/40 shadow-[0_0_40px_rgba(168,85,247,0.15)] text-center
+              ${!isFlipped ? 'z-10 pointer-events-auto' : 'z-0 pointer-events-none'}
+            `}
             style={{
               background: "rgba(255, 255, 255, 0.35)",
               backdropFilter: "blur(16px)",
@@ -107,7 +109,9 @@ export default function DatePage() {
 
           {/* === BACK FACE (Map) === */}
           <div 
-            className="absolute inset-0 backface-hidden rotate-y-180 rounded-3xl border-2 border-white/40 shadow-xl overflow-hidden bg-white"
+            className={`absolute inset-0 backface-hidden rotate-y-180 rounded-3xl border-2 border-white/40 shadow-xl overflow-hidden bg-white
+              ${isFlipped ? 'z-10 pointer-events-auto' : 'z-0 pointer-events-none'}
+            `}
           >
             {randomActivity?.location && (
               <>
