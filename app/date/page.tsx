@@ -8,6 +8,7 @@ export default function DatePage() {
   const [randomActivity, setRandomActivity] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isFlipped, setIsFlipped] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
 
   useEffect(() => {
     fetch("/api/activities").then(res => res.json()).then(data => {
@@ -21,14 +22,21 @@ export default function DatePage() {
 
   const handleShuffle = () => {
     if (activities.length > 0) {
-      setIsFlipped(false); // Flip back to front
+      // 1. Flip back to front immediately if flipped
+      setIsFlipped(false);
+      
+      // 2. Start animation
+      setIsAnimating(true);
+
+      // 3. Wait for transition, then swap data
       setTimeout(() => {
         let newAct;
         do {
           newAct = activities[Math.floor(Math.random() * activities.length)];
         } while (activities.length > 1 && newAct === randomActivity);
         setRandomActivity(newAct);
-      }, 300); // Wait for flip to start
+        setIsAnimating(false);
+      }, 300);
     }
   };
 
@@ -49,10 +57,9 @@ export default function DatePage() {
 
       {/* FLIP CARD CONTAINER */}
       <div className="relative w-full max-w-md h-[450px] perspective-1000">
-        {/* THE FLIPPER */}
         <div className={`relative w-full h-full transition-all duration-700 transform-style-3d ${isFlipped ? 'rotate-y-180' : ''}`}>
           
-          {/* === FRONT FACE (Activity Info) === */}
+          {/* === FRONT FACE (Info) === */}
           <div 
             className="absolute inset-0 backface-hidden flex flex-col items-center justify-center p-8 rounded-3xl border-2 border-white/40 shadow-[0_0_40px_rgba(168,85,247,0.15)] text-center"
             style={{
@@ -62,7 +69,8 @@ export default function DatePage() {
             }}
           >
             {randomActivity ? (
-              <div className="space-y-6 flex flex-col items-center w-full">
+              <div className={`space-y-6 flex flex-col items-center w-full transition-all duration-300 ease-in-out ${isAnimating ? 'opacity-0 scale-95 blur-md translate-y-4' : 'opacity-100 scale-100 blur-0 translate-y-0'}`}>
+                
                 <h2 className="font-serif text-4xl font-bold text-slate-900 leading-tight">
                   {randomActivity.name}
                 </h2>
@@ -82,15 +90,14 @@ export default function DatePage() {
                 )}
 
                 {randomActivity.location && (
-                  <div className="mt-4">
-                    <button 
-                      onClick={() => setIsFlipped(true)}
-                      className="flex items-center gap-2 font-medium px-6 py-3 rounded-full bg-white/60 text-purple-700 hover:bg-purple-600 hover:text-white transition-all duration-300 shadow-sm border border-purple-100 hover:shadow-purple-200/50"
-                    >
-                      <MapPin size={18} /> 
-                      <span>See Location</span>
-                    </button>
-                  </div>
+                  <button 
+                    onClick={() => setIsFlipped(true)}
+                    className="mt-4 flex items-center gap-2 font-medium px-5 py-2.5 rounded-full bg-white/60 text-slate-700 hover:bg-purple-600 hover:text-white transition-all duration-300 shadow-sm border border-purple-100 hover:shadow-purple-300/50 cursor-pointer group"
+                    title="Click to see map"
+                  >
+                    <MapPin size={18} className="text-purple-500 group-hover:text-white transition-colors" /> 
+                    <span className="truncate max-w-[200px]">{randomActivity.location}</span>
+                  </button>
                 )}
               </div>
             ) : (
@@ -100,10 +107,7 @@ export default function DatePage() {
 
           {/* === BACK FACE (Map) === */}
           <div 
-            className="absolute inset-0 backface-hidden rotate-y-180 rounded-3xl border-2 border-white/40 shadow-xl overflow-hidden"
-            style={{
-              background: "white"
-            }}
+            className="absolute inset-0 backface-hidden rotate-y-180 rounded-3xl border-2 border-white/40 shadow-xl overflow-hidden bg-white"
           >
             {randomActivity?.location && (
               <>
@@ -116,21 +120,20 @@ export default function DatePage() {
                   className="w-full h-full block"
                 ></iframe>
                 
-                {/* Controls on the Map Side */}
-                <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-3">
+                <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-3 pointer-events-none">
                   <button 
                     onClick={() => setIsFlipped(false)}
-                    className="bg-white/90 text-slate-700 px-4 py-2 rounded-full shadow-md hover:bg-white flex items-center gap-2 text-sm font-bold backdrop-blur-sm"
+                    className="pointer-events-auto bg-white/90 text-slate-700 px-4 py-2 rounded-full shadow-lg hover:bg-white flex items-center gap-2 text-sm font-bold backdrop-blur-sm transition-transform hover:scale-105"
                   >
-                    <RotateCcw size={16} /> Flip Back
+                    <RotateCcw size={16} /> Back to Idea
                   </button>
                   <a 
                     href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(randomActivity.location)}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="bg-purple-600/90 text-white px-4 py-2 rounded-full shadow-md hover:bg-purple-600 flex items-center gap-2 text-sm font-bold backdrop-blur-sm"
+                    className="pointer-events-auto bg-purple-600/90 text-white px-4 py-2 rounded-full shadow-lg hover:bg-purple-600 flex items-center gap-2 text-sm font-bold backdrop-blur-sm transition-transform hover:scale-105"
                   >
-                    <ExternalLink size={16} /> Open App
+                    <ExternalLink size={16} /> Google Maps
                   </a>
                 </div>
               </>
