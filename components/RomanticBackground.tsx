@@ -4,19 +4,13 @@ import { Heart } from "lucide-react";
 
 export default function RomanticBackground() {
   const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
+  useEffect(() => setMounted(true), []);
   if (!mounted) return null;
 
-  // Generate 50 particles for a denser effect
   const hearts = Array.from({ length: 50 }).map((_, i) => ({
     id: i,
     left: `${Math.random() * 100}%`,
-    size: Math.random() * 20 + 10, // 10px to 30px
-    // Faster speed: Random between 6s and 15s
+    size: Math.random() * 20 + 10,
     duration: `${Math.random() * 9 + 6}s`,
     delay: `${Math.random() * 5}s`,
   }));
