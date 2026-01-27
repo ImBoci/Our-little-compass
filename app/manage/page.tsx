@@ -1,8 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useSession, signOut } from 'next-auth/react'
 import Link from 'next/link'
+import { Pencil } from 'lucide-react'
+
+type ActiveTab = 'food' | 'activity'
 
 interface Food {
   id: string
@@ -21,19 +24,36 @@ interface Activity {
   description: string | null
 }
 
+type EditingItem =
+  | { kind: 'food'; item: Food }
+  | { kind: 'activity'; item: Activity }
+  | null
+
+const emptyFoodForm = { name: '', description: '', category: '' }
+const emptyActivityForm = { name: '', location: '', type: '', description: '' }
+
 export default function ManagePage() {
-  const { data: session, status } = useSession()
+  const { status } = useSession()
+  const [activeTab, setActiveTab] = useState<ActiveTab>('food')
+  const [editingItem, setEditingItem] = useState<EditingItem>(null)
   const [foods, setFoods] = useState<Food[]>([])
   const [activities, setActivities] = useState<Activity[]>([])
+  const [foodForm, setFoodForm] = useState(emptyFoodForm)
+  const [activityForm, setActivityForm] = useState(emptyActivityForm)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // Fetch data on component mount
   useEffect(() => {
     if (status === 'authenticated') {
       fetchData()
     }
   }, [status])
+
+  useEffect(() => {
+    if (editingItem && editingItem.kind !== activeTab) {
+      setEditingItem(null)
+    }
+  }, [activeTab, editingItem])
 
   const fetchData = async () => {
     try {
@@ -42,7 +62,7 @@ export default function ManagePage() {
 
       const [foodsRes, activitiesRes] = await Promise.all([
         fetch('/api/food'),
-        fetch('/api/activities')
+        fetch('/api/activities'),
       ])
 
       if (!foodsRes.ok) {
@@ -55,7 +75,7 @@ export default function ManagePage() {
 
       const [foodsData, activitiesData] = await Promise.all([
         foodsRes.json(),
-        activitiesRes.json()
+        activitiesRes.json(),
       ])
 
       setFoods(foodsData)
@@ -68,109 +88,157 @@ export default function ManagePage() {
     }
   }
 
-  const handleAddFood = async (e: React.FormEvent<HTMLFormElement>) => {
+  const foodCategories = useMemo(() => {
+    const unique = new Set<string>()
+    foods.forEach(food => {
+      if (food.category) unique.add(food.category)
+    })
+    return Array.from(unique).sort()
+  }, [foods])
+
+  const activityTypes = useMemo(() => {
+    const unique = new Set<string>()
+    activities.forEach(activity => {
+      if (activity.type) unique.add(activity.type)
+    })
+    const list = Array.from(unique).sort()
+    return list.length > 0 ? list : ['Other']
+  }, [activities])
+
+  const startEditFood = (food: Food) => {
+    setEditingItem({ kind: 'food', item: food })
+    setFoodForm({
+      name: food.name,
+      description: food.description ?? '',
+      category: food.category ?? '',
+    })
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const startEditActivity = (activity: Activity) => {
+    setEditingItem({ kind: 'activity', item: activity })
+    setActivityForm({
+      name: activity.name,
+      location: activity.location ?? '',
+      type: activity.type ?? activityTypes[0] ?? 'Other',
+      description: activity.description ?? '',
+    })
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const cancelEdit = () => {
+    setEditingItem(null)
+    setFoodForm(emptyFoodForm)
+    setActivityForm(emptyActivityForm)
+  }
+
+  const handleFoodSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    const formData = new FormData(e.currentTarget)
-    const data = {
-      name: formData.get('name') as string,
-      description: formData.get('description') as string,
-      category: formData.get('category') as string || 'Other'
+    const payload = {
+      id: editingItem?.kind === 'food' ? editingItem.item.id : undefined,
+      name: foodForm.name,
+      description: foodForm.description,
+      category: foodForm.category || 'Other',
     }
 
     try {
       const response = await fetch('/api/food', {
-        method: 'POST',
+        method: editingItem?.kind === 'food' ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
+        body: JSON.stringify(payload),
       })
 
-      if (response.ok) {
-        const newFood = await response.json()
-        setFoods(prev => [newFood, ...prev])
-        e.currentTarget.reset()
-        setError(null) // Clear any previous errors
-      } else {
+      if (!response.ok) {
         const errorText = await response.text()
-        setError(`Failed to add food: ${response.status} ${response.statusText} - ${errorText}`)
+        throw new Error(`Failed to save food: ${response.status} ${response.statusText} - ${errorText}`)
       }
+
+      const savedFood = await response.json()
+      setFoods(prev => {
+        if (editingItem?.kind === 'food') {
+          return prev.map(item => (item.id === savedFood.id ? savedFood : item))
+        }
+        return [savedFood, ...prev]
+      })
+      setFoodForm(emptyFoodForm)
+      setEditingItem(null)
+      setError(null)
     } catch (error) {
-      console.error('Error adding food:', error)
-      setError(error instanceof Error ? `Error adding food: ${error.message}` : 'Unknown error adding food')
+      console.error('Error saving food:', error)
+      setError(error instanceof Error ? error.message : 'Unknown error saving food')
+    }
+  }
+
+  const handleActivitySubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const payload = {
+      id: editingItem?.kind === 'activity' ? editingItem.item.id : undefined,
+      name: activityForm.name,
+      description: activityForm.description,
+      location: activityForm.location,
+      type: activityForm.type,
+    }
+
+    try {
+      const response = await fetch('/api/activities', {
+        method: editingItem?.kind === 'activity' ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        throw new Error(`Failed to save activity: ${response.status} ${response.statusText} - ${errorText}`)
+      }
+
+      const savedActivity = await response.json()
+      setActivities(prev => {
+        if (editingItem?.kind === 'activity') {
+          return prev.map(item => (item.id === savedActivity.id ? savedActivity : item))
+        }
+        return [savedActivity, ...prev]
+      })
+      setActivityForm(emptyActivityForm)
+      setEditingItem(null)
+      setError(null)
+    } catch (error) {
+      console.error('Error saving activity:', error)
+      setError(error instanceof Error ? error.message : 'Unknown error saving activity')
     }
   }
 
   const handleDeleteFood = async (id: string) => {
     try {
-      const response = await fetch(`/api/food?id=${id}`, {
-        method: 'DELETE'
-      })
-
-      if (response.ok) {
-        setFoods(prev => prev.filter(f => f.id !== id))
-        setError(null) // Clear any previous errors
-      } else {
+      const response = await fetch(`/api/food?id=${id}`, { method: 'DELETE' })
+      if (!response.ok) {
         const errorText = await response.text()
-        setError(`Failed to delete food: ${response.status} ${response.statusText} - ${errorText}`)
+        throw new Error(`Failed to delete food: ${response.status} ${response.statusText} - ${errorText}`)
       }
+      setFoods(prev => prev.filter(food => food.id !== id))
+      setError(null)
     } catch (error) {
       console.error('Error deleting food:', error)
-      setError(error instanceof Error ? `Error deleting food: ${error.message}` : 'Unknown error deleting food')
-    }
-  }
-
-  const handleAddActivity = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    const formData = new FormData(e.currentTarget)
-    const data = {
-      name: formData.get('name') as string,
-      location: formData.get('location') as string,
-      type: formData.get('type') as string,
-      description: formData.get('description') as string
-    }
-
-    try {
-      const response = await fetch('/api/activities', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      })
-
-      if (response.ok) {
-        const newActivity = await response.json()
-        setActivities(prev => [newActivity, ...prev])
-        e.currentTarget.reset()
-        setError(null) // Clear any previous errors
-      } else {
-        const errorText = await response.text()
-        setError(`Failed to add activity: ${response.status} ${response.statusText} - ${errorText}`)
-      }
-    } catch (error) {
-      console.error('Error adding activity:', error)
-      setError(error instanceof Error ? `Error adding activity: ${error.message}` : 'Unknown error adding activity')
+      setError(error instanceof Error ? error.message : 'Unknown error deleting food')
     }
   }
 
   const handleDeleteActivity = async (id: number) => {
     try {
-      const response = await fetch(`/api/activities?id=${id}`, {
-        method: 'DELETE'
-      })
-
-      if (response.ok) {
-        setActivities(prev => prev.filter(a => a.id !== id))
-        setError(null) // Clear any previous errors
-      } else {
+      const response = await fetch(`/api/activities?id=${id}`, { method: 'DELETE' })
+      if (!response.ok) {
         const errorText = await response.text()
-        setError(`Failed to delete activity: ${response.status} ${response.statusText} - ${errorText}`)
+        throw new Error(`Failed to delete activity: ${response.status} ${response.statusText} - ${errorText}`)
       }
+      setActivities(prev => prev.filter(activity => activity.id !== id))
+      setError(null)
     } catch (error) {
       console.error('Error deleting activity:', error)
-      setError(error instanceof Error ? `Error deleting activity: ${error.message}` : 'Unknown error deleting activity')
+      setError(error instanceof Error ? error.message : 'Unknown error deleting activity')
     }
   }
 
   if (status === 'loading') {
-    return <div className="p-10 text-center">Loading...</div>
+    return <div className="p-10 text-center text-slate-700">Loading...</div>
   }
 
   if (status === 'unauthenticated') {
@@ -184,142 +252,227 @@ export default function ManagePage() {
   }
 
   return (
-    <div
-      className="max-w-4xl mx-auto p-8 space-y-8"
-      style={{
-        background: "rgba(255, 255, 255, 0.4)",
-        backdropFilter: "blur(20px)",
-        WebkitBackdropFilter: "blur(20px)"
-      }}
-    >
-      <div className="flex justify-between items-center">
+    <div className="max-w-5xl mx-auto p-8 space-y-8 bg-white/40 backdrop-blur-md rounded-3xl border border-white/60 shadow-xl">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <Link href="/" className="text-gray-500 hover:text-black text-sm mb-2 block">
+          <Link href="/" className="text-slate-500 hover:text-slate-800 text-sm mb-2 block">
             ← Back to Home
           </Link>
-          <h1 className="text-3xl font-bold">Manage Database</h1>
+          <h1 className="text-3xl font-bold text-slate-800">Manage Dashboard</h1>
+          <p className="text-slate-600">Add, edit, and organize your foods and date ideas.</p>
         </div>
         <button
           onClick={() => signOut({ callbackUrl: '/' })}
-          className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700"
+          className="bg-rose-500 text-white px-4 py-2 rounded-full shadow hover:bg-rose-600 transition"
         >
           Log Out
         </button>
       </div>
 
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
+        <div className="bg-red-100/80 border border-red-300 text-red-700 px-4 py-3 rounded-xl">
           <strong className="font-bold">Error:</strong>
           <span className="block sm:inline ml-2">{error}</span>
           <button
             onClick={fetchData}
-            className="ml-4 bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700"
+            className="ml-4 mt-2 sm:mt-0 bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700"
           >
             Retry
           </button>
         </div>
       )}
 
-      {loading && <div className="text-center">Loading data...</div>}
-
-      {/* Foods Section */}
-      <div className="border p-4 rounded bg-white/50">
-        <h2 className="text-xl font-bold mb-4">Foods ({foods.length})</h2>
-
-        <form onSubmit={handleAddFood} className="flex gap-2 mb-4">
-          <input
-            name="name"
-            placeholder="Name"
-            required
-            className="border p-2 rounded flex-1 bg-white/60"
-          />
-          <input
-            name="description"
-            placeholder="Description"
-            className="border p-2 rounded flex-1 bg-white/60"
-          />
-          <input
-            name="category"
-            placeholder="Category"
-            defaultValue="Other"
-            className="border p-2 rounded w-24"
-          />
-          <button className="bg-green-600 text-white px-4 rounded hover:bg-green-700">
-            Add
-          </button>
-        </form>
-
-        <ul className="space-y-2">
-          {foods.map(food => (
-            <li key={food.id} className="flex justify-between border-b p-2">
-              <div>
-                <strong>{food.name}</strong>
-                {food.description && <span className="text-gray-600 ml-2">({food.description})</span>}
-                <span className="ml-2 text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded">
-                  {food.category}
-                </span>
-              </div>
-              <button
-                onClick={() => handleDeleteFood(food.id)}
-                className="text-red-500 hover:text-red-700 font-bold"
-              >
-                Delete
-              </button>
-            </li>
-          ))}
-        </ul>
+      <div className="flex gap-3">
+        <button
+          onClick={() => setActiveTab('food')}
+          className={`px-4 py-2 rounded-full text-sm font-semibold transition ${
+            activeTab === 'food' ? 'bg-purple-600 text-white shadow' : 'bg-white/60 text-slate-600'
+          }`}
+        >
+          Foods
+        </button>
+        <button
+          onClick={() => setActiveTab('activity')}
+          className={`px-4 py-2 rounded-full text-sm font-semibold transition ${
+            activeTab === 'activity' ? 'bg-purple-600 text-white shadow' : 'bg-white/60 text-slate-600'
+          }`}
+        >
+          Activities
+        </button>
       </div>
 
-      {/* Activities Section */}
-      <div className="border p-4 rounded bg-white/50">
-        <h2 className="text-xl font-bold mb-4">Activities ({activities.length})</h2>
+      {loading && <div className="text-center text-slate-600">Loading data...</div>}
 
-        <form onSubmit={handleAddActivity} className="flex gap-2 mb-4">
-          <input
-            name="name"
-            placeholder="Name"
-            required
-            className="border p-2 rounded flex-1 bg-white/60"
-          />
-          <input
-            name="location"
-            placeholder="Location"
-            className="border p-2 rounded flex-1 bg-white/60"
-          />
-          <input
-            name="type"
-            placeholder="Type"
-            className="border p-2 rounded w-24"
-          />
-          <button className="bg-purple-600 text-white px-4 rounded hover:bg-purple-700">
-            Add
-          </button>
-        </form>
-
-        <ul className="space-y-2">
-          {activities.map(activity => (
-            <li key={activity.id} className="flex justify-between border-b p-2">
+      {activeTab === 'food' && (
+        <div className="space-y-6">
+          <form onSubmit={handleFoodSubmit} className="grid gap-4 bg-white/50 rounded-2xl p-6 border border-white/60 shadow">
+            <div className="grid gap-3 md:grid-cols-3">
+              <input
+                name="name"
+                placeholder="Food name"
+                required
+                value={foodForm.name}
+                onChange={e => setFoodForm(prev => ({ ...prev, name: e.target.value }))}
+                className="border border-white/70 bg-white/70 p-3 rounded-xl"
+              />
+              <input
+                name="description"
+                placeholder="Description"
+                value={foodForm.description}
+                onChange={e => setFoodForm(prev => ({ ...prev, description: e.target.value }))}
+                className="border border-white/70 bg-white/70 p-3 rounded-xl"
+              />
               <div>
-                <strong>{activity.name}</strong>
-                {activity.type && (
-                  <span className="ml-2 text-xs bg-purple-100 text-purple-800 px-2 py-0.5 rounded">
-                    {activity.type}
-                  </span>
-                )}
-                {activity.location && (
-                  <span className="ml-2 text-gray-600">📍 {activity.location}</span>
-                )}
+                <input
+                  list="food-categories"
+                  name="category"
+                  placeholder="Category"
+                  value={foodForm.category}
+                  onChange={e => setFoodForm(prev => ({ ...prev, category: e.target.value }))}
+                  className="border border-white/70 bg-white/70 p-3 rounded-xl w-full"
+                />
+                <datalist id="food-categories">
+                  {foodCategories.map(category => (
+                    <option key={category} value={category} />
+                  ))}
+                </datalist>
               </div>
-              <button
-                onClick={() => handleDeleteActivity(activity.id)}
-                className="text-red-500 hover:text-red-700 font-bold"
-              >
-                Delete
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <button className="bg-purple-600 text-white px-6 py-2 rounded-full shadow hover:bg-purple-700 transition">
+                {editingItem?.kind === 'food' ? 'Update Food' : 'Add Food'}
               </button>
-            </li>
-          ))}
-        </ul>
-      </div>
+              {editingItem?.kind === 'food' && (
+                <button
+                  type="button"
+                  onClick={cancelEdit}
+                  className="bg-white/70 text-slate-700 px-6 py-2 rounded-full border border-white/80 hover:bg-white transition"
+                >
+                  Cancel Edit
+                </button>
+              )}
+            </div>
+          </form>
+
+          <div className="grid gap-4">
+            {foods.map(food => (
+              <div key={food.id} className="bg-white/50 border border-white/70 rounded-2xl p-4 shadow flex flex-col gap-2">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <h3 className="text-lg font-semibold text-slate-800">{food.name}</h3>
+                    {food.description && <p className="text-slate-600">{food.description}</p>}
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
+                      {food.category}
+                    </span>
+                    <button
+                      onClick={() => startEditFood(food)}
+                      className="p-2 rounded-full bg-white/70 hover:bg-white border border-white/70"
+                    >
+                      <Pencil size={16} className="text-slate-600" />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteFood(food.id)}
+                      className="text-rose-500 hover:text-rose-700 font-semibold"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'activity' && (
+        <div className="space-y-6">
+          <form onSubmit={handleActivitySubmit} className="grid gap-4 bg-white/50 rounded-2xl p-6 border border-white/60 shadow">
+            <div className="grid gap-3 md:grid-cols-2">
+              <input
+                name="name"
+                placeholder="Activity name"
+                required
+                value={activityForm.name}
+                onChange={e => setActivityForm(prev => ({ ...prev, name: e.target.value }))}
+                className="border border-white/70 bg-white/70 p-3 rounded-xl"
+              />
+              <input
+                name="location"
+                placeholder="Location"
+                value={activityForm.location}
+                onChange={e => setActivityForm(prev => ({ ...prev, location: e.target.value }))}
+                className="border border-white/70 bg-white/70 p-3 rounded-xl"
+              />
+              <select
+                name="type"
+                value={activityForm.type}
+                onChange={e => setActivityForm(prev => ({ ...prev, type: e.target.value }))}
+                className="border border-white/70 bg-white/70 p-3 rounded-xl"
+              >
+                {activityTypes.map(typeOption => (
+                  <option key={typeOption} value={typeOption}>
+                    {typeOption}
+                  </option>
+                ))}
+              </select>
+              <input
+                name="description"
+                placeholder="Description"
+                value={activityForm.description}
+                onChange={e => setActivityForm(prev => ({ ...prev, description: e.target.value }))}
+                className="border border-white/70 bg-white/70 p-3 rounded-xl"
+              />
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <button className="bg-purple-600 text-white px-6 py-2 rounded-full shadow hover:bg-purple-700 transition">
+                {editingItem?.kind === 'activity' ? 'Update Activity' : 'Add Activity'}
+              </button>
+              {editingItem?.kind === 'activity' && (
+                <button
+                  type="button"
+                  onClick={cancelEdit}
+                  className="bg-white/70 text-slate-700 px-6 py-2 rounded-full border border-white/80 hover:bg-white transition"
+                >
+                  Cancel Edit
+                </button>
+              )}
+            </div>
+          </form>
+
+          <div className="grid gap-4">
+            {activities.map(activity => (
+              <div key={activity.id} className="bg-white/50 border border-white/70 rounded-2xl p-4 shadow flex flex-col gap-2">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <h3 className="text-lg font-semibold text-slate-800">{activity.name}</h3>
+                    {activity.description && <p className="text-slate-600">{activity.description}</p>}
+                    {activity.location && <p className="text-slate-500">📍 {activity.location}</p>}
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full">
+                      {activity.type || 'Other'}
+                    </span>
+                    <button
+                      onClick={() => startEditActivity(activity)}
+                      className="p-2 rounded-full bg-white/70 hover:bg-white border border-white/70"
+                    >
+                      <Pencil size={16} className="text-slate-600" />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteActivity(activity.id)}
+                      className="text-rose-500 hover:text-rose-700 font-semibold"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
