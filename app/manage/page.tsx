@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Pencil, Trash2, X, Plus, Save, RotateCcw } from "lucide-react";
+import { Pencil, Trash2, X, Plus, Save } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
@@ -31,20 +31,20 @@ export default function ManagePage() {
     setLoading(false);
   };
 
-  // Helper: Get all unique tags from existing activities
-  const getAllActivityTags = () => {
+  // --- TAG HELPERS ---
+  
+  const getUniqueTags = (items: any[], field: string) => {
     const tags = new Set<string>();
-    activities.forEach(act => {
-      if (act.type) {
-        act.type.split(',').forEach((t: string) => tags.add(t.trim()));
+    items.forEach(item => {
+      if (item[field]) {
+        item[field].split(',').forEach((t: string) => tags.add(t.trim()));
       }
     });
     return Array.from(tags).sort();
   };
 
-  // Helper: Handle Tag Selection
-  const toggleActivityTag = (tag: string) => {
-    const currentString = formData.type || "";
+  const toggleTag = (field: string, tag: string) => {
+    const currentString = formData[field] || "";
     let currentTags = currentString ? currentString.split(',').map((t: string) => t.trim()).filter(Boolean) : [];
     
     if (currentTags.includes(tag)) {
@@ -52,13 +52,13 @@ export default function ManagePage() {
     } else {
       currentTags.push(tag);
     }
-    setFormData({ ...formData, type: currentTags.join(', ') });
+    setFormData({ ...formData, [field]: currentTags.join(', ') });
   };
 
-  const addCustomTag = (e: React.FormEvent) => {
+  const addCustomTag = (e: React.FormEvent, field: string) => {
     e.preventDefault();
     if (customTagInput.trim()) {
-      toggleActivityTag(customTagInput.trim());
+      toggleTag(field, customTagInput.trim());
       setCustomTagInput("");
     }
   };
@@ -93,12 +93,16 @@ export default function ManagePage() {
     fetchData();
   };
 
-  const allTags = getAllActivityTags();
-  const currentSelectedTags = formData.type ? formData.type.split(',').map((t: string) => t.trim()) : [];
+  const allFoodTags = getUniqueTags(foods, 'category');
+  const allActivityTags = getUniqueTags(activities, 'type');
+  
+  const currentField = activeTab === 'food' ? 'category' : 'type';
+  const currentTags = formData[currentField] ? formData[currentField].split(',').map((t: string) => t.trim()) : [];
+  const availableTags = (activeTab === 'food' ? allFoodTags : allActivityTags).filter(t => !currentTags.includes(t));
+  const themeColor = activeTab === 'food' ? 'rose' : 'purple';
 
   return (
     <div className="min-h-screen p-4 md:p-8 flex flex-col items-center">
-       {/* Header & Home Link */}
       <div className="w-full max-w-4xl flex justify-between items-center mb-8">
         <Link href="/" className="text-slate-600 hover:text-rose-600 transition font-medium">← Back to Home</Link>
         <h1 className="text-3xl font-serif font-bold text-slate-800">Manage Database</h1>
@@ -130,23 +134,14 @@ export default function ManagePage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <input 
-              className="w-full bg-white/50 border border-white/60 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-rose-300" 
+              className={`w-full bg-white/50 border border-white/60 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-${themeColor}-300`}
               placeholder="Name" 
               value={formData.name || ""} 
               onChange={e => setFormData({...formData, name: e.target.value})}
               required 
             />
             
-            {/* Conditional Fields based on Tab */}
-            {activeTab === 'food' ? (
-              <input 
-                className="w-full bg-white/50 border border-white/60 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-rose-300"
-                placeholder="Category (e.g. Italian, Breakfast)" 
-                list="food-categories"
-                value={formData.category || ""}
-                onChange={e => setFormData({...formData, category: e.target.value})}
-              />
-            ) : (
+            {activeTab === 'activity' && (
               <input 
                 className="w-full bg-white/50 border border-white/60 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-300"
                 placeholder="Location (e.g. WestEnd)" 
@@ -157,49 +152,50 @@ export default function ManagePage() {
           </div>
 
           <input 
-            className="w-full bg-white/50 border border-white/60 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-rose-300"
+            className={`w-full bg-white/50 border border-white/60 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-${themeColor}-300`}
             placeholder="Description (Optional)" 
             value={formData.description || ""}
             onChange={e => setFormData({...formData, description: e.target.value})}
           />
 
-          {/* --- ACTIVITY TAG SELECTOR --- */}
-          {activeTab === 'activity' && (
-            <div className="bg-white/40 p-4 rounded-xl border border-white/50">
-              <label className="block text-sm font-bold text-slate-600 mb-2">Tags (Select or Add)</label>
-              
-              {/* Selected Tags */}
-              <div className="flex flex-wrap gap-2 mb-4">
-                {currentSelectedTags.map((tag: string) => (
-                  <button type="button" key={tag} onClick={() => toggleActivityTag(tag)} className="bg-purple-600 text-white px-3 py-1 rounded-full text-sm flex items-center gap-1 hover:bg-red-500 transition-colors">
-                    {tag} <X size={14} />
-                  </button>
-                ))}
-                {currentSelectedTags.length === 0 && <span className="text-slate-400 text-sm italic">No tags selected</span>}
-              </div>
-
-              {/* Available Tags */}
-              <div className="flex flex-wrap gap-2 pt-3 border-t border-slate-200/50">
-                {allTags.filter(t => !currentSelectedTags.includes(t)).map(tag => (
-                  <button type="button" key={tag} onClick={() => toggleActivityTag(tag)} className="bg-white text-slate-600 border border-slate-200 px-3 py-1 rounded-full text-sm hover:bg-purple-100 hover:text-purple-700 transition-colors">
-                    + {tag}
-                  </button>
-                ))}
-              </div>
-
-              {/* Add New Tag */}
-              <div className="mt-4 flex gap-2">
-                <input 
-                  value={customTagInput}
-                  onChange={e => setCustomTagInput(e.target.value)}
-                  placeholder="Type new tag..."
-                  className="bg-white/80 border border-slate-200 rounded-lg px-3 py-1 text-sm focus:outline-none"
-                  onKeyDown={e => { if(e.key === 'Enter') addCustomTag(e); }}
-                />
-                <button type="button" onClick={addCustomTag} className="bg-slate-200 text-slate-600 px-3 py-1 rounded-lg text-sm hover:bg-slate-300">Add Tag</button>
-              </div>
+          {/* --- UNIFIED TAG SELECTOR (Works for both Food Category & Activity Type) --- */}
+          <div className="bg-white/40 p-4 rounded-xl border border-white/50">
+            <label className="block text-sm font-bold text-slate-600 mb-2">
+              {activeTab === 'food' ? 'Categories' : 'Tags'} (Select or Add)
+            </label>
+            
+            {/* Selected Tags */}
+            <div className="flex flex-wrap gap-2 mb-4">
+              {currentTags.map((tag: string) => (
+                <button type="button" key={tag} onClick={() => toggleTag(currentField, tag)} 
+                  className={`text-white px-3 py-1 rounded-full text-sm flex items-center gap-1 hover:bg-red-500 transition-colors ${activeTab === 'food' ? 'bg-rose-500' : 'bg-purple-600'}`}>
+                  {tag} <X size={14} />
+                </button>
+              ))}
+              {currentTags.length === 0 && <span className="text-slate-400 text-sm italic">No tags selected</span>}
             </div>
-          )}
+
+            {/* Available Tags */}
+            <div className="flex flex-wrap gap-2 pt-3 border-t border-slate-200/50">
+              {availableTags.map(tag => (
+                <button type="button" key={tag} onClick={() => toggleTag(currentField, tag)} className="bg-white text-slate-600 border border-slate-200 px-3 py-1 rounded-full text-sm hover:bg-slate-100 transition-colors">
+                  + {tag}
+                </button>
+              ))}
+            </div>
+
+            {/* Add New Tag */}
+            <div className="mt-4 flex gap-2">
+              <input 
+                value={customTagInput}
+                onChange={e => setCustomTagInput(e.target.value)}
+                placeholder={activeTab === 'food' ? "New Category..." : "New Tag..."}
+                className="bg-white/80 border border-slate-200 rounded-lg px-3 py-1 text-sm focus:outline-none w-full md:w-auto"
+                onKeyDown={e => { if(e.key === 'Enter') addCustomTag(e, currentField); }}
+              />
+              <button type="button" onClick={(e) => addCustomTag(e, currentField)} className="bg-slate-200 text-slate-600 px-3 py-1 rounded-lg text-sm hover:bg-slate-300 whitespace-nowrap">Add</button>
+            </div>
+          </div>
 
           {/* Action Buttons */}
           <div className="flex gap-2 pt-2">
@@ -213,33 +209,24 @@ export default function ManagePage() {
             )}
           </div>
         </form>
-
-        {/* Datalist for Foods */}
-        {activeTab === 'food' && (
-          <datalist id="food-categories">
-            {Array.from(new Set(foods.map(f => f.category).filter(Boolean))).map((cat: any) => (
-              <option key={cat} value={cat} />
-            ))}
-          </datalist>
-        )}
       </div>
 
       {/* --- DATA LIST --- */}
-      <div className="w-full max-w-4xl space-y-3">
+      <div className="w-full max-w-4xl space-y-3 pb-20">
         {(activeTab === 'food' ? foods : activities).map((item) => (
           <div key={item.id} className="bg-white/40 backdrop-blur-sm border border-white/60 p-4 rounded-2xl flex justify-between items-center group hover:bg-white/60 transition-colors">
             <div>
               <div className="font-bold text-slate-800 text-lg">{item.name}</div>
               <div className="text-slate-500 text-sm">{item.description}</div>
-              <div className="mt-1 flex gap-2">
-                {/* Render Tags/Category */}
-                {activeTab === 'food' && item.category && (
-                  <span className="bg-rose-100 text-rose-700 text-xs px-2 py-0.5 rounded-full">{item.category}</span>
-                )}
-                {activeTab === 'activity' && item.type && item.type.split(',').map((t: string, i: number) => (
-                  <span key={i} className="bg-purple-100 text-purple-700 text-xs px-2 py-0.5 rounded-full">{t.trim()}</span>
+              <div className="mt-1 flex gap-2 flex-wrap">
+                {/* Render Tags */}
+                {activeTab === 'food' && item.category && item.category.split(',').map((t: string, i: number) => (
+                  <span key={i} className="bg-rose-100 text-rose-700 text-xs px-2 py-0.5 rounded-full border border-rose-200">{t.trim()}</span>
                 ))}
-                {item.location && <span className="bg-blue-50 text-blue-600 text-xs px-2 py-0.5 rounded-full flex items-center gap-1">📍 {item.location}</span>}
+                {activeTab === 'activity' && item.type && item.type.split(',').map((t: string, i: number) => (
+                  <span key={i} className="bg-purple-100 text-purple-700 text-xs px-2 py-0.5 rounded-full border border-purple-200">{t.trim()}</span>
+                ))}
+                {item.location && <span className="bg-blue-50 text-blue-600 text-xs px-2 py-0.5 rounded-full flex items-center gap-1 border border-blue-200">📍 {item.location}</span>}
               </div>
             </div>
             
