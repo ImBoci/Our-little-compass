@@ -18,6 +18,7 @@ export default function CookPage() {
   const [completingItem, setCompletingItem] = useState<any>(null);
   const [rating, setRating] = useState(5);
   const [note, setNote] = useState("");
+  const [showToast, setShowToast] = useState(false);
 
   useEffect(() => {
     fetch("/api/food").then(res => res.json()).then(data => {
@@ -59,7 +60,8 @@ export default function CookPage() {
     setCompletingItem(null);
     setNote("");
     setRating(5);
-    alert("Memory saved!");
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 3000);
   };
 
   const categories = Array.from(new Set(foods.flatMap(f => f.category ? f.category.split(',').map((c:string) => c.trim()) : []))).sort();
@@ -176,6 +178,16 @@ export default function CookPage() {
               <button onClick={saveMemory} className="flex-1 py-3 rounded-xl font-bold text-white bg-gradient-to-r from-rose-400 to-amber-400 hover:opacity-90 shadow-lg">Save Memory</button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Success Toast */}
+      {showToast && (
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[110] flex items-center gap-2 bg-white/80 backdrop-blur-md px-6 py-3 rounded-full shadow-2xl border border-white/50 animate-in slide-in-from-top-4 fade-in duration-300">
+          <div className="bg-green-500 rounded-full p-1">
+            <CheckCircle size={16} className="text-white" />
+          </div>
+          <span className="font-bold text-slate-700">Memory Saved!</span>
         </div>
       )}
     </div>
