@@ -185,15 +185,21 @@ export default function ManagePage() {
             </div>
 
             {/* Add New Tag */}
-            <div className="mt-4 flex gap-2">
+            <div className="mt-4 flex gap-2 items-center">
               <input 
                 value={customTagInput}
                 onChange={e => setCustomTagInput(e.target.value)}
-                placeholder={activeTab === 'food' ? "New Category..." : "New Tag..."}
-                className="bg-white/80 border border-slate-200 rounded-lg px-3 py-1 text-sm focus:outline-none w-full md:w-auto"
+                placeholder={activeTab === 'food' ? "Type new category..." : "Type new tag..."}
+                className={`flex-1 bg-white/50 backdrop-blur-sm border border-white/60 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-${themeColor}-300 transition-all placeholder:text-slate-400`}
                 onKeyDown={e => { if(e.key === 'Enter') addCustomTag(e, currentField); }}
               />
-              <button type="button" onClick={(e) => addCustomTag(e, currentField)} className="bg-slate-200 text-slate-600 px-3 py-1 rounded-lg text-sm hover:bg-slate-300 whitespace-nowrap">Add</button>
+              <button 
+                type="button" 
+                onClick={(e) => addCustomTag(e, currentField)} 
+                className={`text-white px-5 py-2 rounded-full text-sm font-bold shadow-md hover:shadow-lg transition-all hover:scale-105 active:scale-95 whitespace-nowrap ${activeTab === 'food' ? 'bg-rose-400 hover:bg-rose-500' : 'bg-purple-400 hover:bg-purple-500'}`}
+              >
+                + Add
+              </button>
             </div>
           </div>
 
