@@ -95,6 +95,7 @@ dist
 # Gatsby files
 .cache/
 public
+!public/manifest.json
 
 # Storybook build outputs
 .out

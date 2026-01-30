@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Playfair_Display, Lato } from "next/font/google";
 import "./globals.css";
 import RomanticBackground from "@/components/RomanticBackground";
@@ -8,13 +8,27 @@ import { Toaster } from "sonner";
 const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfair" });
 const lato = Lato({ weight: ["400", "700"], subsets: ["latin"], variable: "--font-lato" });
 
+export const viewport: Viewport = {
+  themeColor: "#ffe4e6",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
+
 export const metadata: Metadata = {
   title: "Our Little Compass",
   description: "Guiding our adventures together",
+  manifest: "/manifest.json",
   icons: {
-    icon: "/favicon/favicon.ico", // or "/favicon/icon.png" depending on your file
+    icon: "/favicon/favicon.ico",
     shortcut: "/favicon/favicon.ico",
-    apple: "/favicon/apple-touch-icon.png", // optional if you have it
+    apple: "/favicon/apple-touch-icon.png",
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Compass",
   },
 };
 
