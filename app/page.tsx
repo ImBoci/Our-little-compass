@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { UtensilsCrossed, CalendarHeart } from "lucide-react";
+import { UtensilsCrossed, CalendarHeart, BookHeart } from "lucide-react";
 
 export default function Home() {
   return (
@@ -11,7 +11,7 @@ export default function Home() {
         Where should we go next?
       </p>
 
-      <div className="grid md:grid-cols-2 gap-8 max-w-4xl w-full px-4">
+      <div className="grid md:grid-cols-3 gap-8 max-w-5xl w-full px-4">
         {/* Food Card - Rose Neon */}
         <Link href="/cook" className="group">
           <div
@@ -31,6 +31,26 @@ export default function Home() {
             </div>
           </div>
         </Link>
+
+      {/* Memory Lane Card - Amber Glow */}
+      <Link href="/memories" className="group">
+        <div
+          className="border-2 border-white/40 rounded-3xl p-10 shadow-xl transition-all duration-300 cursor-pointer h-full flex flex-col items-center justify-center gap-6 hover:scale-105 hover:border-amber-300 hover:shadow-[0_0_35px_rgba(251,191,36,0.6)]"
+          style={{
+            background: "rgba(255, 255, 255, 0.25)",
+            backdropFilter: "blur(12px)",
+            WebkitBackdropFilter: "blur(12px)"
+          }}
+        >
+          <div className="bg-amber-100/80 p-5 rounded-full text-amber-600 group-hover:bg-amber-500 group-hover:text-white transition-all duration-300 shadow-inner group-hover:shadow-[0_0_20px_rgba(251,191,36,0.8)]">
+            <BookHeart size={56} />
+          </div>
+          <div className="space-y-2">
+            <h2 className="font-serif text-3xl text-slate-800 font-bold group-hover:text-amber-600 transition-colors">Memory Lane</h2>
+            <p className="text-slate-700 font-medium">Relive your sweetest adventures together.</p>
+          </div>
+        </div>
+      </Link>
 
         {/* Date Card - Purple Neon */}
         <Link href="/date" className="group">

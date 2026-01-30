@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { UtensilsCrossed, Shuffle, ArrowLeft, Search, X } from "lucide-react";
+import { Shuffle, ArrowLeft, Search, Star } from "lucide-react";
 import Link from "next/link";
 
 export default function CookPage() {
@@ -13,6 +13,13 @@ export default function CookPage() {
   // Filter State
   const [search, setSearch] = useState("");
   const [selectedCat, setSelectedCat] = useState<string | null>(null);
+
+  // Memory Modal State
+  const [showModal, setShowModal] = useState(false);
+  const [rating, setRating] = useState(5);
+  const [note, setNote] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/food").then(res => res.json()).then(data => {
@@ -35,6 +42,42 @@ export default function CookPage() {
         setRandomFood(newFood);
         setIsAnimating(false);
       }, 300);
+    }
+  };
+
+  const openMemoryModal = () => {
+    if (!randomFood) return;
+    setRating(5);
+    setNote("");
+    setSaveError(null);
+    setShowModal(true);
+  };
+
+  const handleSaveMemory = async () => {
+    if (!randomFood) return;
+    try {
+      setSaving(true);
+      setSaveError(null);
+      const response = await fetch("/api/memories", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: randomFood.name,
+          type: "Food",
+          rating,
+          note: note.trim() || null,
+          date: new Date().toISOString(),
+        }),
+      });
+      if (!response.ok) {
+        throw new Error("Failed to save memory");
+      }
+      setShowModal(false);
+    } catch (error) {
+      console.error("Failed to save memory:", error);
+      setSaveError("Could not save memory. Try again.");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -96,7 +139,10 @@ export default function CookPage() {
                     </div>
                     ) : <div className="text-slate-600">No foods found!</div>}
                 </div>
-                <button onClick={handleShuffle} className="mt-12 group relative inline-flex items-center gap-3 bg-rose-500 text-white px-8 py-4 rounded-full font-bold text-lg transition-all duration-300 hover:scale-105 hover:bg-rose-600 hover:shadow-[0_0_30px_#f43f5e]">
+                <button onClick={openMemoryModal} className="mt-6 inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white/50 border border-white/60 text-rose-600 font-semibold shadow-md hover:bg-white/70 hover:scale-105 transition-all">
+                  We cooked this! <Star size={18} className="text-rose-500" />
+                </button>
+                <button onClick={handleShuffle} className="mt-8 group relative inline-flex items-center gap-3 bg-rose-500 text-white px-8 py-4 rounded-full font-bold text-lg transition-all duration-300 hover:scale-105 hover:bg-rose-600 hover:shadow-[0_0_30px_#f43f5e]">
                     <Shuffle className="group-hover:rotate-180 transition-transform duration-500" /> Shuffle Again
                 </button>
             </div>
@@ -154,6 +200,56 @@ export default function CookPage() {
             </div>
         )}
       </div>
+
+      {showModal && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/30 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md bg-white/40 backdrop-blur-xl border border-white/60 rounded-3xl p-6 shadow-2xl">
+            <h2 className="text-2xl font-serif font-bold text-slate-800 mb-2">Rate this memory</h2>
+            <p className="text-slate-600 mb-4">How was it?</p>
+
+            <div className="flex gap-2 mb-4">
+              {[1, 2, 3, 4, 5].map(value => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setRating(value)}
+                  className={`p-2 rounded-full border transition-all ${rating >= value ? "bg-rose-500 border-rose-500 text-white" : "bg-white/50 border-white/60 text-slate-600"}`}
+                >
+                  <Star size={18} fill={rating >= value ? "currentColor" : "none"} />
+                </button>
+              ))}
+            </div>
+
+            <textarea
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder="Add a sweet note..."
+              className="w-full bg-white/50 border border-white/60 rounded-2xl p-4 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-rose-300 min-h-[120px]"
+            />
+
+            {saveError && <p className="text-rose-600 text-sm mt-3">{saveError}</p>}
+
+            <div className="flex justify-end gap-3 mt-6">
+              <button
+                type="button"
+                onClick={() => setShowModal(false)}
+                className="px-4 py-2 rounded-full bg-white/60 border border-white/60 text-slate-600 hover:bg-white transition-all"
+                disabled={saving}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveMemory}
+                className="px-5 py-2 rounded-full bg-rose-500 text-white font-semibold shadow-md hover:bg-rose-600 transition-all disabled:opacity-70"
+                disabled={saving}
+              >
+                {saving ? "Saving..." : "Save Memory"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

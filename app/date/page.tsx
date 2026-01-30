@@ -1,7 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
-import { CalendarHeart, MapPin, Shuffle, ArrowLeft, RotateCcw, ExternalLink, Search } from "lucide-react";
+import { MapPin, Shuffle, ArrowLeft, RotateCcw, ExternalLink, Search, Star } from "lucide-react";
 import Link from "next/link";
+import WeatherWidget from "@/components/WeatherWidget";
 
 export default function DatePage() {
   const [activeTab, setActiveTab] = useState<'random' | 'list'>('random');
@@ -12,6 +13,13 @@ export default function DatePage() {
   // Random Tab State
   const [isFlipped, setIsFlipped] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
+
+  // Memory Modal State
+  const [showModal, setShowModal] = useState(false);
+  const [rating, setRating] = useState(5);
+  const [note, setNote] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   // Filter State
   const [search, setSearch] = useState("");
@@ -42,6 +50,42 @@ export default function DatePage() {
     }
   };
 
+  const openMemoryModal = () => {
+    if (!randomActivity) return;
+    setRating(5);
+    setNote("");
+    setSaveError(null);
+    setShowModal(true);
+  };
+
+  const handleSaveMemory = async () => {
+    if (!randomActivity) return;
+    try {
+      setSaving(true);
+      setSaveError(null);
+      const response = await fetch("/api/memories", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: randomActivity.name,
+          type: "Activity",
+          rating,
+          note: note.trim() || null,
+          date: new Date().toISOString(),
+        }),
+      });
+      if (!response.ok) {
+        throw new Error("Failed to save memory");
+      }
+      setShowModal(false);
+    } catch (error) {
+      console.error("Failed to save memory:", error);
+      setSaveError("Could not save memory. Try again.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const types = Array.from(new Set(activities.flatMap(a => a.type ? a.type.split(',').map((t:string) => t.trim()) : []))).sort();
 
   const filteredActivities = activities.filter(a => {
@@ -62,6 +106,10 @@ export default function DatePage() {
           <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
           <span>Back Home</span>
         </Link>
+
+        <div className="absolute top-6 right-6 z-50">
+          <WeatherWidget />
+        </div>
 
         <div className="mt-12 mb-8 text-center">
             <h1 className="font-serif text-4xl text-slate-800 font-bold drop-shadow-sm">Date Idea</h1>
@@ -117,7 +165,10 @@ export default function DatePage() {
                         </div>
                     </div>
                 </div>
-                <button onClick={handleShuffle} className="mt-12 group relative inline-flex items-center gap-3 bg-purple-600 text-white px-8 py-4 rounded-full font-bold text-lg transition-all duration-300 hover:scale-105 hover:bg-purple-700 hover:shadow-[0_0_30px_#a855f7]">
+                <button onClick={openMemoryModal} className="mt-6 inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white/50 border border-white/60 text-purple-700 font-semibold shadow-md hover:bg-white/70 hover:scale-105 transition-all">
+                  We did this! <Star size={18} className="text-purple-500" />
+                </button>
+                <button onClick={handleShuffle} className="mt-8 group relative inline-flex items-center gap-3 bg-purple-600 text-white px-8 py-4 rounded-full font-bold text-lg transition-all duration-300 hover:scale-105 hover:bg-purple-700 hover:shadow-[0_0_30px_#a855f7]">
                     <Shuffle className="group-hover:rotate-180 transition-transform duration-500" /> Pick Another
                 </button>
             </div>
@@ -169,6 +220,56 @@ export default function DatePage() {
             </div>
         )}
       </div>
+
+      {showModal && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/30 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md bg-white/40 backdrop-blur-xl border border-white/60 rounded-3xl p-6 shadow-2xl">
+            <h2 className="text-2xl font-serif font-bold text-slate-800 mb-2">Rate this memory</h2>
+            <p className="text-slate-600 mb-4">How was it?</p>
+
+            <div className="flex gap-2 mb-4">
+              {[1, 2, 3, 4, 5].map(value => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setRating(value)}
+                  className={`p-2 rounded-full border transition-all ${rating >= value ? "bg-purple-600 border-purple-600 text-white" : "bg-white/50 border-white/60 text-slate-600"}`}
+                >
+                  <Star size={18} fill={rating >= value ? "currentColor" : "none"} />
+                </button>
+              ))}
+            </div>
+
+            <textarea
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder="Add a sweet note..."
+              className="w-full bg-white/50 border border-white/60 rounded-2xl p-4 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-purple-300 min-h-[120px]"
+            />
+
+            {saveError && <p className="text-rose-600 text-sm mt-3">{saveError}</p>}
+
+            <div className="flex justify-end gap-3 mt-6">
+              <button
+                type="button"
+                onClick={() => setShowModal(false)}
+                className="px-4 py-2 rounded-full bg-white/60 border border-white/60 text-slate-600 hover:bg-white transition-all"
+                disabled={saving}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveMemory}
+                className="px-5 py-2 rounded-full bg-purple-600 text-white font-semibold shadow-md hover:bg-purple-700 transition-all disabled:opacity-70"
+                disabled={saving}
+              >
+                {saving ? "Saving..." : "Save Memory"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
