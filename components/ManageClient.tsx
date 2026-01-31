@@ -175,6 +175,13 @@ export default function ManageClient() {
             onChange={e => setFormData({...formData, description: e.target.value})}
           />
 
+          <input
+            className={`w-full bg-white/50 border border-white/60 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-${themeColor}-300 transition-all`}
+            placeholder="Image URL (e.g., https://...)"
+            value={formData.image_url || ""}
+            onChange={e => setFormData({ ...formData, image_url: e.target.value })}
+          />
+
           {/* --- UNIFIED TAG SELECTOR (Works for both Food Category & Activity Type) --- */}
           <div className="bg-white/40 p-4 rounded-xl border border-white/50">
             <label className="block text-sm font-bold text-slate-600 mb-2">
