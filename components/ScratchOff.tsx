@@ -10,12 +10,14 @@ type ScratchOffProps = {
 export default function ScratchOff({
   isResetting,
   onComplete,
-  fogColor = "#cbd5e1",
+  fogColor = "#f8fafc",
 }: ScratchOffProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [isDone, setIsDone] = useState(false);
+  const [isFading, setIsFading] = useState(false);
+  const lastPointRef = useRef<{ x: number; y: number } | null>(null);
 
   const drawFog = () => {
     if (typeof window === "undefined") return;
@@ -29,11 +31,13 @@ export default function ScratchOff({
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
     ctx.globalCompositeOperation = "source-over";
+    ctx.globalAlpha = 0.9;
     const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
     gradient.addColorStop(0, fogColor);
     gradient.addColorStop(1, "#e2e8f0");
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.globalAlpha = 1;
 
     // Subtle noise texture
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
@@ -60,9 +64,19 @@ export default function ScratchOff({
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
     ctx.globalCompositeOperation = "destination-out";
+    ctx.lineWidth = 40;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    const lastPoint = lastPointRef.current;
     ctx.beginPath();
-    ctx.arc(x, y, 24, 0, Math.PI * 2);
-    ctx.fill();
+    if (lastPoint) {
+      ctx.moveTo(lastPoint.x, lastPoint.y);
+    } else {
+      ctx.moveTo(x, y);
+    }
+    ctx.lineTo(x, y);
+    ctx.stroke();
+    lastPointRef.current = { x, y };
   };
 
   const getClearedPercent = () => {
@@ -82,7 +96,10 @@ export default function ScratchOff({
     if (isDone) return;
     setIsDrawing(true);
     const rect = (event.target as HTMLCanvasElement).getBoundingClientRect();
-    clearAtPoint(event.clientX - rect.left, event.clientY - rect.top);
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    lastPointRef.current = { x, y };
+    clearAtPoint(x, y);
   };
 
   const handlePointerMove = (event: React.PointerEvent<HTMLCanvasElement>) => {
@@ -94,10 +111,14 @@ export default function ScratchOff({
   const handlePointerUp = () => {
     if (!isDrawing) return;
     setIsDrawing(false);
+    lastPointRef.current = null;
     const cleared = getClearedPercent();
     if (cleared >= 0.4) {
-      setIsDone(true);
-      onComplete?.();
+      setIsFading(true);
+      setTimeout(() => {
+        setIsDone(true);
+        onComplete?.();
+      }, 300);
     }
   };
 
@@ -110,6 +131,7 @@ export default function ScratchOff({
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (isResetting) {
+      setIsFading(false);
       setIsDone(false);
       drawFog();
     }
@@ -118,10 +140,10 @@ export default function ScratchOff({
   if (isDone) return null;
 
   return (
-    <div ref={containerRef} className="absolute inset-0 rounded-3xl overflow-hidden">
+    <div ref={containerRef} className="absolute inset-0 rounded-3xl overflow-hidden pointer-events-auto">
       <canvas
         ref={canvasRef}
-        className="w-full h-full rounded-3xl"
+        className={`w-full h-full rounded-3xl transition-opacity duration-300 ${isFading ? "opacity-0" : "opacity-100"}`}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
