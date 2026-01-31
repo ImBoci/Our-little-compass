@@ -119,7 +119,7 @@ export default function MemoriesPage() {
           </div>
         </div>
       )}
-    </div>
       <ScrollToTopButton accent="rose" />
+    </div>
   );
 }
