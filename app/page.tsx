@@ -9,6 +9,7 @@ export default function Home() {
   const [diffDays, setDiffDays] = useState<number | null>(null);
   const [pushStatus, setPushStatus] = useState<string | null>(null);
   const [isEnablingPush, setIsEnablingPush] = useState(false);
+  const [isPushActive, setIsPushActive] = useState(false);
 
   useEffect(() => {
     const start = process.env.NEXT_PUBLIC_RELATIONSHIP_START_DATE;
@@ -23,9 +24,17 @@ export default function Home() {
   }, []);
 
   const urlBase64ToUint8Array = (base64String: string) => {
+    if (!base64String || base64String.trim().length === 0) {
+      throw new Error("VAPID public key is missing or empty.");
+    }
     const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
     const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
-    const rawData = window.atob(base64);
+    let rawData = "";
+    try {
+      rawData = window.atob(base64);
+    } catch (error) {
+      throw new Error("VAPID public key is invalid base64.");
+    }
     const outputArray = new Uint8Array(rawData.length);
     for (let i = 0; i < rawData.length; i += 1) {
       outputArray[i] = rawData.charCodeAt(i);
@@ -57,19 +66,23 @@ export default function Home() {
       }
 
       setIsEnablingPush(true);
+      setIsPushActive(false);
+      setPushStatus("⏳ Connecting...");
       const permission = await Notification.requestPermission();
       console.log("[Push] permission result:", permission);
       if (permission !== "granted") {
-        setPushStatus(`Notifications are blocked (${permission}). Enable them in browser settings.`);
+        setPushStatus(`Permission denied (${permission}). Enable notifications in browser settings.`);
         return;
       }
 
       const registration = await navigator.serviceWorker.register("/sw.js");
       console.log("[Push] service worker registered:", registration.scope);
-      const existing = await registration.pushManager.getSubscription();
+      const readyRegistration = await navigator.serviceWorker.ready;
+      console.log("[Push] service worker ready:", readyRegistration.scope);
+      const existing = await readyRegistration.pushManager.getSubscription();
       const subscription =
         existing ||
-        (await registration.pushManager.subscribe({
+        (await readyRegistration.pushManager.subscribe({
           userVisibleOnly: true,
           applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
         }));
@@ -84,10 +97,11 @@ export default function Home() {
       });
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        setPushStatus(data?.error || "Failed to save subscription.");
+        setPushStatus(data?.error || "Database error while saving subscription.");
         return;
       }
-      setPushStatus("Notifications enabled ✨");
+      setIsPushActive(true);
+      setPushStatus("✅ Notifications Active");
     } catch (error) {
       console.error("[Push] enable notifications failed:", error);
       const message = error instanceof Error ? error.message : "Unknown error";
@@ -174,7 +188,11 @@ export default function Home() {
           className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[var(--card-bg)] backdrop-blur-md border border-white/50 text-[var(--text-color)] font-semibold shadow-sm hover:bg-white/40 hover:scale-105 transition-all"
           disabled={isEnablingPush}
         >
-          {isEnablingPush ? "Enabling..." : "🔔 Enable Notifications"}
+          {isEnablingPush
+            ? "⏳ Connecting..."
+            : isPushActive
+            ? "✅ Notifications Active"
+            : "🔔 Enable Notifications"}
         </button>
         {pushStatus && (
           <p className="text-sm text-[var(--text-color)]/80">{pushStatus}</p>
