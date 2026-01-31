@@ -4,6 +4,7 @@ import { MapPin, Shuffle, ArrowLeft, RotateCcw, ExternalLink, Search, CheckCircl
 import Link from "next/link";
 import WeatherWidget from "@/components/WeatherWidget";
 import ScratchOff from "@/components/ScratchOff";
+import ScrollToTopButton from "@/components/ScrollToTopButton";
 
 export default function DatePage() {
   const [activeTab, setActiveTab] = useState<'random' | 'list'>('random');
@@ -394,6 +395,7 @@ export default function DatePage() {
                         </div>
                     ))}
                 </div>
+                <ScrollToTopButton accent="purple" />
             </div>
         )}
 
@@ -463,12 +465,6 @@ export default function DatePage() {
         </div>
       )}
 
-      <button
-        onClick={() => setShowNameModal(true)}
-        className="mt-6 text-xs text-slate-400 hover:text-rose-500 transition-colors"
-      >
-        Change Name
-      </button>
     </div>
   );
 }

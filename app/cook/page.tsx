@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { Shuffle, ArrowLeft, Search, CheckCircle, Star, Image, CircleAlert } from "lucide-react";
 import Link from "next/link";
 import ScratchOff from "@/components/ScratchOff";
+import ScrollToTopButton from "@/components/ScrollToTopButton";
 
 export default function CookPage() {
   const [activeTab, setActiveTab] = useState<'random' | 'list'>('random');
@@ -331,6 +332,7 @@ export default function CookPage() {
                       </div>
                   ))}
               </div>
+              <ScrollToTopButton accent="rose" />
           </div>
       )}
 
@@ -400,12 +402,6 @@ export default function CookPage() {
         </div>
       )}
 
-      <button
-        onClick={() => setShowNameModal(true)}
-        className="mt-6 text-xs text-slate-400 hover:text-rose-500 transition-colors"
-      >
-        Change Name
-      </button>
     </div>
   );
 }

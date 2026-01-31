@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { ArrowLeft, Trash2, Calendar, Star, User, Image as ImageIcon } from "lucide-react";
 import Link from "next/link";
+import ScrollToTopButton from "@/components/ScrollToTopButton";
 
 export default function MemoriesPage() {
   const [activeTab, setActiveTab] = useState<'Food' | 'Activity'>('Food');
@@ -119,5 +120,6 @@ export default function MemoriesPage() {
         </div>
       )}
     </div>
+      <ScrollToTopButton accent="rose" />
   );
 }
