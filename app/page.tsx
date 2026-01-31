@@ -77,7 +77,7 @@ export default function Home() {
         return;
       }
 
-      const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+      const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY?.trim();
       console.log("[Push] VAPID public key:", vapidPublicKey);
       if (!vapidPublicKey) {
         setPushStatus("Missing VAPID public key. Add NEXT_PUBLIC_VAPID_PUBLIC_KEY.");
