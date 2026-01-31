@@ -172,7 +172,7 @@ export default function CookPage() {
   return (
     <div className="flex flex-col items-center min-h-screen p-4 bg-transparent">
       <div className="w-full max-w-5xl flex items-center justify-between mb-4">
-        <Link href="/" className="flex items-center gap-2 px-4 py-2 bg-white/30 backdrop-blur-md border border-white/40 rounded-full text-slate-700 text-sm sm:text-base font-medium shadow-sm hover:bg-white/60 hover:scale-105 hover:shadow-md transition-all duration-300 group">
+        <Link href="/" className="flex items-center gap-2 px-4 py-2 bg-[var(--card-bg)] backdrop-blur-md border border-white/50 rounded-full text-[var(--text-color)] text-sm sm:text-base font-medium shadow-sm hover:bg-white/60 hover:scale-105 hover:shadow-md transition-all duration-300 group">
           <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
           <span className="hidden sm:inline">Back Home</span>
         </Link>
@@ -180,7 +180,7 @@ export default function CookPage() {
       </div>
       
       <div className="mb-6 text-center">
-          <h1 className="font-serif text-2xl md:text-4xl text-slate-800 dark:text-white font-bold drop-shadow-sm">Tonight's Menu</h1>
+          <h1 className="font-serif text-2xl md:text-4xl text-[var(--text-color)] font-bold drop-shadow-sm">Tonight's Menu</h1>
       </div>
 
       <div className="flex justify-center mb-8">
@@ -194,18 +194,18 @@ export default function CookPage() {
       {activeTab === 'random' && (
           <div className="flex flex-col items-center w-full">
               <div
-                className="w-full max-w-[90vw] sm:max-w-md p-8 sm:p-10 rounded-3xl border-2 border-white/50 dark:border-slate-700/50 bg-white/30 dark:bg-slate-900/40 text-center relative transition-all duration-500"
-                style={{ background: "var(--card-bg)", backdropFilter: "blur(16px)" }}
+                className="w-full max-w-[90vw] sm:max-w-md p-8 sm:p-10 rounded-3xl border-2 border-white/50 bg-[var(--card-bg)] text-center relative transition-all duration-500"
+                style={{ backdropFilter: "blur(16px)" }}
               >
                   {randomFood ? (
                   <div className={`space-y-6 transition-all duration-150 ease-in-out ${isSpinning ? 'blur-sm translate-y-2' : 'blur-0 translate-y-0'} ${!isRevealed ? 'pointer-events-none' : 'pointer-events-auto'}`}>
-                      <h2 className="font-serif text-3xl md:text-4xl font-bold text-slate-900 dark:text-white leading-tight hyphens-auto break-words">{randomFood.name}</h2>
+                      <h2 className="font-serif text-3xl md:text-4xl font-bold text-[var(--text-color)] leading-tight hyphens-auto break-words">{randomFood.name}</h2>
                       <div className="flex flex-wrap gap-2 justify-center">
                           {randomFood.category && randomFood.category.split(',').map((tag: string, i: number) => (
                               <span key={i} className="bg-rose-100/80 text-rose-700 px-3 py-1 rounded-full text-sm font-medium border border-rose-200">{tag.trim()}</span>
                           ))}
                       </div>
-                      {randomFood.description && <p className="text-lg md:text-xl text-slate-700 dark:text-slate-300 font-light italic">"{randomFood.description}"</p>}
+                      {randomFood.description && <p className="text-lg md:text-xl text-[var(--text-color)] font-light italic">"{randomFood.description}"</p>}
                   </div>
                   ) : <div className="text-slate-600">No foods found!</div>}
 
@@ -236,7 +236,7 @@ export default function CookPage() {
               <div className="bg-white/40 backdrop-blur-md rounded-2xl p-4 mb-6 border border-white/50">
                   <div className="relative mb-4">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-                      <input type="text" placeholder="Search foods..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-full bg-white/60 border border-white/60 rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-rose-300 text-slate-700 placeholder:text-slate-400" />
+                      <input type="text" placeholder="Search foods..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-full bg-[var(--input-bg)] border border-white/60 rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-rose-300 text-[var(--text-color)] placeholder:text-slate-400" />
                   </div>
                   <div className="flex flex-wrap gap-2">
                       <button onClick={() => setSelectedCat(null)} className={`px-3 py-1 rounded-full text-sm border transition-all ${!selectedCat ? 'bg-rose-500 text-white border-rose-500' : 'bg-white/50 text-slate-600 border-white hover:bg-white'}`}>All</button>
@@ -253,7 +253,7 @@ export default function CookPage() {
                         <div className={`absolute inset-0 transition-all duration-700 transform-style-3d ${flippedId === food.id ? 'rotate-y-180' : ''}`}>
                           {/* Front */}
                           <div
-                            className={`absolute inset-0 backface-hidden bg-white/60 dark:bg-slate-900/40 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 p-6 rounded-2xl hover:shadow-lg transition-all ${flippedId === food.id ? 'pointer-events-none' : 'pointer-events-auto'}`}
+                            className={`absolute inset-0 backface-hidden bg-[var(--card-bg)] backdrop-blur-sm border border-white/60 p-6 rounded-2xl hover:shadow-lg transition-all ${flippedId === food.id ? 'pointer-events-none' : 'pointer-events-auto'}`}
                             onClick={() => handleCardFlip(food)}
                             role="button"
                           >
@@ -268,7 +268,7 @@ export default function CookPage() {
                               <CheckCircle size={22} />
                             </button>
 
-                            <h3 className="font-bold text-lg text-slate-800 dark:text-white mb-2 pr-8 flex items-center gap-2 hyphens-auto break-words">
+                            <h3 className="font-bold text-lg text-[var(--text-color)] mb-2 pr-8 flex items-center gap-2 hyphens-auto break-words">
                               {food.name}
                               {food.image_url && <Image size={14} className="text-slate-400" />}
                             </h3>
@@ -277,11 +277,11 @@ export default function CookPage() {
                                     <span key={i} className="bg-rose-100 text-rose-700 text-xs px-2 py-0.5 rounded-full">{t.trim()}</span>
                                 ))}
                             </div>
-                            <p className="text-slate-600 dark:text-slate-300 text-sm line-clamp-2">{food.description}</p>
+                            <p className="text-[var(--text-color)] text-sm line-clamp-2">{food.description}</p>
                           </div>
 
                           {/* Back */}
-                          <div className={`absolute inset-0 backface-hidden rotate-y-180 bg-white/60 dark:bg-slate-900/40 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 rounded-2xl overflow-hidden ${flippedId === food.id ? 'pointer-events-auto' : 'pointer-events-none'}`}>
+                          <div className={`absolute inset-0 backface-hidden rotate-y-180 bg-[var(--card-bg)] backdrop-blur-sm border border-white/60 rounded-2xl overflow-hidden ${flippedId === food.id ? 'pointer-events-auto' : 'pointer-events-none'}`}>
                             {food.image_url && (
                               <img
                                 src={food.image_url}
@@ -307,9 +307,9 @@ export default function CookPage() {
       {/* RATING MODAL */}
       {completingItem && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-white/90 backdrop-blur-xl rounded-3xl p-8 max-w-sm w-full shadow-2xl border border-white/60">
+          <div className="bg-[var(--card-bg)] backdrop-blur-xl rounded-3xl p-8 max-w-sm w-full shadow-2xl border border-white/60">
             <h3 className="text-2xl font-serif font-bold text-slate-800 mb-2">How was it?</h3>
-            <p className="text-slate-600 mb-6">Rate <strong>{completingItem.name}</strong></p>
+            <p className="text-[var(--text-color)] mb-6">Rate <strong>{completingItem.name}</strong></p>
             
             <div className="flex justify-center gap-2 mb-6">
               {[1, 2, 3, 4, 5].map((star) => (
@@ -319,11 +319,11 @@ export default function CookPage() {
               ))}
             </div>
 
-            <textarea placeholder="Write a short memory..." className="w-full bg-white border border-slate-200 rounded-xl p-3 mb-6 focus:ring-2 focus:ring-rose-300 outline-none" rows={3} value={note} onChange={e => setNote(e.target.value)} />
+            <textarea placeholder="Write a short memory..." className="w-full bg-[var(--input-bg)] border border-slate-200 rounded-xl p-3 mb-6 focus:ring-2 focus:ring-rose-300 outline-none text-[var(--text-color)]" rows={3} value={note} onChange={e => setNote(e.target.value)} />
 
             <div className="flex gap-3">
               <button onClick={() => setCompletingItem(null)} className="flex-1 py-3 rounded-xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200">Cancel</button>
-              <button onClick={saveMemory} className="flex-1 py-3 rounded-xl font-bold text-white bg-gradient-to-r from-rose-400 to-amber-400 hover:opacity-90 shadow-lg">Save Memory</button>
+              <button onClick={saveMemory} className="flex-1 py-3 rounded-xl font-bold text-white bg-[var(--btn-primary)] hover:opacity-90 shadow-lg">Save Memory</button>
             </div>
           </div>
         </div>

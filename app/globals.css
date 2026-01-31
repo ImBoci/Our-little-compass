@@ -3,58 +3,42 @@
 @tailwind utilities;
 
 :root {
-  --font-playfair: 'Playfair Display', serif;
-  --font-lato: 'Lato', sans-serif;
-  --card-bg: rgba(255, 255, 255, 0.35);
-  --text-main: #1e293b; /* Slate 800 */
+  --bg-gradient: linear-gradient(135deg, #fff1f2 0%, #f3e8ff 50%, #e0f2fe 100%);
+  --card-bg: rgba(255, 255, 255, 0.7);
+  --input-bg: rgba(255, 255, 255, 0.9);
+  --text-color: #1e293b;
+  --btn-primary: #e11d48;
 }
 
 .dark {
-  --card-bg: rgba(15, 23, 42, 0.5); /* Slate 900 semi-transparent */
-  --text-main: #f8fafc; /* Slate 50 */
+  --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #020617 100%);
+  --card-bg: rgba(30, 41, 59, 0.7);
+  --input-bg: rgba(15, 23, 42, 0.8);
+  --text-color: #f8fafc;
+  --btn-primary: #fb7185;
 }
 
-/* Force the gradient on the body */
 body {
-  margin: 0;
-  padding: 0;
+  background: var(--bg-gradient) fixed;
+  color: var(--text-color);
   min-height: 100vh;
-  background: linear-gradient(135deg, #fdc2d6 0%, #cbcbff 50%, #caf4fa 100%);
-  background-attachment: fixed; /* Keeps gradient in place when scrolling */
-  color: var(--text-main);
-  transition: background-color 0.5s ease, color 0.5s ease;
 }
 
-@keyframes float {
-  0% { transform: translateY(0px) rotate(0deg); opacity: 0; }
-  20% { opacity: 0.8; }
-  100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
+@keyframes floatUp {
+  0% { transform: translateY(110vh) rotate(0deg); opacity: 0; }
+  10% { opacity: 0.6; }
+  90% { opacity: 0.6; }
+  100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
 }
 
-.floating-heart {
+.particle {
   position: fixed;
-  bottom: -20px;
-  color: #fda4af; /* Rose-300 */
-  opacity: 0;
-  animation: float 15s linear infinite;
-  z-index: -1;
+  z-index: 1; /* Above background, below cards */
   pointer-events: none;
+  animation: floatUp linear infinite;
 }
 
-@keyframes twinkle {
-  0%, 100% { opacity: 0.2; transform: scale(0.9); }
-  50% { opacity: 1; transform: scale(1.1); }
-}
-
-.floating-star {
-  position: fixed;
-  bottom: -20px;
-  color: #fef3c7; /* Amber-100 */
-  opacity: 0.6;
-  animation: float 18s linear infinite, twinkle 2.5s ease-in-out infinite;
-  z-index: -1;
-  pointer-events: none;
-}
+main { position: relative; z-index: 10; }
 
 /* 3D Flip Utilities */
 .perspective-1000 { perspective: 1000px; }

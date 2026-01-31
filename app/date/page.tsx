@@ -198,7 +198,7 @@ export default function DatePage() {
         </div>
 
         <div className="mb-6 text-center">
-            <h1 className="font-serif text-2xl md:text-4xl text-slate-800 dark:text-white font-bold drop-shadow-sm">Date Idea</h1>
+            <h1 className="font-serif text-2xl md:text-4xl text-[var(--text-color)] font-bold drop-shadow-sm">Date Idea</h1>
         </div>
 
         {/* TABS */}
@@ -221,16 +221,16 @@ export default function DatePage() {
                 >
                     <div className={`relative w-full h-full transition-all duration-700 transform-style-3d ${isFlipped ? 'rotate-y-180' : ''}`}>
                         {/* FRONT */}
-                        <div className={`absolute inset-0 backface-hidden flex flex-col items-center justify-center p-8 rounded-3xl border-2 border-white/50 dark:border-slate-700/50 bg-white/30 dark:bg-slate-900/40 shadow-[0_0_40px_rgba(168,85,247,0.15)] text-center ${!isFlipped ? 'z-10 pointer-events-auto' : 'z-0 pointer-events-none'}`} style={{ background: "var(--card-bg)", backdropFilter: "blur(16px)" }}>
+                        <div className={`absolute inset-0 backface-hidden flex flex-col items-center justify-center p-8 rounded-3xl border-2 border-white/50 bg-[var(--card-bg)] shadow-[0_0_40px_rgba(168,85,247,0.15)] text-center ${!isFlipped ? 'z-10 pointer-events-auto' : 'z-0 pointer-events-none'}`} style={{ backdropFilter: "blur(16px)" }}>
                             {randomActivity ? (
                                 <div className={`space-y-6 flex flex-col items-center w-full transition-all duration-150 ease-in-out ${isSpinning ? 'blur-sm translate-y-2' : 'blur-0 translate-y-0'} ${!isRevealed ? 'pointer-events-none' : 'pointer-events-auto'}`}>
-                                    <h2 className="font-serif text-3xl md:text-4xl font-bold text-slate-900 dark:text-white leading-tight hyphens-auto break-words">{randomActivity.name}</h2>
+                                    <h2 className="font-serif text-3xl md:text-4xl font-bold text-[var(--text-color)] leading-tight hyphens-auto break-words">{randomActivity.name}</h2>
                                     <div className="flex flex-wrap gap-2 justify-center">
                                         {randomActivity.type && randomActivity.type.split(',').map((t: string, i: number) => (
                                             <span key={i} className="bg-purple-100/80 text-purple-700 px-3 py-1 rounded-full text-sm font-medium border border-purple-200">{t.trim()}</span>
                                         ))}
                                     </div>
-                                    {randomActivity.description && <p className="text-base md:text-lg text-slate-700 dark:text-slate-300 font-light italic mt-2">"{randomActivity.description}"</p>}
+                                    {randomActivity.description && <p className="text-base md:text-lg text-[var(--text-color)] font-light italic mt-2">"{randomActivity.description}"</p>}
                                     {randomActivity.location && (
                                       randomActivity.location === "Több helyszín" ? (
                                         <div className="mt-4 flex items-center gap-2 font-medium px-5 py-2.5 rounded-full bg-white/40 text-slate-500 border border-slate-200 cursor-default">
@@ -310,7 +310,7 @@ export default function DatePage() {
                           <div className={`absolute inset-0 transition-all duration-700 transform-style-3d ${flippedId === act.id ? 'rotate-y-180' : ''}`}>
                             {/* Front */}
                             <div
-                              className={`absolute inset-0 backface-hidden bg-white/60 dark:bg-slate-900/40 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 p-6 rounded-2xl hover:shadow-lg transition-all ${flippedId === act.id ? 'pointer-events-none' : 'pointer-events-auto'}`}
+                              className={`absolute inset-0 backface-hidden bg-[var(--card-bg)] backdrop-blur-sm border border-white/60 p-6 rounded-2xl hover:shadow-lg transition-all ${flippedId === act.id ? 'pointer-events-none' : 'pointer-events-auto'}`}
                               onClick={() => handleCardFlip(act)}
                               role="button"
                             >
@@ -325,7 +325,7 @@ export default function DatePage() {
                                 <CheckCircle size={22} />
                               </button>
 
-                              <h3 className="font-bold text-lg text-slate-800 dark:text-white mb-1 pr-8 flex items-center gap-2 hyphens-auto break-words">
+                              <h3 className="font-bold text-lg text-[var(--text-color)] mb-1 pr-8 flex items-center gap-2 hyphens-auto break-words">
                                 {act.name}
                                 {act.image_url && <Image size={14} className="text-slate-400" />}
                               </h3>
@@ -339,11 +339,11 @@ export default function DatePage() {
                                       <span key={i} className="bg-purple-100 text-purple-700 text-xs px-2 py-0.5 rounded-full">{t.trim()}</span>
                                   ))}
                               </div>
-                              <p className="text-slate-600 dark:text-slate-300 text-sm line-clamp-2">{act.description}</p>
+                              <p className="text-[var(--text-color)] text-sm line-clamp-2">{act.description}</p>
                             </div>
 
                             {/* Back */}
-                            <div className={`absolute inset-0 backface-hidden rotate-y-180 bg-white/60 dark:bg-slate-900/40 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 rounded-2xl overflow-hidden ${flippedId === act.id ? 'pointer-events-auto' : 'pointer-events-none'}`}>
+                            <div className={`absolute inset-0 backface-hidden rotate-y-180 bg-[var(--card-bg)] backdrop-blur-sm border border-white/60 rounded-2xl overflow-hidden ${flippedId === act.id ? 'pointer-events-auto' : 'pointer-events-none'}`}>
                               {act.image_url && (
                                 <img
                                   src={act.image_url}

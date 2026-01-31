@@ -26,8 +26,8 @@ export default function RomanticBackground({ mode }: RomanticBackgroundProps) {
       id: i,
       left: `${Math.random() * 100}%`,
       size: Math.random() * (mode === "night" ? 10 : 20) + (mode === "night" ? 6 : 10),
-      duration: `${Math.random() * 9 + 6}s`,
-      delay: `${Math.random() * 5}s`,
+      duration: `${Math.random() * 12 + 8}s`,
+      delay: `${Math.random() * 4}s`,
     }));
     setParticles(nextParticles);
   }, [mode, mounted]);
@@ -41,11 +41,11 @@ export default function RomanticBackground({ mode }: RomanticBackgroundProps) {
 
   return (
     <div className="fixed inset-0 pointer-events-none z-[-10] overflow-hidden">
-      <div className="absolute inset-0" style={{ background: backgroundStyle }} />
+      <div className="absolute inset-0" style={{ background: "var(--bg-gradient)" }} />
       {particles.map((particle) => (
         <div
           key={particle.id}
-          className={mode === "night" ? "floating-star" : "floating-heart"}
+          className="particle"
           style={{
             left: particle.left,
             width: particle.size,
