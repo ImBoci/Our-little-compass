@@ -11,6 +11,13 @@ const getDaysSince = (dateString?: string | null) => {
   return diff > 0 ? diff : 0;
 };
 
+const getNextMilestone = (days: number) => {
+  const step = 100;
+  const next = Math.ceil((days + 1) / step) * step;
+  const remaining = Math.max(0, next - days);
+  return { next, remaining };
+};
+
 export default function MilestonesPage() {
   const [journeyDays, setJourneyDays] = useState<number | null>(null);
   const [bociDays, setBociDays] = useState<number | null>(null);
@@ -39,13 +46,19 @@ export default function MilestonesPage() {
           <div className="w-[52px] md:w-[88px]" />
         </header>
 
-        <div className="bg-[var(--card-bg)]/80 backdrop-blur-xl border border-white/40 rounded-3xl p-10 shadow-xl mb-10 text-center">
+        <div className="bg-gradient-to-br from-rose-50/80 to-white/30 dark:from-rose-900/30 dark:to-slate-900/40 backdrop-blur-xl border border-rose-200/70 dark:border-rose-400/30 rounded-3xl p-10 shadow-xl mb-10 text-center">
           <div className="flex items-center justify-center gap-3 text-[var(--text-color)] mb-4">
             <HeartPulse size={24} className="text-rose-400" />
             <h2 className="font-serif text-2xl md:text-3xl font-bold">Our Journey</h2>
           </div>
           <p className="text-3xl md:text-4xl font-serif text-[var(--text-color)] font-bold">
             Day {journeyDays ?? 0} of our journey
+          </p>
+          <p className="mt-3 text-sm text-[var(--text-color)]/70">
+            {(() => {
+              const { next, remaining } = getNextMilestone(journeyDays ?? 0);
+              return `Just ${remaining} days until we hit ${next}! 🎉`;
+            })()}
           </p>
         </div>
 
@@ -55,19 +68,31 @@ export default function MilestonesPage() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          <div className="bg-[var(--card-bg)]/80 backdrop-blur-xl border border-white/40 rounded-3xl p-6 shadow-lg text-center">
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-rose-100/80 text-rose-500 mb-4">
+          <div className="bg-gradient-to-br from-orange-50/80 to-white/30 dark:from-orange-900/30 dark:to-slate-900/40 backdrop-blur-xl border border-orange-200/70 dark:border-orange-400/30 rounded-3xl p-6 shadow-lg text-center">
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-orange-100/80 text-orange-500 mb-4">
               <Cat size={26} />
             </div>
             <h4 className="font-serif text-xl text-[var(--text-color)] font-bold mb-2">Boci</h4>
             <p className="text-[var(--text-color)]/80">Boci has been with us for {bociDays ?? 0} days</p>
+            <p className="mt-2 text-xs text-[var(--text-color)]/70">
+              {(() => {
+                const { next, remaining } = getNextMilestone(bociDays ?? 0);
+                return `Just ${remaining} days until we hit ${next}! 🎉`;
+              })()}
+            </p>
           </div>
-          <div className="bg-[var(--card-bg)]/80 backdrop-blur-xl border border-white/40 rounded-3xl p-6 shadow-lg text-center">
+          <div className="bg-gradient-to-br from-purple-50/80 to-white/30 dark:from-purple-900/30 dark:to-slate-900/40 backdrop-blur-xl border border-purple-200/70 dark:border-purple-400/30 rounded-3xl p-6 shadow-lg text-center">
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-purple-100/80 text-purple-500 mb-4">
               <Cat size={26} />
             </div>
             <h4 className="font-serif text-xl text-[var(--text-color)] font-bold mb-2">Pipi</h4>
             <p className="text-[var(--text-color)]/80">Pipi has been with us for {pipiDays ?? 0} days</p>
+            <p className="mt-2 text-xs text-[var(--text-color)]/70">
+              {(() => {
+                const { next, remaining } = getNextMilestone(pipiDays ?? 0);
+                return `Just ${remaining} days until we hit ${next}! 🎉`;
+              })()}
+            </p>
           </div>
         </div>
       </div>
