@@ -1,8 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Playfair_Display, Lato } from "next/font/google";
 import "./globals.css";
-import { Providers } from "@/components/providers";
-import { Toaster } from "sonner";
 import ThemeProvider from "@/components/ThemeProvider";
 
 const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfair" });
@@ -38,15 +36,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={`${playfair.variable} ${lato.variable} font-sans`}>
         <ThemeProvider>
-          <Providers>
-            <main className="relative z-10 min-h-screen flex flex-col">
-              {children}
-            </main>
-            <Toaster />
-          </Providers>
+          <main className="relative z-10 min-h-screen flex flex-col">
+            {children}
+          </main>
         </ThemeProvider>
       </body>
     </html>

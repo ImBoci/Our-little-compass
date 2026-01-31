@@ -6,14 +6,16 @@ import { useTheme } from "@/components/ThemeProvider";
 
 export default function Home() {
   const { theme, toggleTheme } = useTheme();
-  const [diffDays, setDiffDays] = useState<number | null>(null);
+  const [diffDays, setDiffDays] = useState(0);
 
   useEffect(() => {
-    const startDate = new Date(process.env.NEXT_PUBLIC_RELATIONSHIP_START_DATE || "2022-09-02");
-    const today = new Date();
-    const diffTime = Math.abs(today.getTime() - startDate.getTime());
-    const days = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-    setDiffDays(Number.isFinite(days) && days >= 0 ? days : 0);
+    const start = process.env.NEXT_PUBLIC_RELATIONSHIP_START_DATE;
+    if (start) {
+      const diff = Math.floor(
+        (new Date().getTime() - new Date(start).getTime()) / (1000 * 60 * 60 * 24)
+      );
+      setDiffDays(diff > 0 ? diff : 0);
+    }
   }, []);
 
   return (
@@ -21,12 +23,10 @@ export default function Home() {
       <h1 className="font-serif text-4xl md:text-6xl text-slate-800 mb-2 tracking-tight drop-shadow-sm text-balance px-2">
         Our Little Compass
       </h1>
-      {diffDays !== null && (
-        <div className="mt-1 mb-4 flex items-center justify-center gap-2 text-slate-500 font-serif text-center px-4">
-          <Heart size={14} className="text-rose-400 animate-pulse" />
-          <span>Day {diffDays} of our journey together</span>
-        </div>
-      )}
+      <div className="mt-1 mb-4 flex items-center justify-center gap-2 text-slate-500 font-serif text-center px-4">
+        <Heart size={14} className="text-rose-400 animate-pulse" />
+        <span>Day {diffDays} of our journey together</span>
+      </div>
       <p className="font-sans text-xl text-slate-700 mb-12 italic drop-shadow-sm px-2">
         Where should we go next?
       </p>

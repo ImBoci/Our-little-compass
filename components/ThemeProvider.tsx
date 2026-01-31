@@ -1,6 +1,8 @@
 "use client";
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import RomanticBackground from "@/components/RomanticBackground";
+import { Providers } from "@/components/providers";
+import { Toaster } from "sonner";
 
 export type ThemeMode = "day" | "night";
 
@@ -22,8 +24,10 @@ export function useTheme() {
 
 export default function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<ThemeMode>("day");
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     const hour = new Date().getHours();
     const isNight = hour >= 20 || hour < 6;
     setTheme(isNight ? "night" : "day");
@@ -44,10 +48,21 @@ export default function ThemeProvider({ children }: { children: React.ReactNode 
     [theme]
   );
 
+  const content = (
+    <Providers>
+      {children}
+      <Toaster />
+    </Providers>
+  );
+
+  if (!mounted) {
+    return <ThemeContext.Provider value={value}>{content}</ThemeContext.Provider>;
+  }
+
   return (
     <ThemeContext.Provider value={value}>
       <RomanticBackground mode={theme} />
-      {children}
+      {content}
     </ThemeContext.Provider>
   );
 }
