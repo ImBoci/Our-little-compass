@@ -145,12 +145,16 @@ export default function CookPage() {
 
   return (
     <div className="flex flex-col items-center min-h-screen p-4 bg-transparent">
-      <Link href="/" className="absolute top-6 left-6 z-50 flex items-center gap-2 px-5 py-2.5 bg-white/30 backdrop-blur-md border border-white/40 rounded-full text-slate-700 font-medium shadow-sm hover:bg-white/60 hover:scale-105 hover:shadow-md transition-all duration-300 group">
-        <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" /> Back Home
-      </Link>
+      <div className="w-full max-w-5xl flex items-center justify-between mb-4">
+        <Link href="/" className="flex items-center gap-2 px-4 py-2 bg-white/30 backdrop-blur-md border border-white/40 rounded-full text-slate-700 text-sm sm:text-base font-medium shadow-sm hover:bg-white/60 hover:scale-105 hover:shadow-md transition-all duration-300 group">
+          <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
+          <span className="hidden sm:inline">Back Home</span>
+        </Link>
+        <div className="h-10" />
+      </div>
       
-      <div className="mt-12 mb-8 text-center">
-          <h1 className="font-serif text-4xl text-slate-800 font-bold drop-shadow-sm">Tonight's Menu</h1>
+      <div className="mb-6 text-center">
+          <h1 className="font-serif text-2xl md:text-4xl text-slate-800 font-bold drop-shadow-sm">Tonight's Menu</h1>
       </div>
 
       <div className="flex justify-center mb-8">
@@ -163,16 +167,16 @@ export default function CookPage() {
       {/* RANDOM TAB */}
       {activeTab === 'random' && (
           <div className="flex flex-col items-center w-full">
-              <div className="w-full max-w-md p-10 rounded-3xl border-2 border-white/40 text-center relative transition-all duration-500" style={{ background: "rgba(255, 255, 255, 0.25)", backdropFilter: "blur(16px)" }}>
+              <div className="w-full max-w-[90vw] sm:max-w-md p-8 sm:p-10 rounded-3xl border-2 border-white/40 text-center relative transition-all duration-500" style={{ background: "rgba(255, 255, 255, 0.25)", backdropFilter: "blur(16px)" }}>
                   {randomFood ? (
                   <div className={`space-y-6 transition-all duration-150 ease-in-out ${isSpinning ? 'blur-sm translate-y-2' : 'blur-0 translate-y-0'}`}>
-                      <h2 className="font-serif text-4xl font-bold text-slate-900 leading-tight">{randomFood.name}</h2>
+                      <h2 className="font-serif text-3xl md:text-4xl font-bold text-slate-900 leading-tight hyphens-auto break-words">{randomFood.name}</h2>
                       <div className="flex flex-wrap gap-2 justify-center">
                           {randomFood.category && randomFood.category.split(',').map((tag: string, i: number) => (
                               <span key={i} className="bg-rose-100/80 text-rose-700 px-3 py-1 rounded-full text-sm font-medium border border-rose-200">{tag.trim()}</span>
                           ))}
                       </div>
-                      {randomFood.description && <p className="text-xl text-slate-700 font-light italic">"{randomFood.description}"</p>}
+                      {randomFood.description && <p className="text-lg md:text-xl text-slate-700 font-light italic">"{randomFood.description}"</p>}
                   </div>
                   ) : <div className="text-slate-600">No foods found!</div>}
               </div>
@@ -200,7 +204,7 @@ export default function CookPage() {
               </div>
 
               {/* Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {filteredFoods.map(food => (
                       <div key={food.id} className="relative h-[220px] w-full perspective-1000">
                         <div className={`absolute inset-0 transition-all duration-700 transform-style-3d ${flippedId === food.id ? 'rotate-y-180' : ''}`}>
@@ -221,7 +225,7 @@ export default function CookPage() {
                               <CheckCircle size={22} />
                             </button>
 
-                            <h3 className="font-bold text-lg text-slate-800 mb-2 pr-8 flex items-center gap-2">
+                            <h3 className="font-bold text-lg text-slate-800 mb-2 pr-8 flex items-center gap-2 hyphens-auto break-words">
                               {food.name}
                               {food.image_url && <Image size={14} className="text-slate-400" />}
                             </h3>

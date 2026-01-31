@@ -2,33 +2,25 @@ import Link from "next/link";
 import { UtensilsCrossed, CalendarHeart, BookHeart, Settings, Heart } from "lucide-react";
 
 export default function Home() {
-  const relationshipStart = process.env.NEXT_PUBLIC_RELATIONSHIP_START_DATE;
-  const daysSinceStart = (() => {
-    if (!relationshipStart) return null;
-    const startDate = new Date(relationshipStart);
-    if (Number.isNaN(startDate.getTime())) return null;
-    const today = new Date();
-    const diffMs = today.getTime() - startDate.getTime();
-    const days = Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1;
-    return days > 0 ? days : 0;
-  })();
+  const startDate = new Date(process.env.NEXT_PUBLIC_RELATIONSHIP_START_DATE || "2022-09-02");
+  const today = new Date();
+  const diffTime = Math.abs(today.getTime() - startDate.getTime());
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4 text-center bg-transparent">
-      <h1 className="font-serif text-5xl md:text-6xl text-slate-800 mb-2 tracking-tight drop-shadow-sm">
+      <h1 className="font-serif text-4xl md:text-6xl text-slate-800 mb-2 tracking-tight drop-shadow-sm text-balance px-2">
         Our Little Compass
       </h1>
-      {daysSinceStart !== null && (
-        <div className="mt-1 mb-4 flex items-center justify-center gap-2 text-slate-500 font-serif">
-          <Heart size={14} className="text-rose-400" />
-          <span>Day {daysSinceStart} of our journey</span>
-        </div>
-      )}
-      <p className="font-sans text-xl text-slate-700 mb-12 italic drop-shadow-sm">
+      <div className="mt-1 mb-4 flex items-center justify-center gap-2 text-slate-500 font-serif text-center px-4">
+        <Heart size={14} className="text-rose-400 animate-pulse" />
+        <span>Day {diffDays} of our journey together</span>
+      </div>
+      <p className="font-sans text-xl text-slate-700 mb-12 italic drop-shadow-sm px-2">
         Where should we go next?
       </p>
 
-      <div className="grid md:grid-cols-3 gap-8 max-w-5xl w-full px-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl w-full px-4">
         {/* Food Card - Rose Neon */}
         <Link href="/cook" className="group">
           <div

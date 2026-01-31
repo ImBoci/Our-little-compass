@@ -60,7 +60,7 @@ export default function WeatherWidget() {
 
   if (loading) {
     return (
-      <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm border border-white/40 text-slate-600 text-sm animate-pulse">
+      <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/20 backdrop-blur-sm border border-white/40 text-slate-600 text-xs sm:text-sm animate-pulse">
         Loading weather...
       </div>
     );
@@ -68,18 +68,18 @@ export default function WeatherWidget() {
 
   if (error || state.temperature === null) {
     return (
-      <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm border border-white/40 text-slate-600 text-sm">
+      <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/20 backdrop-blur-sm border border-white/40 text-slate-600 text-xs sm:text-sm">
         Weather unavailable
       </div>
     );
   }
 
   return (
-    <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm border border-white/40 text-slate-700 text-sm shadow-sm">
-      <Icon size={18} className="text-rose-500" />
+    <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/20 backdrop-blur-sm border border-white/40 text-slate-700 text-xs sm:text-sm shadow-sm whitespace-nowrap">
+      <Icon size={16} className="text-rose-500" />
       <span className="font-semibold">{Math.round(state.temperature)}°C</span>
-      <span className="text-slate-500">•</span>
-      <span>{state.rainChance ?? 0}% rain</span>
+      <span className="text-slate-500">|</span>
+      <span>{state.rainChance ?? 0}%</span>
     </div>
   );
 }

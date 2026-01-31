@@ -152,23 +152,27 @@ export default function DatePage() {
 
   return (
     <div className="flex flex-col items-center min-h-screen p-4 bg-transparent">
-      <div className="w-full max-w-4xl relative">
-        <Link 
-          href="/" 
-          className="absolute top-6 left-6 z-50 flex items-center gap-2 px-5 py-2.5 bg-white/30 backdrop-blur-md border border-white/40 rounded-full text-slate-700 font-medium shadow-sm hover:bg-white/60 hover:scale-105 hover:shadow-md transition-all duration-300 group"
-        >
-          <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
-          <span>Back Home</span>
-        </Link>
+      <div className="w-full max-w-4xl">
+        <div className="w-full flex items-center justify-between mb-4">
+          <Link 
+            href="/" 
+            className="flex items-center gap-2 px-4 py-2 bg-white/30 backdrop-blur-md border border-white/40 rounded-full text-slate-700 text-sm sm:text-base font-medium shadow-sm hover:bg-white/60 hover:scale-105 hover:shadow-md transition-all duration-300 group"
+          >
+            <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
+            <span className="hidden sm:inline">Back Home</span>
+          </Link>
 
-        {activeTab === 'random' && (
-          <div className="absolute top-6 right-6 z-50">
-            <WeatherWidget />
-          </div>
-        )}
+          {activeTab === 'random' ? (
+            <div className="max-w-[160px] sm:max-w-none">
+              <WeatherWidget />
+            </div>
+          ) : (
+            <div className="h-10" />
+          )}
+        </div>
 
-        <div className="mt-12 mb-8 text-center">
-            <h1 className="font-serif text-4xl text-slate-800 font-bold drop-shadow-sm">Date Idea</h1>
+        <div className="mb-6 text-center">
+            <h1 className="font-serif text-2xl md:text-4xl text-slate-800 font-bold drop-shadow-sm">Date Idea</h1>
         </div>
 
         {/* TABS */}
@@ -186,19 +190,19 @@ export default function DatePage() {
         {/* === RANDOM TAB (3D Flip) === */}
         {activeTab === 'random' && (
             <div className="flex flex-col items-center">
-                <div className="relative w-full max-w-md h-[450px] perspective-1000">
+                <div className="relative w-full max-w-[90vw] sm:max-w-md h-[450px] perspective-1000">
                     <div className={`relative w-full h-full transition-all duration-700 transform-style-3d ${isFlipped ? 'rotate-y-180' : ''}`}>
                         {/* FRONT */}
                         <div className={`absolute inset-0 backface-hidden flex flex-col items-center justify-center p-8 rounded-3xl border-2 border-white/40 shadow-[0_0_40px_rgba(168,85,247,0.15)] text-center ${!isFlipped ? 'z-10 pointer-events-auto' : 'z-0 pointer-events-none'}`} style={{ background: "rgba(255, 255, 255, 0.35)", backdropFilter: "blur(16px)" }}>
                             {randomActivity ? (
                                 <div className={`space-y-6 flex flex-col items-center w-full transition-all duration-150 ease-in-out ${isSpinning ? 'blur-sm translate-y-2' : 'blur-0 translate-y-0'}`}>
-                                    <h2 className="font-serif text-4xl font-bold text-slate-900 leading-tight">{randomActivity.name}</h2>
+                                    <h2 className="font-serif text-3xl md:text-4xl font-bold text-slate-900 leading-tight hyphens-auto break-words">{randomActivity.name}</h2>
                                     <div className="flex flex-wrap gap-2 justify-center">
                                         {randomActivity.type && randomActivity.type.split(',').map((t: string, i: number) => (
                                             <span key={i} className="bg-purple-100/80 text-purple-700 px-3 py-1 rounded-full text-sm font-medium border border-purple-200">{t.trim()}</span>
                                         ))}
                                     </div>
-                                    {randomActivity.description && <p className="text-lg text-slate-700 font-light italic mt-2">"{randomActivity.description}"</p>}
+                                    {randomActivity.description && <p className="text-base md:text-lg text-slate-700 font-light italic mt-2">"{randomActivity.description}"</p>}
                                     {randomActivity.location && (
                                       randomActivity.location === "Több helyszín" ? (
                                         <div className="mt-4 flex items-center gap-2 font-medium px-5 py-2.5 rounded-full bg-white/40 text-slate-500 border border-slate-200 cursor-default">
@@ -258,7 +262,7 @@ export default function DatePage() {
                 </div>
 
                 {/* Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {filteredActivities.map(act => (
                         <div key={act.id} className="relative h-[220px] w-full perspective-1000">
                           <div className={`absolute inset-0 transition-all duration-700 transform-style-3d ${flippedId === act.id ? 'rotate-y-180' : ''}`}>
@@ -279,7 +283,7 @@ export default function DatePage() {
                                 <CheckCircle size={22} />
                               </button>
 
-                              <h3 className="font-bold text-lg text-slate-800 mb-1 pr-8 flex items-center gap-2">
+                              <h3 className="font-bold text-lg text-slate-800 mb-1 pr-8 flex items-center gap-2 hyphens-auto break-words">
                                 {act.name}
                                 {act.image_url && <Image size={14} className="text-slate-400" />}
                               </h3>
