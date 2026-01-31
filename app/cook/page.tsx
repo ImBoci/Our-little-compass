@@ -195,7 +195,7 @@ export default function CookPage() {
       {activeTab === 'random' && (
           <div className="flex flex-col items-center w-full">
               <div
-                className="w-full max-w-[90vw] sm:max-w-md p-8 sm:p-10 rounded-3xl border-2 border-white/50 bg-[var(--card-bg)] text-center relative transition-all duration-500"
+                className="w-full max-w-sm md:max-w-md p-8 sm:p-10 rounded-3xl border-2 border-white/50 bg-[var(--card-bg)] text-center relative transition-all duration-500"
                 style={{ backdropFilter: "blur(16px)" }}
               >
                   {randomFood ? (
@@ -222,7 +222,7 @@ export default function CookPage() {
               {isRevealed && randomFood && (
                 <button
                   onClick={handleShareInvite}
-                  className="mt-4 inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white/40 backdrop-blur-md border border-rose-200 text-rose-700 font-semibold shadow-sm hover:bg-rose-100/70 hover:scale-105 transition-all"
+                  className="mt-4 inline-flex items-center gap-2 px-6 py-3 rounded-full bg-rose-500/20 dark:bg-rose-500/40 backdrop-blur-md border-2 border-rose-300/70 text-[var(--text-color)] font-semibold shadow-sm hover:bg-rose-500/30 hover:scale-105 transition-all"
                 >
                   Share Invite 🌹
                 </button>

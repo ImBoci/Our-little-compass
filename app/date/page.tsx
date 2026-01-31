@@ -216,13 +216,13 @@ export default function DatePage() {
 
         {/* === RANDOM TAB (3D Flip) === */}
         {activeTab === 'random' && (
-            <div className="flex flex-col items-center">
+            <div className="flex flex-col items-center w-full">
                 <div
-                  className="relative w-full max-w-[90vw] sm:max-w-md h-[450px] perspective-1000"
+                  className="relative w-full max-w-sm md:max-w-md h-[450px] perspective-1000"
                 >
                     <div className={`relative w-full h-full transition-all duration-700 transform-style-3d ${isFlipped ? 'rotate-y-180' : ''}`}>
                         {/* FRONT */}
-                        <div className={`absolute inset-0 backface-hidden flex flex-col items-center justify-center p-8 rounded-3xl border-2 border-white/50 bg-[var(--card-bg)] shadow-[0_0_40px_rgba(168,85,247,0.15)] text-center ${!isFlipped ? 'z-10 pointer-events-auto' : 'z-0 pointer-events-none'}`} style={{ backdropFilter: "blur(16px)" }}>
+                        <div className={`absolute inset-0 w-full h-full backface-hidden flex flex-col items-center justify-center p-8 rounded-3xl border-2 border-white/50 bg-[var(--card-bg)] shadow-[0_0_40px_rgba(168,85,247,0.15)] text-center ${!isFlipped ? 'z-10 pointer-events-auto' : 'z-0 pointer-events-none'}`} style={{ backdropFilter: "blur(16px)" }}>
                             {randomActivity ? (
                                 <div className={`space-y-6 flex flex-col items-center w-full transition-all duration-150 ease-in-out ${isSpinning ? 'blur-sm translate-y-2' : 'blur-0 translate-y-0'} ${!isRevealed ? 'pointer-events-none' : 'pointer-events-auto'}`}>
                                     <h2 className="font-serif text-3xl md:text-4xl font-bold text-[var(--text-color)] leading-tight hyphens-auto break-words">{randomActivity.name}</h2>
@@ -234,7 +234,7 @@ export default function DatePage() {
                                     {randomActivity.description && <p className="text-base md:text-lg text-[var(--text-color)] font-light italic mt-2">"{randomActivity.description}"</p>}
                                     {randomActivity.location && (
                                       randomActivity.location === "Több helyszín" ? (
-                                        <div className="mt-4 flex items-center gap-2 font-medium px-5 py-2.5 rounded-full bg-white/40 text-slate-500 border border-slate-200 cursor-default">
+                                        <div className="mt-4 flex items-center gap-2 font-medium px-5 py-2.5 rounded-full bg-white/40 text-[var(--text-color)]/80 border border-[var(--text-color)]/20 cursor-default">
                                           <Map size={18} />
                                           <span>Multiple Locations</span>
                                         </div>
@@ -254,7 +254,7 @@ export default function DatePage() {
                             )}
                         </div>
                         {/* BACK */}
-                        <div className={`absolute inset-0 backface-hidden rotate-y-180 rounded-3xl border-2 border-white/40 shadow-xl overflow-hidden bg-white ${isFlipped ? 'z-10 pointer-events-auto' : 'z-0 pointer-events-none'}`}>
+                        <div className={`absolute inset-0 w-full h-full backface-hidden rotate-y-180 rounded-3xl border-2 border-white/40 shadow-xl overflow-hidden bg-white ${isFlipped ? 'z-10 pointer-events-auto' : 'z-0 pointer-events-none'}`}>
                             {randomActivity?.location && (
                                 <>
                                     <iframe width="100%" height="100%" src={`https://maps.google.com/maps?q=${encodeURIComponent(randomActivity.location)}&t=&z=15&ie=UTF8&iwloc=&output=embed`} frameBorder="0" scrolling="no" className="w-full h-full block"></iframe>
@@ -273,7 +273,7 @@ export default function DatePage() {
                 {isRevealed && randomActivity && (
                   <button
                     onClick={handleShareInvite}
-                    className="mt-4 inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white/40 backdrop-blur-md border border-amber-200 text-amber-700 font-semibold shadow-sm hover:bg-amber-100/70 hover:scale-105 transition-all"
+                    className="mt-4 inline-flex items-center gap-2 px-6 py-3 rounded-full bg-rose-500/20 dark:bg-rose-500/40 backdrop-blur-md border-2 border-rose-300/70 text-[var(--text-color)] font-semibold shadow-sm hover:bg-rose-500/30 hover:scale-105 transition-all"
                   >
                     Share Invite 🌹
                   </button>
