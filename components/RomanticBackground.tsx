@@ -53,13 +53,13 @@ export default function RomanticBackground({ mode }: RomanticBackgroundProps) {
             animationDuration: particle.duration,
             animationDelay: particle.delay,
             opacity: 0.6,
-            color: mode === "night" ? "#fde047" : undefined,
+            color: mode === "night" ? "#fde047" : "#fb7185",
           }}
         >
           {mode === "night" ? (
-            <Star fill="currentColor" size={particle.size} />
+            <Star fill="#fde047" size={particle.size} />
           ) : (
-            <Heart fill="currentColor" size={particle.size} />
+            <Heart fill="#fb7185" size={particle.size} />
           )}
         </div>
       ))}

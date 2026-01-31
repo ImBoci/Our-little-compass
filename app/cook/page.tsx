@@ -331,13 +331,13 @@ export default function CookPage() {
 
       {showNameModal && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-white/90 rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl">
+          <div className="bg-[var(--card-bg)] rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl">
             <h3 className="text-2xl font-serif font-bold mb-2">Who are you?</h3>
             <p className="text-slate-500 mb-4 text-sm">Enter your name so we know who reviewed this!</p>
             <input 
               value={nameInput}
               onChange={(e) => setNameInput(e.target.value)}
-              className="w-full border rounded-xl p-3 mb-4 text-center"
+              className="w-full border rounded-xl p-3 mb-4 text-center bg-[var(--input-bg)] text-[var(--text-color)] placeholder:text-slate-400"
               placeholder="Your Name"
             />
             <button 

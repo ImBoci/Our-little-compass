@@ -182,7 +182,7 @@ export default function DatePage() {
         <div className="w-full flex items-center justify-between mb-4">
           <Link 
             href="/" 
-            className="flex items-center gap-2 px-4 py-2 bg-white/30 backdrop-blur-md border border-white/40 rounded-full text-slate-700 text-sm sm:text-base font-medium shadow-sm hover:bg-white/60 hover:scale-105 hover:shadow-md transition-all duration-300 group"
+            className="flex items-center gap-2 px-4 py-2 bg-[var(--card-bg)] backdrop-blur-md border border-white/50 rounded-full text-[var(--text-color)] text-sm sm:text-base font-medium shadow-sm hover:bg-white/60 hover:scale-105 hover:shadow-md transition-all duration-300 group"
           >
             <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
             <span className="hidden sm:inline">Back Home</span>
@@ -238,7 +238,7 @@ export default function DatePage() {
                                           <span>Multiple Locations</span>
                                         </div>
                                       ) : (
-                                        <button onClick={() => setIsFlipped(true)} className="mt-4 flex items-center gap-2 font-medium px-5 py-2.5 rounded-full bg-white/60 text-slate-700 hover:bg-purple-600 hover:text-white transition-all duration-300 shadow-sm border border-purple-100 hover:shadow-purple-300/50 cursor-pointer pointer-events-auto">
+                        <button onClick={() => setIsFlipped(true)} className="mt-4 flex items-center gap-2 font-medium px-5 py-2.5 rounded-full bg-[var(--card-bg)] text-[var(--text-color)] hover:bg-purple-600 hover:text-white transition-all duration-300 shadow-sm border border-purple-100 hover:shadow-purple-300/50 cursor-pointer pointer-events-auto">
                                           <MapPin size={18} /> <span className="truncate max-w-[200px]">{randomActivity.location}</span>
                                         </button>
                                       )
@@ -284,7 +284,7 @@ export default function DatePage() {
         {activeTab === 'list' && (
             <div className="w-full max-w-5xl animate-in fade-in slide-in-from-bottom-4 duration-500">
                 {/* Filters */}
-                <div className="bg-white/40 backdrop-blur-md rounded-2xl p-4 mb-6 border border-white/50">
+                <div className="bg-[var(--card-bg)] backdrop-blur-xl rounded-2xl p-4 mb-6 border border-white/50">
                     <div className="relative mb-4">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
                         <input 
@@ -292,7 +292,7 @@ export default function DatePage() {
                             placeholder="Search activities..." 
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
-                            className="w-full bg-white/60 border border-white/60 rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-300 text-slate-700 placeholder:text-slate-400"
+                            className="w-full bg-[var(--input-bg)] border border-white/60 rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-300 text-[var(--text-color)] placeholder:text-slate-400"
                         />
                     </div>
                     <div className="flex flex-wrap gap-2">
@@ -370,9 +370,9 @@ export default function DatePage() {
       {/* RATING MODAL */}
       {completingItem && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-white/90 backdrop-blur-xl rounded-3xl p-8 max-w-sm w-full shadow-2xl border border-white/60">
-            <h3 className="text-2xl font-serif font-bold text-slate-800 mb-2">How was it?</h3>
-            <p className="text-slate-600 mb-6">Rate <strong>{completingItem.name}</strong></p>
+          <div className="bg-[var(--card-bg)] backdrop-blur-xl rounded-3xl p-8 max-w-sm w-full shadow-2xl border border-white/60">
+            <h3 className="text-2xl font-serif font-bold text-[var(--text-color)] mb-2">How was it?</h3>
+            <p className="text-[var(--text-color)] mb-6">Rate <strong>{completingItem.name}</strong></p>
             
             <div className="flex justify-center gap-2 mb-6">
               {[1, 2, 3, 4, 5].map((star) => (
@@ -382,7 +382,7 @@ export default function DatePage() {
               ))}
             </div>
 
-            <textarea placeholder="Write a short memory..." className="w-full bg-white border border-slate-200 rounded-xl p-3 mb-6 focus:ring-2 focus:ring-purple-300 outline-none" rows={3} value={note} onChange={e => setNote(e.target.value)} />
+            <textarea placeholder="Write a short memory..." className="w-full bg-[var(--input-bg)] border border-slate-200 rounded-xl p-3 mb-6 focus:ring-2 focus:ring-purple-300 outline-none text-[var(--text-color)]" rows={3} value={note} onChange={e => setNote(e.target.value)} />
 
             <div className="flex gap-3">
               <button onClick={() => setCompletingItem(null)} className="flex-1 py-3 rounded-xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200">Cancel</button>
@@ -394,13 +394,13 @@ export default function DatePage() {
 
       {showNameModal && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-white/90 rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl">
+          <div className="bg-[var(--card-bg)] rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl">
             <h3 className="text-2xl font-serif font-bold mb-2">Who are you?</h3>
             <p className="text-slate-500 mb-4 text-sm">Enter your name so we know who reviewed this!</p>
             <input 
               value={nameInput}
               onChange={(e) => setNameInput(e.target.value)}
-              className="w-full border rounded-xl p-3 mb-4 text-center"
+              className="w-full border rounded-xl p-3 mb-4 text-center bg-[var(--input-bg)] text-[var(--text-color)] placeholder:text-slate-400"
               placeholder="Your Name"
             />
             <button 

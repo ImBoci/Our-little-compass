@@ -143,15 +143,15 @@ export default function ManageClient() {
       </div>
 
       {/* --- EDITOR FORM --- */}
-      <div className="w-full max-w-4xl bg-white/60 backdrop-blur-xl border border-white/60 p-8 rounded-3xl shadow-xl mb-12">
-        <h2 className="text-xl font-bold text-slate-700 mb-6 flex items-center gap-2">
+      <div className="w-full max-w-4xl bg-[var(--card-bg)] backdrop-blur-xl border border-white/60 p-8 rounded-3xl shadow-xl mb-12">
+        <h2 className="text-xl font-bold text-[var(--text-color)] mb-6 flex items-center gap-2">
           {isEditing ? <><Pencil size={20} /> Editing Item</> : <><Plus size={20} /> Add New {activeTab === 'food' ? 'Food' : 'Activity'}</>}
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <input 
-              className={`w-full bg-white/50 border border-white/60 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-${themeColor}-300`}
+              className={`w-full bg-[var(--input-bg)] border border-white/60 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-${themeColor}-300 text-[var(--text-color)] placeholder:text-slate-400`}
               placeholder="Name" 
               value={formData.name || ""} 
               onChange={e => setFormData({...formData, name: e.target.value})}
@@ -160,7 +160,7 @@ export default function ManageClient() {
             
             {activeTab === 'activity' && (
               <input 
-                className="w-full bg-white/50 border border-white/60 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-300"
+                className="w-full bg-[var(--input-bg)] border border-white/60 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-300 text-[var(--text-color)] placeholder:text-slate-400"
                 placeholder="Location (e.g. WestEnd)" 
                 value={formData.location || ""}
                 onChange={e => setFormData({...formData, location: e.target.value})}
@@ -169,22 +169,22 @@ export default function ManageClient() {
           </div>
 
           <input 
-            className={`w-full bg-white/50 border border-white/60 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-${themeColor}-300`}
+            className={`w-full bg-[var(--input-bg)] border border-white/60 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-${themeColor}-300 text-[var(--text-color)] placeholder:text-slate-400`}
             placeholder="Description (Optional)" 
             value={formData.description || ""}
             onChange={e => setFormData({...formData, description: e.target.value})}
           />
 
           <input
-            className={`w-full bg-white/50 border border-white/60 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-${themeColor}-300 transition-all`}
+            className={`w-full bg-[var(--input-bg)] border border-white/60 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-${themeColor}-300 transition-all text-[var(--text-color)] placeholder:text-slate-400`}
             placeholder="Image URL (e.g., https://...)"
             value={formData.image_url || ""}
             onChange={e => setFormData({ ...formData, image_url: e.target.value })}
           />
 
           {/* --- UNIFIED TAG SELECTOR (Works for both Food Category & Activity Type) --- */}
-          <div className="bg-white/40 p-4 rounded-xl border border-white/50">
-            <label className="block text-sm font-bold text-slate-600 mb-2">
+          <div className="bg-[var(--card-bg)] p-4 rounded-xl border border-white/50">
+            <label className="block text-sm font-bold text-[var(--text-color)] mb-2">
               {activeTab === 'food' ? 'Categories' : 'Tags'} (Select or Add)
             </label>
             
@@ -202,7 +202,7 @@ export default function ManageClient() {
             {/* Available Tags */}
             <div className="flex flex-wrap gap-2 pt-3 border-t border-slate-200/50">
               {availableTags.map(tag => (
-                <button type="button" key={tag} onClick={() => toggleTag(currentField, tag)} className="bg-white text-slate-600 border border-slate-200 px-3 py-1 rounded-full text-sm hover:bg-slate-100 transition-colors">
+                <button type="button" key={tag} onClick={() => toggleTag(currentField, tag)} className="bg-[var(--input-bg)] text-[var(--text-color)] border border-slate-200 px-3 py-1 rounded-full text-sm hover:bg-slate-100 transition-colors">
                   + {tag}
                 </button>
               ))}
@@ -214,7 +214,7 @@ export default function ManageClient() {
                 value={customTagInput}
                 onChange={e => setCustomTagInput(e.target.value)}
                 placeholder={activeTab === 'food' ? "Type new category..." : "Type new tag..."}
-                className={`flex-1 bg-white/50 backdrop-blur-sm border border-white/60 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-${themeColor}-300 transition-all placeholder:text-slate-400`}
+                className={`flex-1 bg-[var(--input-bg)] backdrop-blur-sm border border-white/60 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-${themeColor}-300 transition-all placeholder:text-slate-400 text-[var(--text-color)]`}
                 onKeyDown={e => { if(e.key === 'Enter') addCustomTag(e, currentField); }}
               />
               <button 
@@ -229,7 +229,7 @@ export default function ManageClient() {
 
           {/* Action Buttons */}
           <div className="flex gap-2 pt-2">
-            <button type="submit" className={`flex-1 text-white py-3 rounded-xl font-bold shadow-lg transition-transform active:scale-95 flex justify-center items-center gap-2 ${activeTab === 'food' ? 'bg-rose-500 hover:bg-rose-600' : 'bg-purple-600 hover:bg-purple-700'}`}>
+            <button type="submit" className={`flex-1 text-white py-3 rounded-xl font-bold shadow-lg transition-transform active:scale-95 flex justify-center items-center gap-2 ${activeTab === 'food' ? 'bg-[var(--btn-primary)] hover:opacity-90' : 'bg-[var(--btn-primary)] hover:opacity-90'}`}>
               <Save size={20} /> {isEditing ? 'Update Item' : 'Save to Database'}
             </button>
             {isEditing && (
@@ -244,9 +244,9 @@ export default function ManageClient() {
       {/* --- DATA LIST --- */}
       <div className="w-full max-w-4xl space-y-3 pb-20">
         {(activeTab === 'food' ? foods : activities).map((item) => (
-          <div key={item.id} className="bg-white/40 backdrop-blur-sm border border-white/60 p-4 rounded-2xl flex justify-between items-center group hover:bg-white/60 transition-colors">
+          <div key={item.id} className="bg-[var(--card-bg)] backdrop-blur-xl border border-white/60 p-4 rounded-2xl flex justify-between items-center group hover:bg-white/60 transition-colors">
             <div>
-              <div className="font-bold text-slate-800 text-lg">{item.name}</div>
+              <div className="font-bold text-[var(--text-color)] text-lg">{item.name}</div>
               <div className="text-slate-500 text-sm">{item.description}</div>
               <div className="mt-1 flex gap-2 flex-wrap">
                 {/* Render Tags */}

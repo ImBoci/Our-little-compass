@@ -22,7 +22,7 @@ export default function Home() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4 text-center bg-transparent">
-      <h1 className="font-serif text-4xl md:text-6xl text-slate-800 dark:text-white mb-2 tracking-tight drop-shadow-sm text-balance px-2">
+      <h1 className="font-serif text-4xl md:text-6xl text-[var(--text-color)] mb-2 tracking-tight drop-shadow-sm text-balance px-2">
         Our Little Compass
       </h1>
       <div className="mt-1 mb-4 flex items-center justify-center gap-2 text-slate-500 font-serif text-center px-4">
