@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -23,7 +23,7 @@ type NotificationItem = {
 
 type PushStatus = "loading" | "subscribed" | "not-subscribed";
 
-export default function SettingsPage() {
+function SettingsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { theme, toggleTheme } = useTheme();
@@ -369,5 +369,19 @@ export default function SettingsPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function SettingsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center text-rose-500 font-serif">
+          Loading your compass...
+        </div>
+      }
+    >
+      <SettingsContent />
+    </Suspense>
   );
 }
