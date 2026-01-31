@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { MapPin, Shuffle, ArrowLeft, RotateCcw, ExternalLink, Search, CheckCircle, Star, Image, CircleAlert, Map } from "lucide-react";
 import Link from "next/link";
 import WeatherWidget from "@/components/WeatherWidget";
@@ -27,6 +27,27 @@ export default function DatePage() {
   const [userName, setUserName] = useState<string | null>(null);
   const [showNameModal, setShowNameModal] = useState(false);
   const [nameInput, setNameInput] = useState("");
+  const audioContextRef = useRef<AudioContext | null>(null);
+
+  const playTick = () => {
+    if (typeof window === "undefined") return;
+    const AudioContextClass =
+      window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!AudioContextClass) return;
+    if (!audioContextRef.current) {
+      audioContextRef.current = new AudioContextClass();
+    }
+    const ctx = audioContextRef.current;
+    const oscillator = ctx.createOscillator();
+    const gain = ctx.createGain();
+    oscillator.type = "square";
+    oscillator.frequency.value = 800;
+    gain.gain.value = 0.02;
+    oscillator.connect(gain);
+    gain.connect(ctx.destination);
+    oscillator.start();
+    oscillator.stop(ctx.currentTime + 0.03);
+  };
 
   // Flip State
   const [flippedId, setFlippedId] = useState<string | number | null>(null);
@@ -68,38 +89,17 @@ export default function DatePage() {
       }
     }
 
-    const spinSteps = Math.min(15, Math.max(10, Math.floor(Math.random() * 6) + 10));
-    let step = 0;
-    let delay = 60;
-    let timer: ReturnType<typeof setInterval> | null = null;
-
-    const tick = () => {
-      step += 1;
+    const intervalId = setInterval(() => {
       setRandomActivity(getRandomActivity());
+      playTick();
+    }, 70);
 
-      if (step === spinSteps - 3) {
-        if (timer) clearInterval(timer);
-        delay = 100;
-        timer = setInterval(tick, delay);
-        return;
-      }
-
-      if (step === spinSteps - 1) {
-        if (timer) clearInterval(timer);
-        delay = 160;
-        timer = setInterval(tick, delay);
-        return;
-      }
-
-      if (step >= spinSteps) {
-        if (timer) clearInterval(timer);
-        setRandomActivity(finalActivity);
-        setIsAnimating(false);
-        setIsSpinning(false);
-      }
-    };
-
-    timer = setInterval(tick, delay);
+    setTimeout(() => {
+      clearInterval(intervalId);
+      setRandomActivity(finalActivity);
+      setIsAnimating(false);
+      setIsSpinning(false);
+    }, 1500);
   };
 
   const showToastMessage = (message: string, variant: 'success' | 'warning') => {
@@ -191,7 +191,7 @@ export default function DatePage() {
                         {/* FRONT */}
                         <div className={`absolute inset-0 backface-hidden flex flex-col items-center justify-center p-8 rounded-3xl border-2 border-white/40 shadow-[0_0_40px_rgba(168,85,247,0.15)] text-center ${!isFlipped ? 'z-10 pointer-events-auto' : 'z-0 pointer-events-none'}`} style={{ background: "rgba(255, 255, 255, 0.35)", backdropFilter: "blur(16px)" }}>
                             {randomActivity ? (
-                                <div className={`space-y-6 flex flex-col items-center w-full transition-all duration-150 ease-in-out ${isSpinning || isAnimating ? 'blur-[1px] translate-y-1' : 'blur-0 translate-y-0'}`}>
+                                <div className={`space-y-6 flex flex-col items-center w-full transition-all duration-150 ease-in-out ${isSpinning ? 'blur-sm translate-y-2' : 'blur-0 translate-y-0'}`}>
                                     <h2 className="font-serif text-4xl font-bold text-slate-900 leading-tight">{randomActivity.name}</h2>
                                     <div className="flex flex-wrap gap-2 justify-center">
                                         {randomActivity.type && randomActivity.type.split(',').map((t: string, i: number) => (

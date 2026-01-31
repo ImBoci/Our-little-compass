@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Shuffle, ArrowLeft, Search, CheckCircle, Star, Image, CircleAlert } from "lucide-react";
 import Link from "next/link";
 
@@ -28,6 +28,27 @@ export default function CookPage() {
   const [userName, setUserName] = useState<string | null>(null);
   const [showNameModal, setShowNameModal] = useState(false);
   const [nameInput, setNameInput] = useState("");
+  const audioContextRef = useRef<AudioContext | null>(null);
+
+  const playTick = () => {
+    if (typeof window === "undefined") return;
+    const AudioContextClass =
+      window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!AudioContextClass) return;
+    if (!audioContextRef.current) {
+      audioContextRef.current = new AudioContextClass();
+    }
+    const ctx = audioContextRef.current;
+    const oscillator = ctx.createOscillator();
+    const gain = ctx.createGain();
+    oscillator.type = "square";
+    oscillator.frequency.value = 800;
+    gain.gain.value = 0.02;
+    oscillator.connect(gain);
+    gain.connect(ctx.destination);
+    oscillator.start();
+    oscillator.stop(ctx.currentTime + 0.03);
+  };
 
   useEffect(() => {
     fetch("/api/food").then(res => res.json()).then(data => {
@@ -61,38 +82,17 @@ export default function CookPage() {
       }
     }
 
-    const spinSteps = Math.min(15, Math.max(10, Math.floor(Math.random() * 6) + 10));
-    let step = 0;
-    let delay = 60;
-    let timer: ReturnType<typeof setInterval> | null = null;
-
-    const tick = () => {
-      step += 1;
+    const intervalId = setInterval(() => {
       setRandomFood(getRandomFood());
+      playTick();
+    }, 70);
 
-      if (step === spinSteps - 3) {
-        if (timer) clearInterval(timer);
-        delay = 100;
-        timer = setInterval(tick, delay);
-        return;
-      }
-
-      if (step === spinSteps - 1) {
-        if (timer) clearInterval(timer);
-        delay = 160;
-        timer = setInterval(tick, delay);
-        return;
-      }
-
-      if (step >= spinSteps) {
-        if (timer) clearInterval(timer);
-        setRandomFood(finalFood);
-        setIsAnimating(false);
-        setIsSpinning(false);
-      }
-    };
-
-    timer = setInterval(tick, delay);
+    setTimeout(() => {
+      clearInterval(intervalId);
+      setRandomFood(finalFood);
+      setIsAnimating(false);
+      setIsSpinning(false);
+    }, 1500);
   };
 
   const showToastMessage = (message: string, variant: 'success' | 'warning') => {
@@ -165,7 +165,7 @@ export default function CookPage() {
           <div className="flex flex-col items-center w-full">
               <div className="w-full max-w-md p-10 rounded-3xl border-2 border-white/40 text-center relative transition-all duration-500" style={{ background: "rgba(255, 255, 255, 0.25)", backdropFilter: "blur(16px)" }}>
                   {randomFood ? (
-                  <div className={`space-y-6 transition-all duration-150 ease-in-out ${isSpinning || isAnimating ? 'blur-[1px] translate-y-1' : 'blur-0 translate-y-0'}`}>
+                  <div className={`space-y-6 transition-all duration-150 ease-in-out ${isSpinning ? 'blur-sm translate-y-2' : 'blur-0 translate-y-0'}`}>
                       <h2 className="font-serif text-4xl font-bold text-slate-900 leading-tight">{randomFood.name}</h2>
                       <div className="flex flex-wrap gap-2 justify-center">
                           {randomFood.category && randomFood.category.split(',').map((tag: string, i: number) => (
