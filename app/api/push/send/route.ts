@@ -16,20 +16,40 @@ export async function POST(request: Request) {
 
     const body = await request.json();
     const { sender, message } = body || {};
+    const resolvedSender =
+      typeof sender === "string" && sender.trim().length > 0 ? sender.trim() : "Anonymous";
 
     if (!message || typeof message !== "string") {
       return NextResponse.json({ error: "Message is required." }, { status: 400 });
     }
 
+    const latestNotification = await prisma.appNotification.findFirst({
+      where: { sender: resolvedSender },
+      orderBy: { createdAt: "desc" },
+    });
+    if (latestNotification) {
+      const elapsedMs = Date.now() - latestNotification.createdAt.getTime();
+      const cooldownMs = 5 * 60 * 1000;
+      if (elapsedMs < cooldownMs) {
+        const remainingSeconds = Math.ceil((cooldownMs - elapsedMs) / 1000);
+        console.log(`[Push] Cooldown check for ${resolvedSender}: Blocked`);
+        return NextResponse.json(
+          { error: "Cooldown active", remainingSeconds },
+          { status: 429 }
+        );
+      }
+    }
+    console.log(`[Push] Cooldown check for ${resolvedSender}: Passed`);
+
     console.log("Using Public Key:", `${vapidPublicKey.substring(0, 10)}...`);
     webpush.setVapidDetails(vapidSubject, vapidPublicKey, vapidPrivateKey);
 
     const subscriptions = await prisma.pushSubscription.findMany({
-      where: sender ? { user: { not: sender } } : undefined,
+      where: resolvedSender ? { user: { not: resolvedSender } } : undefined,
     });
     console.log("[Push] subscriptions in DB:", subscriptions.length);
     const targets = subscriptions;
-    console.log("[Push] target subscriptions:", targets.length, "sender:", sender);
+    console.log("[Push] target subscriptions:", targets.length, "sender:", resolvedSender);
 
     const title = "Our Little Compass";
     const payload = JSON.stringify({
@@ -76,7 +96,7 @@ export async function POST(request: Request) {
         data: {
           title,
           body: message,
-          sender: typeof sender === "string" && sender.trim().length > 0 ? sender.trim() : "Anonymous",
+          sender: resolvedSender,
         },
       });
     }

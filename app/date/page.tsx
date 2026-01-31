@@ -17,6 +17,7 @@ export default function DatePage() {
   const [isSpinning, setIsSpinning] = useState(false);
   const [isRevealed, setIsRevealed] = useState(true);
   const [isScratchResetting, setIsScratchResetting] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
 
   // Memory/Rating State
   const [completingItem, setCompletingItem] = useState<any>(null);
@@ -68,6 +69,14 @@ export default function DatePage() {
       setLoading(false);
     }).catch(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const timer = setInterval(() => {
+      setCooldown((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [cooldown]);
 
   useEffect(() => {
     const stored = typeof window !== "undefined" ? localStorage.getItem("userName") : null;
@@ -129,6 +138,11 @@ export default function DatePage() {
       });
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
+        if (response.status === 429 && typeof data?.remainingSeconds === "number") {
+          setCooldown(data.remainingSeconds);
+          showToastMessage("Cooldown active. Please wait.", "warning");
+          return;
+        }
         showToastMessage(data?.error || "Couldn't send push. Try again.", "warning");
         return;
       }
@@ -276,9 +290,16 @@ export default function DatePage() {
                 {isRevealed && randomActivity && (
                   <button
                     onClick={handleSendPushInvite}
-                    className="mt-4 inline-flex items-center gap-2 px-6 py-3 rounded-full bg-rose-500/20 dark:bg-rose-500/40 backdrop-blur-md border-2 border-rose-300/70 text-[var(--text-color)] font-semibold shadow-sm hover:bg-rose-500/30 hover:scale-105 transition-all"
+                    disabled={cooldown > 0}
+                    className={`mt-4 inline-flex items-center gap-2 px-6 py-3 rounded-full font-semibold shadow-sm transition-all ${
+                      cooldown > 0
+                        ? "bg-white/10 border border-white/30 text-[var(--text-color)]/60 cursor-not-allowed"
+                        : "bg-rose-500/20 dark:bg-rose-500/40 backdrop-blur-md border-2 border-rose-300/70 text-[var(--text-color)] hover:bg-rose-500/30 hover:scale-105"
+                    }`}
                   >
-                    Send Push to Partner 🚀
+                    {cooldown > 0
+                      ? `Wait ${Math.floor(cooldown / 60)}:${String(cooldown % 60).padStart(2, "0")} ⏳`
+                      : "Send Push to Partner 🚀"}
                   </button>
                 )}
             </div>
