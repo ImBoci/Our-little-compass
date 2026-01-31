@@ -366,7 +366,6 @@ export default function DatePage() {
                 </div>
             </div>
         )}
-      </div>
 
       {/* RATING MODAL */}
       {completingItem && (
