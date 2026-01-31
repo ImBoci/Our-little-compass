@@ -204,10 +204,10 @@ export default function DatePage() {
         {/* TABS */}
         <div className="flex justify-center mb-8">
             <div className="bg-white/40 p-1 rounded-full backdrop-blur-md border border-white/50 shadow-sm flex">
-                <button onClick={() => setActiveTab('random')} className={`px-6 py-2 rounded-full font-bold transition-all ${activeTab === 'random' ? 'bg-purple-600 text-white shadow-md' : 'text-slate-600 hover:bg-white/50'}`}>
+                <button onClick={() => setActiveTab('random')} className={`px-6 py-2 rounded-full font-bold transition-all ${activeTab === 'random' ? 'bg-purple-600 text-white shadow-md' : 'text-[var(--text-color)]/70 hover:bg-white/50'}`}>
                     🎲 Pick for Me
                 </button>
-                <button onClick={() => setActiveTab('list')} className={`px-6 py-2 rounded-full font-bold transition-all ${activeTab === 'list' ? 'bg-purple-600 text-white shadow-md' : 'text-slate-600 hover:bg-white/50'}`}>
+                <button onClick={() => setActiveTab('list')} className={`px-6 py-2 rounded-full font-bold transition-all ${activeTab === 'list' ? 'bg-purple-600 text-white shadow-md' : 'text-[var(--text-color)]/70 hover:bg-white/50'}`}>
                     📚 Browse All
                 </button>
             </div>
@@ -286,19 +286,19 @@ export default function DatePage() {
                 {/* Filters */}
                 <div className="bg-[var(--card-bg)] backdrop-blur-xl rounded-2xl p-4 mb-6 border border-white/50">
                     <div className="relative mb-4">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-color)]/50" size={20} />
                         <input 
                             type="text" 
                             placeholder="Search activities..." 
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
-                            className="w-full bg-[var(--input-bg)] border border-white/60 rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-300 text-[var(--text-color)] placeholder:text-slate-400"
+                            className="w-full bg-[var(--input-bg)] border border-white/20 dark:border-slate-600 rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-300 text-[var(--text-color)] placeholder:text-slate-400"
                         />
                     </div>
                     <div className="flex flex-wrap gap-2">
-                        <button onClick={() => setSelectedType(null)} className={`px-3 py-1 rounded-full text-sm border transition-all ${!selectedType ? 'bg-purple-600 text-white border-purple-600' : 'bg-white/50 text-slate-600 border-white hover:bg-white'}`}>All</button>
+                        <button onClick={() => setSelectedType(null)} className={`px-3 py-1 rounded-full text-sm border transition-all ${!selectedType ? 'bg-purple-600 text-white border-purple-600' : 'bg-white/10 text-[var(--text-color)] border-white/20 dark:border-slate-500 hover:bg-white/20'}`}>All</button>
                         {types.map(t => (
-                            <button key={t} onClick={() => setSelectedType(selectedType === t ? null : t)} className={`px-3 py-1 rounded-full text-sm border transition-all ${selectedType === t ? 'bg-purple-600 text-white border-purple-600' : 'bg-white/50 text-slate-600 border-white hover:bg-white'}`}>{t}</button>
+                            <button key={t} onClick={() => setSelectedType(selectedType === t ? null : t)} className={`px-3 py-1 rounded-full text-sm border transition-all ${selectedType === t ? 'bg-purple-600 text-white border-purple-600' : 'bg-white/10 text-[var(--text-color)] border-white/20 dark:border-slate-500 hover:bg-white/20'}`}>{t}</button>
                         ))}
                     </div>
                 </div>
