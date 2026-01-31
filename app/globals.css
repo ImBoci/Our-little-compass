@@ -33,6 +33,21 @@ body {
   pointer-events: none;
 }
 
+@keyframes twinkle {
+  0%, 100% { opacity: 0.2; transform: scale(0.9); }
+  50% { opacity: 1; transform: scale(1.1); }
+}
+
+.floating-star {
+  position: fixed;
+  bottom: -20px;
+  color: #fef3c7; /* Amber-100 */
+  opacity: 0.6;
+  animation: float 18s linear infinite, twinkle 2.5s ease-in-out infinite;
+  z-index: -1;
+  pointer-events: none;
+}
+
 /* 3D Flip Utilities */
 .perspective-1000 { perspective: 1000px; }
 .transform-style-3d { transform-style: preserve-3d; }

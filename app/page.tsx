@@ -1,7 +1,10 @@
+"use client";
 import Link from "next/link";
-import { UtensilsCrossed, CalendarHeart, BookHeart, Settings, Heart } from "lucide-react";
+import { UtensilsCrossed, CalendarHeart, BookHeart, Settings, Heart, Moon, Sun } from "lucide-react";
+import { useTheme } from "@/components/ThemeProvider";
 
 export default function Home() {
+  const { theme, toggleTheme } = useTheme();
   const startDate = new Date(process.env.NEXT_PUBLIC_RELATIONSHIP_START_DATE || "2022-09-02");
   const today = new Date();
   const diffTime = Math.abs(today.getTime() - startDate.getTime());
@@ -88,6 +91,13 @@ export default function Home() {
       >
         <Settings size={22} className="group-hover:rotate-90 transition-transform duration-500" />
       </Link>
+      <button
+        onClick={toggleTheme}
+        className="fixed top-6 right-6 z-50 flex items-center justify-center w-10 h-10 bg-white/20 backdrop-blur-md border border-white/40 rounded-full text-slate-500 shadow-lg hover:bg-white/40 hover:scale-110 transition-all duration-300"
+        title="Toggle theme"
+      >
+        {theme === "night" ? <Sun size={18} /> : <Moon size={18} />}
+      </button>
     </div>
   );
 }

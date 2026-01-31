@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { MapPin, Shuffle, ArrowLeft, RotateCcw, ExternalLink, Search, CheckCircle, Star, Image, CircleAlert, Map } from "lucide-react";
 import Link from "next/link";
 import WeatherWidget from "@/components/WeatherWidget";
+import ScratchOff from "@/components/ScratchOff";
 
 export default function DatePage() {
   const [activeTab, setActiveTab] = useState<'random' | 'list'>('random');
@@ -15,6 +16,7 @@ export default function DatePage() {
   const [isAnimating, setIsAnimating] = useState(false);
   const [isSpinning, setIsSpinning] = useState(false);
   const [isRevealed, setIsRevealed] = useState(true);
+  const [isScratchResetting, setIsScratchResetting] = useState(false);
 
   // Memory/Rating State
   const [completingItem, setCompletingItem] = useState<any>(null);
@@ -82,6 +84,8 @@ export default function DatePage() {
     setIsSpinning(true);
     setIsAnimating(true);
     setIsRevealed(false);
+    setIsScratchResetting(true);
+    setTimeout(() => setIsScratchResetting(false), 0);
 
     const getRandomActivity = () => activities[Math.floor(Math.random() * activities.length)];
     let finalActivity = getRandomActivity();
@@ -116,10 +120,14 @@ export default function DatePage() {
     const location = randomActivity.location ? randomActivity.location : "a surprise spot";
     const message = `You have a date! 🌹 Activity: ${randomActivity.name} at ${location}. See you there! ❤️ #OurLittleCompass`;
     try {
+      if (navigator.share) {
+        await navigator.share({ text: message });
+        return;
+      }
       await navigator.clipboard.writeText(message);
       showToastMessage("Invite copied to clipboard!", "success");
     } catch {
-      showToastMessage("Couldn't copy invite. Try again.", "warning");
+      showToastMessage("Couldn't share invite. Try again.", "warning");
     }
   };
 
@@ -205,18 +213,13 @@ export default function DatePage() {
         {activeTab === 'random' && (
             <div className="flex flex-col items-center">
                 <div
-                  className="relative w-full max-w-[90vw] sm:max-w-md h-[450px] perspective-1000 cursor-pointer"
-                  onClick={() => {
-                    if (!isSpinning && !isRevealed) {
-                      setIsRevealed(true);
-                    }
-                  }}
+                  className="relative w-full max-w-[90vw] sm:max-w-md h-[450px] perspective-1000"
                 >
                     <div className={`relative w-full h-full transition-all duration-700 transform-style-3d ${isFlipped ? 'rotate-y-180' : ''}`}>
                         {/* FRONT */}
                         <div className={`absolute inset-0 backface-hidden flex flex-col items-center justify-center p-8 rounded-3xl border-2 border-white/40 shadow-[0_0_40px_rgba(168,85,247,0.15)] text-center ${!isFlipped ? 'z-10 pointer-events-auto' : 'z-0 pointer-events-none'}`} style={{ background: "rgba(255, 255, 255, 0.35)", backdropFilter: "blur(16px)" }}>
                             {randomActivity ? (
-                                <div className={`space-y-6 flex flex-col items-center w-full transition-all duration-150 ease-in-out ${isSpinning ? 'blur-sm translate-y-2' : 'blur-0 translate-y-0'}`}>
+                                <div className={`space-y-6 flex flex-col items-center w-full transition-all duration-150 ease-in-out ${isSpinning ? 'blur-sm translate-y-2' : 'blur-0 translate-y-0'} ${!isRevealed && !isSpinning ? 'opacity-0' : 'opacity-100'}`}>
                                     <h2 className="font-serif text-3xl md:text-4xl font-bold text-slate-900 leading-tight hyphens-auto break-words">{randomActivity.name}</h2>
                                     <div className="flex flex-wrap gap-2 justify-center">
                                         {randomActivity.type && randomActivity.type.split(',').map((t: string, i: number) => (
@@ -239,12 +242,8 @@ export default function DatePage() {
                                 </div>
                             ) : <div className="text-slate-600">No activities found!</div>}
 
-                            {!isSpinning && !isRevealed && (
-                              <div className="absolute inset-2 rounded-3xl bg-white/70 backdrop-blur-xl border border-white/60 flex items-center justify-center text-slate-700 font-semibold text-sm sm:text-base shadow-inner transition-opacity duration-300 animate-pulse">
-                                <span className="bg-gradient-to-r from-white/40 via-white/90 to-white/40 px-4 py-2 rounded-full">
-                                  Tap to Reveal our adventure...
-                                </span>
-                              </div>
+                            {!isRevealed && !isSpinning && !isFlipped && (
+                              <ScratchOff isResetting={isScratchResetting} onComplete={() => setIsRevealed(true)} />
                             )}
                         </div>
                         {/* BACK */}

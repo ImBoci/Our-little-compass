@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Shuffle, ArrowLeft, Search, CheckCircle, Star, Image, CircleAlert } from "lucide-react";
 import Link from "next/link";
+import ScratchOff from "@/components/ScratchOff";
 
 export default function CookPage() {
   const [activeTab, setActiveTab] = useState<'random' | 'list'>('random');
@@ -11,6 +12,7 @@ export default function CookPage() {
   const [isAnimating, setIsAnimating] = useState(false);
   const [isSpinning, setIsSpinning] = useState(false);
   const [isRevealed, setIsRevealed] = useState(true);
+  const [isScratchResetting, setIsScratchResetting] = useState(false);
   const [flippedId, setFlippedId] = useState<string | number | null>(null);
   
   // Filter State
@@ -75,6 +77,8 @@ export default function CookPage() {
     setIsSpinning(true);
     setIsAnimating(true);
     setIsRevealed(false);
+    setIsScratchResetting(true);
+    setTimeout(() => setIsScratchResetting(false), 0);
 
     const getRandomFood = () => foods[Math.floor(Math.random() * foods.length)];
     let finalFood = getRandomFood();
@@ -108,10 +112,14 @@ export default function CookPage() {
     if (!randomFood?.name) return;
     const message = `I've decided! 🍽️ Tonight we are having: ${randomFood.name}. Get your appetite ready! 🥂 #OurLittleCompass`;
     try {
+      if (navigator.share) {
+        await navigator.share({ text: message });
+        return;
+      }
       await navigator.clipboard.writeText(message);
       showToastMessage("Invite copied to clipboard!", "success");
     } catch {
-      showToastMessage("Couldn't copy invite. Try again.", "warning");
+      showToastMessage("Couldn't share invite. Try again.", "warning");
     }
   };
 
@@ -181,16 +189,11 @@ export default function CookPage() {
       {activeTab === 'random' && (
           <div className="flex flex-col items-center w-full">
               <div
-                className="w-full max-w-[90vw] sm:max-w-md p-8 sm:p-10 rounded-3xl border-2 border-white/40 text-center relative transition-all duration-500 cursor-pointer"
+                className="w-full max-w-[90vw] sm:max-w-md p-8 sm:p-10 rounded-3xl border-2 border-white/40 text-center relative transition-all duration-500"
                 style={{ background: "rgba(255, 255, 255, 0.25)", backdropFilter: "blur(16px)" }}
-                onClick={() => {
-                  if (!isSpinning && !isRevealed) {
-                    setIsRevealed(true);
-                  }
-                }}
               >
                   {randomFood ? (
-                  <div className={`space-y-6 transition-all duration-150 ease-in-out ${isSpinning ? 'blur-sm translate-y-2' : 'blur-0 translate-y-0'}`}>
+                  <div className={`space-y-6 transition-all duration-150 ease-in-out ${isSpinning ? 'blur-sm translate-y-2' : 'blur-0 translate-y-0'} ${!isRevealed && !isSpinning ? 'opacity-0' : 'opacity-100'}`}>
                       <h2 className="font-serif text-3xl md:text-4xl font-bold text-slate-900 leading-tight hyphens-auto break-words">{randomFood.name}</h2>
                       <div className="flex flex-wrap gap-2 justify-center">
                           {randomFood.category && randomFood.category.split(',').map((tag: string, i: number) => (
@@ -201,12 +204,8 @@ export default function CookPage() {
                   </div>
                   ) : <div className="text-slate-600">No foods found!</div>}
 
-                  {!isSpinning && !isRevealed && (
-                    <div className="absolute inset-2 rounded-3xl bg-white/70 backdrop-blur-xl border border-white/60 flex items-center justify-center text-slate-700 font-semibold text-sm sm:text-base shadow-inner transition-opacity duration-300 animate-pulse">
-                      <span className="bg-gradient-to-r from-white/40 via-white/90 to-white/40 px-4 py-2 rounded-full">
-                        Tap to Reveal our adventure...
-                      </span>
-                    </div>
+                  {!isRevealed && !isSpinning && (
+                    <ScratchOff isResetting={isScratchResetting} onComplete={() => setIsRevealed(true)} />
                   )}
               </div>
               <button onClick={handleShuffle} className="mt-12 group relative inline-flex items-center gap-3 bg-rose-500 text-white px-8 py-4 rounded-full font-bold text-lg transition-all duration-300 hover:scale-105 hover:bg-rose-600 hover:shadow-[0_0_30px_#f43f5e]">

@@ -1,35 +1,53 @@
 "use client";
-import { useEffect, useState } from "react";
-import { Heart } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Heart, Star } from "lucide-react";
 
-export default function RomanticBackground() {
+type RomanticBackgroundProps = {
+  mode: "day" | "night";
+};
+
+export default function RomanticBackground({ mode }: RomanticBackgroundProps) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
   if (!mounted) return null;
 
-  const hearts = Array.from({ length: 50 }).map((_, i) => ({
-    id: i,
-    left: `${Math.random() * 100}%`,
-    size: Math.random() * 20 + 10,
-    duration: `${Math.random() * 9 + 6}s`,
-    delay: `${Math.random() * 5}s`,
-  }));
+  const particles = useMemo(
+    () =>
+      Array.from({ length: mode === "night" ? 70 : 50 }).map((_, i) => ({
+        id: i,
+        left: `${Math.random() * 100}%`,
+        size: Math.random() * (mode === "night" ? 10 : 20) + (mode === "night" ? 6 : 10),
+        duration: `${Math.random() * 9 + 6}s`,
+        delay: `${Math.random() * 5}s`,
+      })),
+    [mode]
+  );
+
+  const backgroundStyle =
+    mode === "night"
+      ? "linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)"
+      : "linear-gradient(135deg, #fdc2d6 0%, #cbcbff 50%, #caf4fa 100%)";
 
   return (
     <div className="fixed inset-0 pointer-events-none z-[-1] overflow-hidden">
-      {hearts.map((heart) => (
+      <div className="absolute inset-0" style={{ background: backgroundStyle }} />
+      {particles.map((particle) => (
         <div
-          key={heart.id}
-          className="floating-heart"
+          key={particle.id}
+          className={mode === "night" ? "floating-star" : "floating-heart"}
           style={{
-            left: heart.left,
-            width: heart.size,
-            height: heart.size,
-            animationDuration: heart.duration,
-            animationDelay: heart.delay,
+            left: particle.left,
+            width: particle.size,
+            height: particle.size,
+            animationDuration: particle.duration,
+            animationDelay: particle.delay,
           }}
         >
-          <Heart fill="currentColor" size={heart.size} />
+          {mode === "night" ? (
+            <Star fill="currentColor" size={particle.size} />
+          ) : (
+            <Heart fill="currentColor" size={particle.size} />
+          )}
         </div>
       ))}
     </div>
