@@ -39,17 +39,10 @@ export default function Home() {
         <h1 className="font-serif text-4xl md:text-6xl text-[var(--text-color)] mb-2 tracking-tight drop-shadow-sm text-balance px-2">
           Our Little Compass
         </h1>
-        <div className="mt-1 mb-4 flex items-center justify-center gap-2 text-slate-500 font-serif text-center px-4">
+      <div className="mt-1 mb-8 flex items-center justify-center gap-2 text-slate-500 font-serif text-center px-4">
           <Heart size={14} className="text-rose-400 animate-pulse" />
           <span>{diffDays === null ? "Day 0 of our journey together" : `Day ${diffDays} of our journey together`}</span>
         </div>
-        <p className="font-sans text-xl text-slate-700 dark:text-slate-300 mb-12 italic drop-shadow-sm px-2">
-          Where should we go next?
-        </p>
-        {userName && (
-          <p className="mb-6 text-sm text-[var(--text-color)]/80">Welcome back, {userName}!</p>
-        )}
-
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl w-full px-4">
         {/* Food Card - Rose Neon */}
         <Link href="/cook" className="group">
