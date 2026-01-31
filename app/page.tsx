@@ -30,10 +30,10 @@ export default function Home() {
     <div className="flex flex-col items-center justify-center min-h-screen p-4 text-center bg-transparent">
       <Link
         href="/settings"
-        className="fixed top-6 right-6 z-50 flex items-center justify-center w-10 h-10 bg-white/20 backdrop-blur-md border border-white/40 rounded-full text-slate-500 shadow-lg hover:bg-white/40 hover:scale-110 transition-all duration-300"
+        className="fixed top-7 right-5 sm:top-6 sm:right-6 z-50 flex items-center justify-center w-11 h-11 bg-white/40 dark:bg-white/20 backdrop-blur-md border border-rose-400/50 dark:border-purple-400/50 rounded-full text-[var(--text-color)] shadow-lg hover:scale-110 transition-all duration-300"
         title="Settings"
       >
-        <Menu size={18} />
+        <Menu size={20} />
       </Link>
       <h1 className="font-serif text-4xl md:text-6xl text-[var(--text-color)] mb-2 tracking-tight drop-shadow-sm text-balance px-2">
         Our Little Compass

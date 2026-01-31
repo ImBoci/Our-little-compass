@@ -9,6 +9,7 @@ import {
   Moon,
   Settings,
   Sun,
+  Trash2,
   User,
 } from "lucide-react";
 import { useTheme } from "@/components/ThemeProvider";
@@ -36,6 +37,10 @@ function SettingsContent() {
   const [userName, setUserName] = useState<string | null>(null);
   const [showNameModal, setShowNameModal] = useState(false);
   const [nameInput, setNameInput] = useState("");
+  const filteredNotifications = useMemo(() => {
+    if (!notifications.length) return [];
+    return notifications.filter((item) => item.sender !== (userName || ""));
+  }, [notifications, userName]);
 
   useEffect(() => {
     const tabParam = searchParams.get("tab");
@@ -205,6 +210,15 @@ function SettingsContent() {
     router.push(`/settings?tab=${tab}`);
   };
 
+  const handleDeleteNotification = async (id: number) => {
+    setNotifications((prev) => prev.filter((item) => item.id !== id));
+    try {
+      await fetch(`/api/notifications?id=${id}`, { method: "DELETE" });
+    } catch {
+      setNotifications((prev) => prev);
+    }
+  };
+
   return (
     <div className="min-h-screen px-4 py-10 flex justify-center bg-transparent">
       <div className="w-full max-w-4xl">
@@ -287,23 +301,32 @@ function SettingsContent() {
 
             {isLoadingHistory ? (
               <p className="text-sm text-[var(--text-color)]/70">Loading history...</p>
-            ) : notifications.length === 0 ? (
-              <p className="text-sm text-[var(--text-color)]/70">No notifications yet.</p>
+            ) : filteredNotifications.length === 0 ? (
+              <p className="text-sm text-[var(--text-color)]/70">No new invites from your partner yet. 💌</p>
             ) : (
-              <div className="space-y-4">
-                {notifications.map((item) => (
+              <div className="space-y-3">
+                {filteredNotifications.map((item) => (
                   <div
                     key={item.id}
-                    className="bg-white/20 dark:bg-slate-900/40 border border-white/40 rounded-2xl p-4 text-left"
+                    className="flex items-start gap-3 bg-white/20 dark:bg-slate-900/40 border border-white/40 rounded-2xl p-4 text-left"
                   >
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="font-semibold text-[var(--text-color)]">{item.title}</p>
-                      <span className="text-xs text-[var(--text-color)]/60">
-                        {new Date(item.createdAt).toLocaleString()}
-                      </span>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="font-semibold text-[var(--text-color)]">{item.title}</p>
+                        <span className="text-xs text-[var(--text-color)]/60">
+                          {new Date(item.createdAt).toLocaleString()}
+                        </span>
+                      </div>
+                      <p className="text-sm text-[var(--text-color)]/80 mt-1">{item.body}</p>
+                      <p className="text-xs text-[var(--text-color)]/60 mt-2">From: {item.sender}</p>
                     </div>
-                    <p className="text-sm text-[var(--text-color)]/80 mt-1">{item.body}</p>
-                    <p className="text-xs text-[var(--text-color)]/60 mt-2">From: {item.sender}</p>
+                    <button
+                      onClick={() => handleDeleteNotification(item.id)}
+                      className="mt-1 rounded-full p-2 bg-white/20 border border-white/40 text-rose-500 hover:text-rose-600 hover:bg-white/30 transition-all"
+                      title="Delete notification"
+                    >
+                      <Trash2 size={14} />
+                    </button>
                   </div>
                 ))}
               </div>
