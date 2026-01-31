@@ -107,7 +107,7 @@ export default function ManageClient() {
       <header className="w-full max-w-4xl flex items-center justify-between mb-8 gap-4 px-2">
         <Link
           href="/"
-          className="flex items-center justify-center p-3 bg-white/30 backdrop-blur-md border border-white/40 rounded-full text-slate-700 hover:bg-white/50 transition-all shadow-sm"
+          className="flex items-center justify-center p-3 bg-[var(--card-bg)] backdrop-blur-md border border-white/50 rounded-full text-[var(--text-color)] hover:bg-white/50 transition-all shadow-sm"
         >
           <ArrowLeft size={20} />
           <span className="hidden md:inline ml-2 pr-1">Home</span>
@@ -119,7 +119,7 @@ export default function ManageClient() {
 
         <button
           onClick={() => signOut({ callbackUrl: '/' })}
-          className="flex items-center justify-center p-3 bg-white/30 backdrop-blur-md border border-white/40 rounded-full text-slate-700 hover:bg-white/50 transition-all shadow-sm"
+          className="flex items-center justify-center p-3 bg-[var(--card-bg)] backdrop-blur-md border border-white/50 rounded-full text-[var(--text-color)] hover:bg-white/50 transition-all shadow-sm"
         >
           <LogOut size={20} />
           <span className="hidden md:inline ml-2 pr-1">Logout</span>

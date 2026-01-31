@@ -178,8 +178,8 @@ export default function DatePage() {
 
   return (
     <div className="flex flex-col items-center min-h-screen p-4 bg-transparent">
-      <div className="w-full max-w-4xl">
-        <div className="w-full flex items-center justify-between mb-4">
+      <header className="w-full max-w-4xl flex flex-col gap-4 mb-6">
+        <div className="flex justify-between items-center w-full">
           <Link 
             href="/" 
             className="flex items-center gap-2 px-4 py-2 bg-[var(--card-bg)] backdrop-blur-md border border-white/50 rounded-full text-[var(--text-color)] text-sm sm:text-base font-medium shadow-sm hover:bg-white/60 hover:scale-105 hover:shadow-md transition-all duration-300 group"
@@ -189,7 +189,7 @@ export default function DatePage() {
           </Link>
 
           {activeTab === 'random' ? (
-            <div className="max-w-[160px] sm:max-w-none">
+            <div className="max-w-[180px] sm:max-w-none">
               <WeatherWidget />
             </div>
           ) : (
@@ -197,17 +197,18 @@ export default function DatePage() {
           )}
         </div>
 
-        <div className="mb-6 text-center">
+        <div className="text-center w-full">
             <h1 className="font-serif text-2xl md:text-4xl text-[var(--text-color)] font-bold drop-shadow-sm">Date Idea</h1>
         </div>
+      </header>
 
         {/* TABS */}
         <div className="flex justify-center mb-8">
-            <div className="bg-white/40 p-1 rounded-full backdrop-blur-md border border-white/50 shadow-sm flex">
-                <button onClick={() => setActiveTab('random')} className={`px-6 py-2 rounded-full font-bold transition-all ${activeTab === 'random' ? 'bg-purple-600 text-white shadow-md' : 'text-[var(--text-color)]/70 hover:bg-white/50'}`}>
+            <div className="bg-white/20 dark:bg-slate-800/40 p-1 rounded-full backdrop-blur-md border border-white/50 shadow-sm flex">
+                <button onClick={() => setActiveTab('random')} className={`px-6 py-2 rounded-full font-bold transition-all ${activeTab === 'random' ? 'bg-purple-600 text-white shadow-md' : 'text-[var(--text-color)]/80 hover:bg-white/50'}`}>
                     🎲 Pick for Me
                 </button>
-                <button onClick={() => setActiveTab('list')} className={`px-6 py-2 rounded-full font-bold transition-all ${activeTab === 'list' ? 'bg-purple-600 text-white shadow-md' : 'text-[var(--text-color)]/70 hover:bg-white/50'}`}>
+                <button onClick={() => setActiveTab('list')} className={`px-6 py-2 rounded-full font-bold transition-all ${activeTab === 'list' ? 'bg-purple-600 text-white shadow-md' : 'text-[var(--text-color)]/80 hover:bg-white/50'}`}>
                     📚 Browse All
                 </button>
             </div>
