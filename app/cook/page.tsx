@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Shuffle, ArrowLeft, Search, CheckCircle, Star, X } from "lucide-react";
+import { Shuffle, ArrowLeft, Search, CheckCircle, Star } from "lucide-react";
 import Link from "next/link";
 
 export default function CookPage() {
@@ -23,7 +23,8 @@ export default function CookPage() {
 
   // Identity State
   const [userName, setUserName] = useState<string | null>(null);
-  const [showIdentityModal, setShowIdentityModal] = useState(false);
+  const [showNameModal, setShowNameModal] = useState(false);
+  const [nameInput, setNameInput] = useState("");
 
   useEffect(() => {
     fetch("/api/food").then(res => res.json()).then(data => {
@@ -40,7 +41,7 @@ export default function CookPage() {
     if (stored) {
       setUserName(stored);
     } else {
-      setShowIdentityModal(true);
+      setShowNameModal(true);
     }
   }, []);
 
@@ -58,15 +59,10 @@ export default function CookPage() {
     }
   };
 
-  const selectIdentity = (name: string) => {
-    setUserName(name);
-    localStorage.setItem("userName", name);
-    setShowIdentityModal(false);
-  };
-
   const saveMemory = async () => {
     if (!completingItem) return;
-    const user = userName || localStorage.getItem("userName") || "Unknown";
+    const storedName = localStorage.getItem("userName");
+    const resolvedName = storedName || userName || "Anonymous";
     await fetch("/api/memories", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -76,13 +72,13 @@ export default function CookPage() {
         rating,
         note,
         date: new Date().toISOString(),
-        user,
+        user: resolvedName,
       })
     });
     setCompletingItem(null);
     setNote("");
     setRating(5);
-    setToastMessage(`Memory Saved by ${user}!`);
+    setToastMessage(`Memory Saved by ${resolvedName}!`);
     setShowToast(true);
     setTimeout(() => setShowToast(false), 3000);
   };
@@ -204,15 +200,29 @@ export default function CookPage() {
         </div>
       )}
 
-      {showIdentityModal && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-white/90 backdrop-blur-xl rounded-3xl p-8 max-w-sm w-full shadow-2xl border border-white/60 text-center">
-            <h3 className="text-2xl font-serif font-bold text-slate-800 mb-2">Who are you?</h3>
-            <p className="text-slate-600 mb-6">Choose your identity to save memories.</p>
-            <div className="flex gap-3">
-              <button onClick={() => selectIdentity("Me")} className="flex-1 py-3 rounded-xl font-bold text-white bg-rose-500 hover:bg-rose-600 shadow-lg">Me</button>
-              <button onClick={() => selectIdentity("Partner")} className="flex-1 py-3 rounded-xl font-bold text-white bg-purple-500 hover:bg-purple-600 shadow-lg">Partner</button>
-            </div>
+      {showNameModal && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white/90 rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl">
+            <h3 className="text-2xl font-serif font-bold mb-2">Who are you?</h3>
+            <p className="text-slate-500 mb-4 text-sm">Enter your name so we know who reviewed this!</p>
+            <input 
+              value={nameInput}
+              onChange={(e) => setNameInput(e.target.value)}
+              className="w-full border rounded-xl p-3 mb-4 text-center"
+              placeholder="Your Name"
+            />
+            <button 
+              onClick={() => {
+                if(nameInput.trim()) {
+                  localStorage.setItem("userName", nameInput.trim());
+                  setUserName(nameInput.trim());
+                  setShowNameModal(false);
+                }
+              }}
+              className="w-full bg-rose-500 text-white py-3 rounded-xl font-bold"
+            >
+              Save Name
+            </button>
           </div>
         </div>
       )}
