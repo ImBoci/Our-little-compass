@@ -11,8 +11,9 @@ export default function CookPage() {
   const [loading, setLoading] = useState(true);
   const [isAnimating, setIsAnimating] = useState(false);
   const [isSpinning, setIsSpinning] = useState(false);
-  const [isRevealed, setIsRevealed] = useState(true);
+  const [isRevealed, setIsRevealed] = useState(false);
   const [isScratchResetting, setIsScratchResetting] = useState(false);
+  const [hasShuffled, setHasShuffled] = useState(false);
   const [cooldown, setCooldown] = useState(0);
   const [flippedId, setFlippedId] = useState<string | number | null>(null);
   
@@ -58,7 +59,6 @@ export default function CookPage() {
     fetch("/api/food").then(res => res.json()).then(data => {
       if (Array.isArray(data)) {
         setFoods(data);
-        if (data.length > 0) setRandomFood(data[Math.floor(Math.random() * data.length)]);
       }
       setLoading(false);
     }).catch(() => setLoading(false));
@@ -83,6 +83,7 @@ export default function CookPage() {
 
   const handleShuffle = () => {
     if (foods.length === 0 || isSpinning) return;
+    setHasShuffled(true);
     setIsSpinning(true);
     setIsAnimating(true);
     setIsRevealed(false);
@@ -214,19 +215,24 @@ export default function CookPage() {
                 className="w-full max-w-sm md:max-w-md p-8 sm:p-10 rounded-3xl border-2 border-white/50 bg-[var(--card-bg)] text-center relative transition-all duration-500"
                 style={{ backdropFilter: "blur(16px)" }}
               >
-                  {randomFood ? (
-                  <div className={`space-y-6 transition-all duration-150 ease-in-out ${isSpinning ? 'blur-sm translate-y-2' : 'blur-0 translate-y-0'} ${!isRevealed ? 'pointer-events-none' : 'pointer-events-auto'}`}>
-                      <h2 className="font-serif text-3xl md:text-4xl font-bold text-[var(--text-color)] leading-tight hyphens-auto break-words">{randomFood.name}</h2>
-                      <div className="flex flex-wrap gap-2 justify-center">
-                          {randomFood.category && randomFood.category.split(',').map((tag: string, i: number) => (
-                              <span key={i} className="bg-rose-100/80 text-rose-700 px-3 py-1 rounded-full text-sm font-medium border border-rose-200">{tag.trim()}</span>
-                          ))}
-                      </div>
-                      {randomFood.description && <p className="text-lg md:text-xl text-[var(--text-color)] font-light italic">"{randomFood.description}"</p>}
-                  </div>
-                  ) : <div className="text-slate-600">No foods found!</div>}
+                  {!hasShuffled ? (
+                    <div className="space-y-3">
+                      <div className="text-4xl">❓</div>
+                      <p className="text-[var(--text-color)] font-medium">Tap Shuffle to decide our fate.</p>
+                    </div>
+                  ) : randomFood ? (
+                    <div className={`space-y-6 transition-all duration-150 ease-in-out ${isSpinning ? 'blur-sm translate-y-2' : 'blur-0 translate-y-0'} ${!isRevealed ? 'pointer-events-none' : 'pointer-events-auto'}`}>
+                        <h2 className="font-serif text-3xl md:text-4xl font-bold text-[var(--text-color)] leading-tight hyphens-auto break-words">{randomFood.name}</h2>
+                        <div className="flex flex-wrap gap-2 justify-center">
+                            {randomFood.category && randomFood.category.split(',').map((tag: string, i: number) => (
+                                <span key={i} className="bg-rose-100/80 text-rose-700 px-3 py-1 rounded-full text-sm font-medium border border-rose-200">{tag.trim()}</span>
+                            ))}
+                        </div>
+                        {randomFood.description && <p className="text-lg md:text-xl text-[var(--text-color)] font-light italic">"{randomFood.description}"</p>}
+                    </div>
+                  ) : <div className="text-[var(--text-color)]/70">No foods found!</div>}
 
-                  {!isRevealed && !isSpinning && (
+                  {hasShuffled && !isRevealed && !isSpinning && (
                     <div className="absolute inset-0 z-20">
                       <ScratchOff isResetting={isScratchResetting} onComplete={() => setIsRevealed(true)} />
                     </div>

@@ -228,7 +228,7 @@ function SettingsContent() {
             className="flex items-center gap-2 px-4 py-2 bg-[var(--card-bg)] backdrop-blur-md border border-white/50 rounded-full text-[var(--text-color)] text-sm font-medium shadow-sm hover:bg-white/60 transition-all"
           >
             <ArrowLeft size={16} />
-            Back Home
+            <span className="hidden md:inline ml-2">Back Home</span>
           </Link>
           <h1 className="font-serif text-2xl md:text-3xl text-[var(--text-color)] font-bold">Settings Hub</h1>
           <div className="w-[88px]" />

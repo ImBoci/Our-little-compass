@@ -15,8 +15,9 @@ export default function DatePage() {
   const [isFlipped, setIsFlipped] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const [isSpinning, setIsSpinning] = useState(false);
-  const [isRevealed, setIsRevealed] = useState(true);
+  const [isRevealed, setIsRevealed] = useState(false);
   const [isScratchResetting, setIsScratchResetting] = useState(false);
+  const [hasShuffled, setHasShuffled] = useState(false);
   const [cooldown, setCooldown] = useState(0);
 
   // Memory/Rating State
@@ -64,7 +65,6 @@ export default function DatePage() {
     fetch("/api/activities").then(res => res.json()).then(data => {
       if (Array.isArray(data)) {
         setActivities(data);
-        if (data.length > 0) setRandomActivity(data[Math.floor(Math.random() * data.length)]);
       }
       setLoading(false);
     }).catch(() => setLoading(false));
@@ -90,6 +90,7 @@ export default function DatePage() {
   const handleShuffle = () => {
     if (activities.length === 0 || isSpinning) return;
     setIsFlipped(false);
+    setHasShuffled(true);
     setIsSpinning(true);
     setIsAnimating(true);
     setIsRevealed(false);
@@ -240,31 +241,36 @@ export default function DatePage() {
                     <div className={`relative w-full h-full transition-all duration-700 transform-style-3d ${isFlipped ? 'rotate-y-180' : ''}`}>
                         {/* FRONT */}
                         <div className={`absolute inset-0 w-full h-full backface-hidden flex flex-col items-center justify-center p-8 rounded-3xl border-2 border-white/50 bg-[var(--card-bg)] shadow-[0_0_40px_rgba(168,85,247,0.15)] text-center ${!isFlipped ? 'z-10 pointer-events-auto' : 'z-0 pointer-events-none'}`} style={{ backdropFilter: "blur(16px)" }}>
-                            {randomActivity ? (
-                                <div className={`space-y-6 flex flex-col items-center w-full transition-all duration-150 ease-in-out ${isSpinning ? 'blur-sm translate-y-2' : 'blur-0 translate-y-0'} ${!isRevealed ? 'pointer-events-none' : 'pointer-events-auto'}`}>
-                                    <h2 className="font-serif text-3xl md:text-4xl font-bold text-[var(--text-color)] leading-tight hyphens-auto break-words">{randomActivity.name}</h2>
-                                    <div className="flex flex-wrap gap-2 justify-center">
-                                        {randomActivity.type && randomActivity.type.split(',').map((t: string, i: number) => (
-                                            <span key={i} className="bg-purple-100/80 text-purple-700 px-3 py-1 rounded-full text-sm font-medium border border-purple-200">{t.trim()}</span>
-                                        ))}
-                                    </div>
-                                    {randomActivity.description && <p className="text-base md:text-lg text-[var(--text-color)] font-light italic mt-2">"{randomActivity.description}"</p>}
-                                    {randomActivity.location && (
-                                      randomActivity.location === "Több helyszín" ? (
-                                        <div className="mt-4 flex items-center gap-2 font-medium px-5 py-2.5 rounded-full bg-white/40 text-[var(--text-color)]/80 border border-[var(--text-color)]/20 cursor-default">
-                                          <Map size={18} />
-                                          <span>Multiple Locations</span>
-                                        </div>
-                                      ) : (
-                        <button onClick={() => setIsFlipped(true)} className="mt-4 flex items-center gap-2 font-medium px-5 py-2.5 rounded-full bg-[var(--card-bg)] text-[var(--text-color)] hover:bg-purple-600 hover:text-white transition-all duration-300 shadow-sm border border-purple-100 hover:shadow-purple-300/50 cursor-pointer pointer-events-auto">
-                                          <MapPin size={18} /> <span className="truncate max-w-[200px]">{randomActivity.location}</span>
-                                        </button>
-                                      )
-                                    )}
-                                </div>
-                            ) : <div className="text-slate-600">No activities found!</div>}
+                            {!hasShuffled ? (
+                              <div className="space-y-3">
+                                <div className="text-4xl">❓</div>
+                                <p className="text-[var(--text-color)] font-medium">Tap Shuffle to decide our fate.</p>
+                              </div>
+                            ) : randomActivity ? (
+                              <div className={`space-y-6 flex flex-col items-center w-full transition-all duration-150 ease-in-out ${isSpinning ? 'blur-sm translate-y-2' : 'blur-0 translate-y-0'} ${!isRevealed ? 'pointer-events-none' : 'pointer-events-auto'}`}>
+                                  <h2 className="font-serif text-3xl md:text-4xl font-bold text-[var(--text-color)] leading-tight hyphens-auto break-words">{randomActivity.name}</h2>
+                                  <div className="flex flex-wrap gap-2 justify-center">
+                                      {randomActivity.type && randomActivity.type.split(',').map((t: string, i: number) => (
+                                          <span key={i} className="bg-purple-100/80 text-purple-700 px-3 py-1 rounded-full text-sm font-medium border border-purple-200">{t.trim()}</span>
+                                      ))}
+                                  </div>
+                                  {randomActivity.description && <p className="text-base md:text-lg text-[var(--text-color)] font-light italic mt-2">"{randomActivity.description}"</p>}
+                                  {randomActivity.location && (
+                                    randomActivity.location === "Több helyszín" ? (
+                                      <div className="mt-4 flex items-center gap-2 font-medium px-5 py-2.5 rounded-full bg-white/40 text-[var(--text-color)]/80 border border-[var(--text-color)]/20 cursor-default">
+                                        <Map size={18} />
+                                        <span>Multiple Locations</span>
+                                      </div>
+                                    ) : (
+                      <button onClick={() => setIsFlipped(true)} className="mt-4 flex items-center gap-2 font-medium px-5 py-2.5 rounded-full bg-[var(--card-bg)] text-[var(--text-color)] hover:bg-purple-600 hover:text-white transition-all duration-300 shadow-sm border border-purple-100 hover:shadow-purple-300/50 cursor-pointer pointer-events-auto">
+                                        <MapPin size={18} /> <span className="truncate max-w-[200px]">{randomActivity.location}</span>
+                                      </button>
+                                    )
+                                  )}
+                              </div>
+                          ) : <div className="text-[var(--text-color)]/70">No activities found!</div>}
 
-                            {!isRevealed && !isSpinning && !isFlipped && (
+                            {hasShuffled && !isRevealed && !isSpinning && !isFlipped && (
                               <div className="absolute inset-0 z-20">
                                 <ScratchOff isResetting={isScratchResetting} onComplete={() => setIsRevealed(true)} />
                               </div>

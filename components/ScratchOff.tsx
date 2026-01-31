@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import confetti from "canvas-confetti";
 
 type ScratchOffProps = {
   isResetting?: boolean;
@@ -117,6 +118,7 @@ export default function ScratchOff({
     lastPointRef.current = null;
     const cleared = getClearedPercent();
     if (cleared >= 0.4) {
+      confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
       setIsFading(true);
       setTimeout(() => {
         setIsDone(true);
