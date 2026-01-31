@@ -24,7 +24,9 @@ export async function POST(request: Request) {
     webpush.setVapidDetails(vapidSubject, vapidPublicKey, vapidPrivateKey);
 
     const subscriptions = await prisma.pushSubscription.findMany();
+    console.log("[Push] subscriptions in DB:", subscriptions.length);
     const targets = subscriptions.filter((sub) => sub.user !== sender);
+    console.log("[Push] target subscriptions:", targets.length, "sender:", sender);
 
     const payload = JSON.stringify({
       title: "Our Little Compass",
@@ -34,10 +36,26 @@ export async function POST(request: Request) {
 
     const results = await Promise.allSettled(
       targets.map((sub) => {
-        const subscription = JSON.parse(sub.payload);
-        return webpush.sendNotification(subscription, payload);
+        try {
+          const subscription = JSON.parse(sub.payload);
+          return webpush.sendNotification(subscription, payload);
+        } catch (error) {
+          console.error("[Push] invalid subscription payload:", sub.id, sub.user, error);
+          throw error;
+        }
       })
     );
+
+    results.forEach((result, index) => {
+      if (result.status === "rejected") {
+        const target = targets[index];
+        console.error(
+          "[Push] send failed:",
+          { id: target?.id, user: target?.user },
+          result.reason
+        );
+      }
+    });
 
     const sent = results.filter((result) => result.status === "fulfilled").length;
     return NextResponse.json({ success: true, sent });

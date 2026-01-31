@@ -74,6 +74,7 @@ export default function Home() {
           applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
         }));
       console.log("[Push] subscription created:", subscription);
+      console.log("Subscription Object:", subscription);
 
       const userName = localStorage.getItem("userName") || "Anonymous";
       const response = await fetch("/api/push/subscribe", {
