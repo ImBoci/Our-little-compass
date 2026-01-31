@@ -30,26 +30,27 @@ export default function Home() {
     <div className="flex flex-col items-center justify-center min-h-screen p-4 text-center bg-transparent">
       <Link
         href="/settings"
-        className="fixed top-7 right-5 sm:top-6 sm:right-6 z-50 flex items-center justify-center w-11 h-11 bg-white/40 dark:bg-white/20 backdrop-blur-md border border-rose-400/50 dark:border-purple-400/50 rounded-full text-[var(--text-color)] shadow-lg hover:scale-110 transition-all duration-300"
+        className="fixed top-6 right-6 z-[100] flex items-center justify-center w-14 h-14 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border-2 border-rose-400 dark:border-purple-500 rounded-full text-rose-600 dark:text-purple-400 shadow-[0_0_15px_rgba(225,29,72,0.2)] dark:shadow-[0_0_15px_rgba(168,85,247,0.2)] hover:scale-110 transition-all duration-300"
         title="Settings"
       >
-        <Menu size={20} />
+        <Menu size={28} />
       </Link>
-      <h1 className="font-serif text-4xl md:text-6xl text-[var(--text-color)] mb-2 tracking-tight drop-shadow-sm text-balance px-2">
-        Our Little Compass
-      </h1>
-      <div className="mt-1 mb-4 flex items-center justify-center gap-2 text-slate-500 font-serif text-center px-4">
-        <Heart size={14} className="text-rose-400 animate-pulse" />
-        <span>{diffDays === null ? "Day 0 of our journey together" : `Day ${diffDays} of our journey together`}</span>
-      </div>
-      <p className="font-sans text-xl text-slate-700 dark:text-slate-300 mb-12 italic drop-shadow-sm px-2">
-        Where should we go next?
-      </p>
-      {userName && (
-        <p className="mb-6 text-sm text-[var(--text-color)]/80">Welcome back, {userName}!</p>
-      )}
+      <div className="w-full flex flex-col items-center pt-20">
+        <h1 className="font-serif text-4xl md:text-6xl text-[var(--text-color)] mb-2 tracking-tight drop-shadow-sm text-balance px-2">
+          Our Little Compass
+        </h1>
+        <div className="mt-1 mb-4 flex items-center justify-center gap-2 text-slate-500 font-serif text-center px-4">
+          <Heart size={14} className="text-rose-400 animate-pulse" />
+          <span>{diffDays === null ? "Day 0 of our journey together" : `Day ${diffDays} of our journey together`}</span>
+        </div>
+        <p className="font-sans text-xl text-slate-700 dark:text-slate-300 mb-12 italic drop-shadow-sm px-2">
+          Where should we go next?
+        </p>
+        {userName && (
+          <p className="mb-6 text-sm text-[var(--text-color)]/80">Welcome back, {userName}!</p>
+        )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl w-full px-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl w-full px-4">
         {/* Food Card - Rose Neon */}
         <Link href="/cook" className="group">
           <div
@@ -106,6 +107,7 @@ export default function Home() {
             </div>
           </div>
         </Link>
+        </div>
       </div>
     </div>
   );
