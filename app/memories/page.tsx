@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { ArrowLeft, Trash2, Calendar, Star, User, Camera, RotateCcw } from "lucide-react";
+import { ArrowLeft, Trash2, Calendar, Star, User } from "lucide-react";
 import Link from "next/link";
 
 export default function MemoriesPage() {
@@ -8,7 +8,6 @@ export default function MemoriesPage() {
   const [memories, setMemories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<number | null>(null);
-  const [flippedId, setFlippedId] = useState<number | null>(null);
 
   useEffect(() => {
     fetch("/api/memories").then(r => r.json()).then(data => {
@@ -43,64 +42,58 @@ export default function MemoriesPage() {
         <button onClick={() => setActiveTab('Activity')} className={`px-8 py-2 rounded-full transition-all font-bold ${activeTab === 'Activity' ? 'bg-purple-600 text-white shadow-md' : 'text-slate-600 hover:bg-white/50'}`}>Activities</button>
       </div>
 
-      {/* List */}
-      <div className="w-full max-w-2xl grid grid-cols-1 gap-6 pb-20">
+      {/* List - Grid Layout */}
+      <div className="w-full max-w-2xl grid grid-cols-1 gap-8 pb-20">
         {filtered.length === 0 ? (
           <div className="text-center text-slate-500 italic py-16 bg-white/20 backdrop-blur-sm rounded-3xl border-2 border-dashed border-white/40">
             {activeTab === 'Food' ? "No meals saved yet. Go eat something delicious! 🍔" : "No adventures yet. Go do something fun! 🎈"}
           </div>
         ) : (
           filtered.map(item => (
-            <div key={item.id} className="relative w-full min-h-[220px] perspective-1000 group">
-              <div 
-                className={`relative w-full h-full transition-all duration-700 transform-style-3d ${flippedId === item.id ? 'rotate-y-180' : ''}`}
-              >
-                {/* FRONT FACE */}
-                <div 
-                  onClick={() => item.image_url && setFlippedId(item.id)}
-                  className={`absolute inset-0 backface-hidden bg-white/60 backdrop-blur-md border border-white/60 p-6 rounded-3xl shadow-sm flex flex-col justify-between transition-all ${item.image_url ? 'cursor-pointer hover:bg-white/80' : 'cursor-default'} ${flippedId === item.id ? 'z-0' : 'z-10'}`}
-                >
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
-                        <Calendar size={12} /> {new Date(item.date).toLocaleDateString()}
-                        {item.image_url && <Camera size={14} className="text-rose-400 animate-pulse" />}
-                      </div>
-                      <h3 className="font-serif text-2xl text-slate-800 font-bold">{item.name}</h3>
+            <div key={item.id} className="bg-white/60 backdrop-blur-md border border-white/60 rounded-[2rem] shadow-lg overflow-hidden flex flex-col group hover:scale-[1.02] transition-transform duration-300">
+              {/* Image Section (Top) */}
+              {item.image_url && (
+                <div className="w-full h-56 md:h-64 overflow-hidden relative">
+                  <img 
+                    src={item.image_url} 
+                    alt={item.name} 
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+                </div>
+              )}
+
+              {/* Content Section (Bottom) */}
+              <div className="p-6 md:p-8 flex flex-col gap-4">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
+                      <Calendar size={12} /> {new Date(item.date).toLocaleDateString()}
                     </div>
-                    <div className="flex items-center gap-1 bg-amber-100/80 text-amber-600 px-3 py-1 rounded-full text-sm font-bold border border-amber-200">
-                      <Star size={14} fill="currentColor" /> {item.rating}
-                    </div>
+                    <h3 className="font-serif text-3xl text-slate-800 font-bold leading-tight">{item.name}</h3>
                   </div>
-                  
-                  <p className="text-slate-600 italic flex-1 mt-2">"{item.note || 'No notes added'}"</p>
-                  
-                  <div className="flex justify-between items-end mt-4">
-                    <div className="flex items-center gap-2 text-xs text-slate-500 font-medium bg-white/40 px-3 py-1.5 rounded-full">
-                      <User size={12} /> {item.user || "Anonymous"}
-                    </div>
-                    <button 
-                      onClick={(e) => { e.stopPropagation(); setDeletingId(item.id); }} 
-                      className="p-2 text-slate-300 hover:text-red-500 transition-colors pointer-events-auto z-50"
-                    >
-                      <Trash2 size={20} />
-                    </button>
+                  <div className="flex items-center gap-1 bg-amber-100/90 text-amber-600 px-4 py-1.5 rounded-full text-lg font-bold border border-amber-200 shadow-sm">
+                    <Star size={18} fill="currentColor" /> {item.rating}
                   </div>
                 </div>
-
-                {/* BACK FACE (Image) */}
-                <div className={`absolute inset-0 backface-hidden rotate-y-180 rounded-3xl border-2 border-white/40 shadow-xl overflow-hidden bg-black ${flippedId === item.id ? 'z-10' : 'z-0'}`}>
-                  {item.image_url && (
-                    <>
-                      <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
-                      <button 
-                        onClick={() => setFlippedId(null)}
-                        className="absolute top-4 right-4 bg-black/50 text-white p-2 rounded-full backdrop-blur-md hover:bg-black/70"
-                      >
-                        <RotateCcw size={20} />
-                      </button>
-                    </>
-                  )}
+                
+                {item.note && (
+                  <p className="text-slate-600 italic text-lg leading-relaxed bg-white/30 p-4 rounded-2xl border border-white/40">
+                    "{item.note}"
+                  </p>
+                )}
+                
+                <div className="flex justify-between items-center mt-2">
+                  <div className="flex items-center gap-2 text-sm text-slate-500 font-medium bg-white/40 px-4 py-2 rounded-full border border-white/50">
+                    <User size={14} /> {item.user || "Anonymous"}
+                  </div>
+                  <button 
+                    onClick={() => setDeletingId(item.id)} 
+                    className="p-3 text-slate-300 hover:text-red-500 hover:bg-red-50 transition-all rounded-full"
+                    title="Delete memory"
+                  >
+                    <Trash2 size={22} />
+                  </button>
                 </div>
               </div>
             </div>
@@ -108,15 +101,15 @@ export default function MemoriesPage() {
         ))}
       </div>
 
-      {/* Delete Confirmation Modal */}
+      {/* Delete Modal */}
       {deletingId && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-white/90 backdrop-blur-xl rounded-3xl p-8 max-w-sm w-full shadow-2xl border border-white/60 text-center">
-            <h3 className="text-xl font-bold text-slate-800 mb-2">Forget this memory?</h3>
-            <p className="text-slate-600 mb-6 text-sm text-balance">Once it's gone, it's gone. Are you sure?</p>
-            <div className="flex gap-3 mt-6">
-              <button onClick={() => setDeletingId(null)} className="flex-1 py-3 rounded-xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors">Keep it</button>
-              <button onClick={handleDelete} className="flex-1 py-3 rounded-xl font-bold text-white bg-red-500 hover:bg-red-600 shadow-lg active:scale-95 transition-all">Delete</button>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-white/95 backdrop-blur-xl rounded-[2.5rem] p-10 max-w-sm w-full shadow-2xl border border-white/60 text-center">
+            <h3 className="text-2xl font-bold text-slate-800 mb-2 font-serif">Forget this?</h3>
+            <p className="text-slate-600 mb-8 leading-relaxed">This memory will be removed from your scrapbook forever.</p>
+            <div className="flex gap-4">
+              <button onClick={() => setDeletingId(null)} className="flex-1 py-4 rounded-2xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors">Keep it</button>
+              <button onClick={handleDelete} className="flex-1 py-4 rounded-2xl font-bold text-white bg-red-500 hover:bg-red-600 shadow-lg active:scale-95 transition-all">Delete</button>
             </div>
           </div>
         </div>
