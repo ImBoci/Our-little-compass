@@ -210,7 +210,9 @@ export default function CookPage() {
                   ) : <div className="text-slate-600">No foods found!</div>}
 
                   {!isRevealed && !isSpinning && (
-                    <ScratchOff isResetting={isScratchResetting} onComplete={() => setIsRevealed(true)} />
+                    <div className="absolute inset-0 z-20">
+                      <ScratchOff isResetting={isScratchResetting} onComplete={() => setIsRevealed(true)} />
+                    </div>
                   )}
               </div>
               <button onClick={handleShuffle} className="mt-12 group relative inline-flex items-center gap-3 bg-rose-500 text-white px-8 py-4 rounded-full font-bold text-lg transition-all duration-300 hover:scale-105 hover:bg-rose-600 hover:shadow-[0_0_30px_#f43f5e]">

@@ -247,7 +247,9 @@ export default function DatePage() {
                             ) : <div className="text-slate-600">No activities found!</div>}
 
                             {!isRevealed && !isSpinning && !isFlipped && (
-                              <ScratchOff isResetting={isScratchResetting} onComplete={() => setIsRevealed(true)} />
+                              <div className="absolute inset-0 z-20">
+                                <ScratchOff isResetting={isScratchResetting} onComplete={() => setIsRevealed(true)} />
+                              </div>
                             )}
                         </div>
                         {/* BACK */}

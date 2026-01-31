@@ -10,7 +10,7 @@ type ScratchOffProps = {
 export default function ScratchOff({
   isResetting,
   onComplete,
-  fogColor = "#f8fafc",
+  fogColor = "rgba(240, 242, 245, 0.95)",
 }: ScratchOffProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -31,13 +31,9 @@ export default function ScratchOff({
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
     ctx.globalCompositeOperation = "source-over";
-    ctx.globalAlpha = 0.9;
-    const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-    gradient.addColorStop(0, fogColor);
-    gradient.addColorStop(1, "#e2e8f0");
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.globalAlpha = 1;
+    ctx.fillStyle = fogColor;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // Subtle noise texture
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
@@ -54,7 +50,7 @@ export default function ScratchOff({
     ctx.font = "600 16px var(--font-playfair, serif)";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText("Scratch to reveal...", canvas.width / 2, canvas.height / 2);
+    ctx.fillText("Scratch to see our adventure", canvas.width / 2, canvas.height / 2);
     ctx.globalAlpha = 1;
   };
 
@@ -64,7 +60,7 @@ export default function ScratchOff({
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
     ctx.globalCompositeOperation = "destination-out";
-    ctx.lineWidth = 40;
+    ctx.lineWidth = 50;
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
     const lastPoint = lastPointRef.current;
@@ -94,6 +90,7 @@ export default function ScratchOff({
 
   const handlePointerDown = (event: React.PointerEvent<HTMLCanvasElement>) => {
     if (isDone) return;
+    event.preventDefault();
     setIsDrawing(true);
     const rect = (event.target as HTMLCanvasElement).getBoundingClientRect();
     const x = event.clientX - rect.left;
@@ -104,6 +101,7 @@ export default function ScratchOff({
 
   const handlePointerMove = (event: React.PointerEvent<HTMLCanvasElement>) => {
     if (!isDrawing || isDone) return;
+    event.preventDefault();
     const rect = (event.target as HTMLCanvasElement).getBoundingClientRect();
     clearAtPoint(event.clientX - rect.left, event.clientY - rect.top);
   };
@@ -118,7 +116,7 @@ export default function ScratchOff({
       setTimeout(() => {
         setIsDone(true);
         onComplete?.();
-      }, 300);
+      }, 160);
     }
   };
 
@@ -143,7 +141,10 @@ export default function ScratchOff({
     <div ref={containerRef} className="absolute inset-0 rounded-3xl overflow-hidden pointer-events-auto">
       <canvas
         ref={canvasRef}
-        className={`w-full h-full rounded-3xl transition-opacity duration-300 ${isFading ? "opacity-0" : "opacity-100"}`}
+        className={`w-full h-full rounded-3xl transition-opacity duration-150 ${isFading ? "opacity-0" : "opacity-100"}`}
+        style={{ touchAction: "none" }}
+        onTouchStart={(event) => event.preventDefault()}
+        onTouchMove={(event) => event.preventDefault()}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
