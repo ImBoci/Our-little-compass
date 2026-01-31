@@ -46,7 +46,8 @@ export default function ScratchOff({
     ctx.putImageData(imageData, 0, 0);
 
     ctx.globalAlpha = 0.8;
-    ctx.fillStyle = "#64748b";
+    const isDark = typeof document !== "undefined" && document.documentElement.classList.contains("dark");
+    ctx.fillStyle = isDark ? "#f8fafc" : "#64748b";
     ctx.font = "600 16px var(--font-playfair, serif)";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";

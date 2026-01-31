@@ -22,14 +22,14 @@ export default function Home() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4 text-center bg-transparent">
-      <h1 className="font-serif text-4xl md:text-6xl text-slate-800 mb-2 tracking-tight drop-shadow-sm text-balance px-2">
+      <h1 className="font-serif text-4xl md:text-6xl text-slate-800 dark:text-white mb-2 tracking-tight drop-shadow-sm text-balance px-2">
         Our Little Compass
       </h1>
       <div className="mt-1 mb-4 flex items-center justify-center gap-2 text-slate-500 font-serif text-center px-4">
         <Heart size={14} className="text-rose-400 animate-pulse" />
         <span>{diffDays === null ? "Day 0 of our journey together" : `Day ${diffDays} of our journey together`}</span>
       </div>
-      <p className="font-sans text-xl text-slate-700 mb-12 italic drop-shadow-sm px-2">
+      <p className="font-sans text-xl text-slate-700 dark:text-slate-300 mb-12 italic drop-shadow-sm px-2">
         Where should we go next?
       </p>
 
@@ -37,9 +37,8 @@ export default function Home() {
         {/* Food Card - Rose Neon */}
         <Link href="/cook" className="group">
           <div
-            className="border-2 border-white/40 rounded-3xl p-10 shadow-xl transition-all duration-300 cursor-pointer h-full flex flex-col items-center justify-center gap-6 hover:scale-105 hover:border-rose-400 hover:shadow-[0_0_35px_rgba(244,63,94,0.6)]"
+            className="border-2 border-white/50 dark:border-slate-700/50 bg-white/30 dark:bg-slate-900/40 rounded-3xl p-10 shadow-xl transition-all duration-300 cursor-pointer h-full flex flex-col items-center justify-center gap-6 hover:scale-105 hover:border-rose-400 hover:shadow-[0_0_35px_rgba(244,63,94,0.6)]"
             style={{
-              background: "rgba(255, 255, 255, 0.25)",
               backdropFilter: "blur(12px)",
               WebkitBackdropFilter: "blur(12px)"
             }}
@@ -48,8 +47,8 @@ export default function Home() {
               <UtensilsCrossed size={56} />
             </div>
             <div className="space-y-2">
-              <h2 className="font-serif text-3xl text-slate-800 font-bold group-hover:text-rose-600 transition-colors">What to Cook?</h2>
-              <p className="text-slate-700 font-medium">Can't decide on dinner? Let fate decide.</p>
+              <h2 className="font-serif text-3xl text-slate-800 dark:text-white font-bold group-hover:text-rose-600 transition-colors">What to Cook?</h2>
+              <p className="text-slate-700 dark:text-slate-300 font-medium">Can't decide on dinner? Let fate decide.</p>
             </div>
           </div>
         </Link>
@@ -57,9 +56,8 @@ export default function Home() {
       {/* Memory Lane Card - Amber Glow */}
       <Link href="/memories" className="group">
         <div
-          className="border-2 border-white/40 rounded-3xl p-10 shadow-xl transition-all duration-300 cursor-pointer h-full flex flex-col items-center justify-center gap-6 hover:scale-105 hover:border-amber-300 hover:shadow-[0_0_35px_rgba(251,191,36,0.6)]"
+          className="border-2 border-white/50 dark:border-slate-700/50 bg-white/30 dark:bg-slate-900/40 rounded-3xl p-10 shadow-xl transition-all duration-300 cursor-pointer h-full flex flex-col items-center justify-center gap-6 hover:scale-105 hover:border-amber-300 hover:shadow-[0_0_35px_rgba(251,191,36,0.6)]"
           style={{
-            background: "rgba(255, 255, 255, 0.25)",
             backdropFilter: "blur(12px)",
             WebkitBackdropFilter: "blur(12px)"
           }}
@@ -68,8 +66,8 @@ export default function Home() {
             <BookHeart size={56} />
           </div>
           <div className="space-y-2">
-            <h2 className="font-serif text-3xl text-slate-800 font-bold group-hover:text-amber-600 transition-colors">Memory Lane</h2>
-            <p className="text-slate-700 font-medium">Relive your sweetest adventures together.</p>
+            <h2 className="font-serif text-3xl text-slate-800 dark:text-white font-bold group-hover:text-amber-600 transition-colors">Memory Lane</h2>
+            <p className="text-slate-700 dark:text-slate-300 font-medium">Relive your sweetest adventures together.</p>
           </div>
         </div>
       </Link>
@@ -77,9 +75,8 @@ export default function Home() {
         {/* Date Card - Purple Neon */}
         <Link href="/date" className="group">
           <div
-            className="border-2 border-white/40 rounded-3xl p-10 shadow-xl transition-all duration-300 cursor-pointer h-full flex flex-col items-center justify-center gap-6 hover:scale-105 hover:border-purple-400 hover:shadow-[0_0_35px_rgba(168,85,247,0.6)]"
+            className="border-2 border-white/50 dark:border-slate-700/50 bg-white/30 dark:bg-slate-900/40 rounded-3xl p-10 shadow-xl transition-all duration-300 cursor-pointer h-full flex flex-col items-center justify-center gap-6 hover:scale-105 hover:border-purple-400 hover:shadow-[0_0_35px_rgba(168,85,247,0.6)]"
             style={{
-              background: "rgba(255, 255, 255, 0.25)",
               backdropFilter: "blur(12px)",
               WebkitBackdropFilter: "blur(12px)"
             }}
@@ -88,8 +85,8 @@ export default function Home() {
               <CalendarHeart size={56} />
             </div>
             <div className="space-y-2">
-              <h2 className="font-serif text-3xl text-slate-800 font-bold group-hover:text-purple-600 transition-colors">What to Do?</h2>
-              <p className="text-slate-700 font-medium">Find the perfect date idea for today.</p>
+              <h2 className="font-serif text-3xl text-slate-800 dark:text-white font-bold group-hover:text-purple-600 transition-colors">What to Do?</h2>
+              <p className="text-slate-700 dark:text-slate-300 font-medium">Find the perfect date idea for today.</p>
             </div>
           </div>
         </Link>

@@ -180,7 +180,7 @@ export default function CookPage() {
       </div>
       
       <div className="mb-6 text-center">
-          <h1 className="font-serif text-2xl md:text-4xl text-slate-800 font-bold drop-shadow-sm">Tonight's Menu</h1>
+          <h1 className="font-serif text-2xl md:text-4xl text-slate-800 dark:text-white font-bold drop-shadow-sm">Tonight's Menu</h1>
       </div>
 
       <div className="flex justify-center mb-8">
@@ -194,18 +194,18 @@ export default function CookPage() {
       {activeTab === 'random' && (
           <div className="flex flex-col items-center w-full">
               <div
-                className="w-full max-w-[90vw] sm:max-w-md p-8 sm:p-10 rounded-3xl border-2 border-white/40 text-center relative transition-all duration-500"
-                style={{ background: "rgba(255, 255, 255, 0.25)", backdropFilter: "blur(16px)" }}
+                className="w-full max-w-[90vw] sm:max-w-md p-8 sm:p-10 rounded-3xl border-2 border-white/50 dark:border-slate-700/50 bg-white/30 dark:bg-slate-900/40 text-center relative transition-all duration-500"
+                style={{ background: "var(--card-bg)", backdropFilter: "blur(16px)" }}
               >
                   {randomFood ? (
                   <div className={`space-y-6 transition-all duration-150 ease-in-out ${isSpinning ? 'blur-sm translate-y-2' : 'blur-0 translate-y-0'} ${!isRevealed ? 'pointer-events-none' : 'pointer-events-auto'}`}>
-                      <h2 className="font-serif text-3xl md:text-4xl font-bold text-slate-900 leading-tight hyphens-auto break-words">{randomFood.name}</h2>
+                      <h2 className="font-serif text-3xl md:text-4xl font-bold text-slate-900 dark:text-white leading-tight hyphens-auto break-words">{randomFood.name}</h2>
                       <div className="flex flex-wrap gap-2 justify-center">
                           {randomFood.category && randomFood.category.split(',').map((tag: string, i: number) => (
                               <span key={i} className="bg-rose-100/80 text-rose-700 px-3 py-1 rounded-full text-sm font-medium border border-rose-200">{tag.trim()}</span>
                           ))}
                       </div>
-                      {randomFood.description && <p className="text-lg md:text-xl text-slate-700 font-light italic">"{randomFood.description}"</p>}
+                      {randomFood.description && <p className="text-lg md:text-xl text-slate-700 dark:text-slate-300 font-light italic">"{randomFood.description}"</p>}
                   </div>
                   ) : <div className="text-slate-600">No foods found!</div>}
 
@@ -253,7 +253,7 @@ export default function CookPage() {
                         <div className={`absolute inset-0 transition-all duration-700 transform-style-3d ${flippedId === food.id ? 'rotate-y-180' : ''}`}>
                           {/* Front */}
                           <div
-                            className={`absolute inset-0 backface-hidden bg-white/60 backdrop-blur-sm border border-white/60 p-6 rounded-2xl hover:shadow-lg transition-all ${flippedId === food.id ? 'pointer-events-none' : 'pointer-events-auto'}`}
+                            className={`absolute inset-0 backface-hidden bg-white/60 dark:bg-slate-900/40 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 p-6 rounded-2xl hover:shadow-lg transition-all ${flippedId === food.id ? 'pointer-events-none' : 'pointer-events-auto'}`}
                             onClick={() => handleCardFlip(food)}
                             role="button"
                           >
@@ -268,7 +268,7 @@ export default function CookPage() {
                               <CheckCircle size={22} />
                             </button>
 
-                            <h3 className="font-bold text-lg text-slate-800 mb-2 pr-8 flex items-center gap-2 hyphens-auto break-words">
+                            <h3 className="font-bold text-lg text-slate-800 dark:text-white mb-2 pr-8 flex items-center gap-2 hyphens-auto break-words">
                               {food.name}
                               {food.image_url && <Image size={14} className="text-slate-400" />}
                             </h3>
@@ -277,11 +277,11 @@ export default function CookPage() {
                                     <span key={i} className="bg-rose-100 text-rose-700 text-xs px-2 py-0.5 rounded-full">{t.trim()}</span>
                                 ))}
                             </div>
-                            <p className="text-slate-600 text-sm line-clamp-2">{food.description}</p>
+                            <p className="text-slate-600 dark:text-slate-300 text-sm line-clamp-2">{food.description}</p>
                           </div>
 
                           {/* Back */}
-                          <div className={`absolute inset-0 backface-hidden rotate-y-180 bg-white/60 backdrop-blur-sm border border-white/60 rounded-2xl overflow-hidden ${flippedId === food.id ? 'pointer-events-auto' : 'pointer-events-none'}`}>
+                          <div className={`absolute inset-0 backface-hidden rotate-y-180 bg-white/60 dark:bg-slate-900/40 backdrop-blur-sm border border-white/60 dark:border-slate-700/50 rounded-2xl overflow-hidden ${flippedId === food.id ? 'pointer-events-auto' : 'pointer-events-none'}`}>
                             {food.image_url && (
                               <img
                                 src={food.image_url}

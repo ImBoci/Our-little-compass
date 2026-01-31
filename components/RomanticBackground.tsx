@@ -21,7 +21,7 @@ export default function RomanticBackground({ mode }: RomanticBackgroundProps) {
 
   useEffect(() => {
     if (!mounted) return;
-    const count = mode === "night" ? 70 : 50;
+    const count = 50;
     const nextParticles = Array.from({ length: count }).map((_, i) => ({
       id: i,
       left: `${Math.random() * 100}%`,
@@ -40,7 +40,7 @@ export default function RomanticBackground({ mode }: RomanticBackgroundProps) {
   if (!mounted) return null;
 
   return (
-    <div className="fixed inset-0 pointer-events-none z-[-1] overflow-hidden">
+    <div className="fixed inset-0 pointer-events-none z-[-10] overflow-hidden">
       <div className="absolute inset-0" style={{ background: backgroundStyle }} />
       {particles.map((particle) => (
         <div
@@ -52,6 +52,8 @@ export default function RomanticBackground({ mode }: RomanticBackgroundProps) {
             height: particle.size,
             animationDuration: particle.duration,
             animationDelay: particle.delay,
+            opacity: 0.6,
+            color: mode === "night" ? "#fde047" : undefined,
           }}
         >
           {mode === "night" ? (

@@ -5,6 +5,13 @@
 :root {
   --font-playfair: 'Playfair Display', serif;
   --font-lato: 'Lato', sans-serif;
+  --card-bg: rgba(255, 255, 255, 0.35);
+  --text-main: #1e293b; /* Slate 800 */
+}
+
+.dark {
+  --card-bg: rgba(15, 23, 42, 0.5); /* Slate 900 semi-transparent */
+  --text-main: #f8fafc; /* Slate 50 */
 }
 
 /* Force the gradient on the body */
@@ -14,7 +21,8 @@ body {
   min-height: 100vh;
   background: linear-gradient(135deg, #fdc2d6 0%, #cbcbff 50%, #caf4fa 100%);
   background-attachment: fixed; /* Keeps gradient in place when scrolling */
-  color: #4a4a4a;
+  color: var(--text-main);
+  transition: background-color 0.5s ease, color 0.5s ease;
 }
 
 @keyframes float {
