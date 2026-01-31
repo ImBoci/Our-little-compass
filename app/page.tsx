@@ -35,23 +35,37 @@ export default function Home() {
 
   const handleEnableNotifications = async () => {
     if (typeof window === "undefined") return;
-    if (!("Notification" in window) || !("serviceWorker" in navigator) || !("PushManager" in window)) {
-      setPushStatus("Push notifications aren't supported on this device.");
-      return;
-    }
-    const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-    if (!vapidPublicKey) {
-      setPushStatus("Missing VAPID public key. Add NEXT_PUBLIC_VAPID_PUBLIC_KEY.");
-      return;
-    }
     try {
-      setIsEnablingPush(true);
-      const permission = await Notification.requestPermission();
-      if (permission !== "granted") {
-        setPushStatus("Notifications are blocked. Enable them in browser settings.");
+      const supportsServiceWorker = "serviceWorker" in navigator;
+      const supportsNotifications = "Notification" in window;
+      const supportsPush = "PushManager" in window;
+      console.log("[Push] serviceWorker supported:", supportsServiceWorker);
+      console.log("[Push] notifications supported:", supportsNotifications);
+      console.log("[Push] push manager supported:", supportsPush);
+      console.log("[Push] existing permission:", Notification.permission);
+
+      if (!supportsNotifications || !supportsServiceWorker || !supportsPush) {
+        setPushStatus("Push notifications aren't supported on this device.");
         return;
       }
+
+      const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+      console.log("[Push] VAPID public key:", vapidPublicKey);
+      if (!vapidPublicKey) {
+        setPushStatus("Missing VAPID public key. Add NEXT_PUBLIC_VAPID_PUBLIC_KEY.");
+        return;
+      }
+
+      setIsEnablingPush(true);
+      const permission = await Notification.requestPermission();
+      console.log("[Push] permission result:", permission);
+      if (permission !== "granted") {
+        setPushStatus(`Notifications are blocked (${permission}). Enable them in browser settings.`);
+        return;
+      }
+
       const registration = await navigator.serviceWorker.register("/sw.js");
+      console.log("[Push] service worker registered:", registration.scope);
       const existing = await registration.pushManager.getSubscription();
       const subscription =
         existing ||
@@ -59,6 +73,8 @@ export default function Home() {
           userVisibleOnly: true,
           applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
         }));
+      console.log("[Push] subscription created:", subscription);
+
       const userName = localStorage.getItem("userName") || "Anonymous";
       const response = await fetch("/api/push/subscribe", {
         method: "POST",
@@ -71,8 +87,10 @@ export default function Home() {
         return;
       }
       setPushStatus("Notifications enabled ✨");
-    } catch {
-      setPushStatus("Couldn't enable notifications. Try again.");
+    } catch (error) {
+      console.error("[Push] enable notifications failed:", error);
+      const message = error instanceof Error ? error.message : "Unknown error";
+      setPushStatus(`Couldn't enable notifications: ${message}`);
     } finally {
       setIsEnablingPush(false);
     }
