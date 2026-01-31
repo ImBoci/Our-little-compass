@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { ArrowLeft, Trash2, Calendar, Star, User } from "lucide-react";
+import { ArrowLeft, Trash2, Calendar, Star, User, Image as ImageIcon } from "lucide-react";
 import Link from "next/link";
 
 export default function MemoriesPage() {
@@ -25,7 +25,7 @@ export default function MemoriesPage() {
 
   const filtered = memories.filter(m => m.type === activeTab);
 
-  if (loading) return <div className="flex min-h-screen items-center justify-center text-rose-800 animate-pulse font-serif text-xl">Opening the photo album...</div>;
+  if (loading) return <div className="flex min-h-screen items-center justify-center text-rose-800 animate-pulse font-serif text-xl">Loading your memories...</div>;
 
   return (
     <div className="min-h-screen p-4 flex flex-col items-center bg-transparent">
@@ -42,57 +42,57 @@ export default function MemoriesPage() {
         <button onClick={() => setActiveTab('Activity')} className={`px-8 py-2 rounded-full transition-all font-bold ${activeTab === 'Activity' ? 'bg-purple-600 text-white shadow-md' : 'text-slate-600 hover:bg-white/50'}`}>Activities</button>
       </div>
 
-      {/* List - Grid Layout */}
-      <div className="w-full max-w-2xl grid grid-cols-1 gap-8 pb-20">
+      {/* List */}
+      <div className="w-full max-w-2xl space-y-4 pb-20">
         {filtered.length === 0 ? (
-          <div className="text-center text-slate-500 italic py-16 bg-white/20 backdrop-blur-sm rounded-3xl border-2 border-dashed border-white/40">
-            {activeTab === 'Food' ? "No meals saved yet. Go eat something delicious! 🍔" : "No adventures yet. Go do something fun! 🎈"}
+          <div className="text-center text-slate-500 italic py-12 bg-white/20 backdrop-blur-sm rounded-3xl border border-white/40">
+            {activeTab === 'Food' ? "No meals saved yet. 🍔" : "No adventures yet. 🎈"}
           </div>
         ) : (
           filtered.map(item => (
-            <div key={item.id} className="bg-white/60 backdrop-blur-md border border-white/60 rounded-[2rem] shadow-lg overflow-hidden flex flex-col group hover:scale-[1.02] transition-transform duration-300">
-              {/* Image Section (Top) */}
-              {item.image_url && (
-                <div className="w-full h-56 md:h-64 overflow-hidden relative">
+            <div key={item.id} className="bg-white/50 backdrop-blur-sm border border-white/60 rounded-3xl shadow-sm overflow-hidden flex flex-row group hover:bg-white/70 transition-all duration-300">
+              {/* Thumbnail Image */}
+              {item.image_url ? (
+                <div className="w-24 h-24 sm:w-32 sm:h-32 shrink-0 p-2">
                   <img 
                     src={item.image_url} 
                     alt={item.name} 
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    className="w-full h-full object-cover rounded-2xl shadow-inner"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+                </div>
+              ) : (
+                <div className="w-24 h-24 sm:w-32 sm:h-32 shrink-0 p-2 flex items-center justify-center bg-white/20">
+                  <ImageIcon className="text-slate-300" size={24} />
                 </div>
               )}
 
-              {/* Content Section (Bottom) */}
-              <div className="p-6 md:p-8 flex flex-col gap-4">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
-                      <Calendar size={12} /> {new Date(item.date).toLocaleDateString()}
+              {/* Content */}
+              <div className="p-4 flex-1 flex flex-col justify-between min-w-0">
+                <div className="flex justify-between items-start gap-2">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">
+                      <Calendar size={10} /> {new Date(item.date).toLocaleDateString()}
                     </div>
-                    <h3 className="font-serif text-3xl text-slate-800 font-bold leading-tight">{item.name}</h3>
+                    <h3 className="font-serif text-xl text-slate-800 font-bold truncate leading-tight">{item.name}</h3>
                   </div>
-                  <div className="flex items-center gap-1 bg-amber-100/90 text-amber-600 px-4 py-1.5 rounded-full text-lg font-bold border border-amber-200 shadow-sm">
-                    <Star size={18} fill="currentColor" /> {item.rating}
+                  <div className="flex items-center gap-1 bg-amber-50 text-amber-600 px-2 py-0.5 rounded-full text-xs font-bold border border-amber-100 shrink-0">
+                    <Star size={12} fill="currentColor" /> {item.rating}
                   </div>
                 </div>
                 
-                {item.note && (
-                  <p className="text-slate-600 italic text-lg leading-relaxed bg-white/30 p-4 rounded-2xl border border-white/40">
-                    "{item.note}"
-                  </p>
-                )}
+                <p className="text-slate-500 text-sm italic line-clamp-1 mb-1">
+                  {item.note ? `"${item.note}"` : "No notes"}
+                </p>
                 
-                <div className="flex justify-between items-center mt-2">
-                  <div className="flex items-center gap-2 text-sm text-slate-500 font-medium bg-white/40 px-4 py-2 rounded-full border border-white/50">
-                    <User size={14} /> {item.user || "Anonymous"}
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-medium bg-white/40 px-2 py-1 rounded-full">
+                    <User size={10} /> {item.user || "Me"}
                   </div>
                   <button 
                     onClick={() => setDeletingId(item.id)} 
-                    className="p-3 text-slate-300 hover:text-red-500 hover:bg-red-50 transition-all rounded-full"
-                    title="Delete memory"
+                    className="p-1.5 text-slate-300 hover:text-red-400 transition-colors"
                   >
-                    <Trash2 size={22} />
+                    <Trash2 size={16} />
                   </button>
                 </div>
               </div>
@@ -103,13 +103,12 @@ export default function MemoriesPage() {
 
       {/* Delete Modal */}
       {deletingId && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-white/95 backdrop-blur-xl rounded-[2.5rem] p-10 max-w-sm w-full shadow-2xl border border-white/60 text-center">
-            <h3 className="text-2xl font-bold text-slate-800 mb-2 font-serif">Forget this?</h3>
-            <p className="text-slate-600 mb-8 leading-relaxed">This memory will be removed from your scrapbook forever.</p>
-            <div className="flex gap-4">
-              <button onClick={() => setDeletingId(null)} className="flex-1 py-4 rounded-2xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors">Keep it</button>
-              <button onClick={handleDelete} className="flex-1 py-4 rounded-2xl font-bold text-white bg-red-500 hover:bg-red-600 shadow-lg active:scale-95 transition-all">Delete</button>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-white/95 backdrop-blur-xl rounded-3xl p-8 max-w-sm w-full shadow-2xl border border-white/60 text-center">
+            <h3 className="text-xl font-bold text-slate-800 mb-6">Remove this memory?</h3>
+            <div className="flex gap-3">
+              <button onClick={() => setDeletingId(null)} className="flex-1 py-3 rounded-xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200">Cancel</button>
+              <button onClick={handleDelete} className="flex-1 py-3 rounded-xl font-bold text-white bg-red-500 hover:bg-red-600">Delete</button>
             </div>
           </div>
         </div>
