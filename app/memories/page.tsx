@@ -29,11 +29,16 @@ export default function MemoriesPage() {
 
   return (
     <div className="min-h-screen p-4 flex flex-col items-center bg-transparent">
-      <div className="w-full max-w-2xl flex flex-col md:flex-row items-center justify-between mb-8 gap-4 relative z-50 pt-4">
-        <Link href="/" className="flex items-center gap-2 px-5 py-2.5 bg-[var(--card-bg)] backdrop-blur-md border border-white/40 rounded-full text-[var(--text-color)] font-medium shadow-sm hover:bg-white/60 transition-all z-50">
-          <ArrowLeft size={18} /> Home
+      <div className="w-full max-w-2xl flex items-center justify-between mb-8 gap-4 relative z-50 pt-4">
+        <Link 
+          href="/" 
+          className="flex items-center justify-center p-3 bg-white/30 backdrop-blur-md border border-white/40 rounded-full text-[var(--text-color)] opacity-80 hover:opacity-100 transition-all shadow-sm group"
+        >
+          <ArrowLeft size={20} className="transition-transform group-hover:-translate-x-1" />
+          <span className="hidden md:inline ml-2 pr-1 font-medium">Home</span>
         </Link>
         <h1 className="font-serif text-4xl text-[var(--text-color)] font-bold drop-shadow-sm text-center flex-1 md:pr-24">Our Memories</h1>
+        <div className="w-[52px] md:w-[88px]" />
       </div>
 
       {/* Tabs */}
