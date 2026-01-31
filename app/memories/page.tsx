@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { ArrowLeft, Trash2, Calendar, Star, User } from "lucide-react";
+import { ArrowLeft, Trash2, Calendar, Star, User, Camera } from "lucide-react";
 import Link from "next/link";
 
 export default function MemoriesPage() {
@@ -8,6 +8,7 @@ export default function MemoriesPage() {
   const [memories, setMemories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [flippedId, setFlippedId] = useState<number | null>(null);
 
   useEffect(() => {
     fetch("/api/memories").then(r => r.json()).then(data => {
@@ -24,6 +25,12 @@ export default function MemoriesPage() {
   };
 
   const filtered = memories.filter(m => m.type === activeTab);
+
+  const handleFlip = (item: any) => {
+    if (item.image_url) {
+      setFlippedId(item.id);
+    }
+  };
 
   return (
     <div className="min-h-screen p-4 flex flex-col items-center bg-transparent">
@@ -52,31 +59,66 @@ export default function MemoriesPage() {
         )}
         
         {filtered.map(item => (
-          <div key={item.id} className="bg-white/60 backdrop-blur-md border border-white/60 p-6 rounded-3xl shadow-sm relative group hover:scale-[1.01] transition-transform">
-            <div className="flex justify-between items-start mb-2">
-              <div>
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
-                  <Calendar size={12} /> {new Date(item.date).toLocaleDateString()}
-                </span>
-                <h3 className="font-serif text-2xl text-slate-800 font-bold">{item.name}</h3>
+          <div key={item.id} className="relative h-[220px] w-full perspective-1000">
+            <div className={`absolute inset-0 transition-all duration-700 transform-style-3d ${flippedId === item.id ? 'rotate-y-180' : ''}`}>
+              {/* Front */}
+              <div
+                className={`absolute inset-0 backface-hidden bg-white/60 backdrop-blur-md border border-white/60 p-6 rounded-3xl shadow-sm hover:scale-[1.01] transition-transform ${flippedId === item.id ? 'pointer-events-none' : 'pointer-events-auto'}`}
+                onClick={() => handleFlip(item)}
+                role="button"
+              >
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                      <Calendar size={12} /> {new Date(item.date).toLocaleDateString()}
+                    </span>
+                    <h3 className="font-serif text-2xl text-slate-800 font-bold flex items-center gap-2">
+                      {item.name}
+                      {item.image_url && <Camera size={14} className="text-slate-400" />}
+                    </h3>
+                  </div>
+                  <div className="flex items-center gap-1 bg-amber-100/80 text-amber-600 px-3 py-1 rounded-full text-sm font-bold border border-amber-200">
+                    <Star size={14} fill="currentColor" /> {item.rating}
+                  </div>
+                </div>
+                
+                {item.note && <p className="text-slate-600 italic mb-3 line-clamp-2">"{item.note}"</p>}
+                
+                {item.user && (
+                  <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
+                    <div className="bg-slate-200 p-1 rounded-full"><User size={12} /></div>
+                    Reviewed by {item.user}
+                  </div>
+                )}
+
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setDeletingId(item.id);
+                  }}
+                  className="absolute bottom-5 right-5 p-2 text-slate-300 hover:text-red-500 transition-colors pointer-events-auto z-10"
+                >
+                  <Trash2 size={20} />
+                </button>
               </div>
-              <div className="flex items-center gap-1 bg-amber-100/80 text-amber-600 px-3 py-1 rounded-full text-sm font-bold border border-amber-200">
-                <Star size={14} fill="currentColor" /> {item.rating}
+
+              {/* Back */}
+              <div className={`absolute inset-0 backface-hidden rotate-y-180 bg-white/60 backdrop-blur-md border border-white/60 rounded-3xl overflow-hidden ${flippedId === item.id ? 'pointer-events-auto' : 'pointer-events-none'}`}>
+                {item.image_url && (
+                  <img
+                    src={item.image_url}
+                    alt={item.name}
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
+                )}
+                <button
+                  onClick={() => setFlippedId(null)}
+                  className="absolute bottom-4 right-4 px-4 py-2 rounded-full bg-rose-500 text-white hover:bg-rose-600 transition-all shadow"
+                >
+                  Flip Back
+                </button>
               </div>
             </div>
-            
-            {item.note && <p className="text-slate-600 italic mb-3">"{item.note}"</p>}
-            
-            {item.user && (
-              <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
-                <div className="bg-slate-200 p-1 rounded-full"><User size={12} /></div>
-                Reviewed by {item.user}
-              </div>
-            )}
-
-            <button onClick={() => setDeletingId(item.id)} className="absolute bottom-6 right-6 p-2 text-slate-300 hover:text-red-500 transition-colors pointer-events-auto z-10">
-              <Trash2 size={20} />
-            </button>
           </div>
         ))}
       </div>

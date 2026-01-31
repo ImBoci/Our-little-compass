@@ -90,6 +90,7 @@ export default function CookPage() {
         note,
         date: new Date().toISOString(),
         user: resolvedName,
+        image_url: completingItem.image_url || null,
       })
     });
     setCompletingItem(null);

@@ -97,6 +97,7 @@ export default function DatePage() {
         note,
         date: new Date().toISOString(),
         user: resolvedName,
+        image_url: completingItem.image_url || null,
       })
     });
     setCompletingItem(null);
