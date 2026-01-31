@@ -24,9 +24,11 @@ export async function POST(request: Request) {
     console.log("Using Public Key:", `${vapidPublicKey.substring(0, 10)}...`);
     webpush.setVapidDetails(vapidSubject, vapidPublicKey, vapidPrivateKey);
 
-    const subscriptions = await prisma.pushSubscription.findMany();
+    const subscriptions = await prisma.pushSubscription.findMany({
+      where: sender ? { user: { not: sender } } : undefined,
+    });
     console.log("[Push] subscriptions in DB:", subscriptions.length);
-    const targets = subscriptions.filter((sub) => sub.user !== sender);
+    const targets = subscriptions;
     console.log("[Push] target subscriptions:", targets.length, "sender:", sender);
 
     const payload = JSON.stringify({
