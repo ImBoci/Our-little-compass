@@ -43,7 +43,13 @@ export default function MemoriesPage() {
 
       {/* List */}
       <div className="w-full max-w-2xl space-y-4 pb-20 relative z-0">
-        {filtered.length === 0 && !loading && <div className="text-center text-slate-500 italic py-10 bg-white/30 rounded-3xl">No memories yet. Go do something fun!</div>}
+        {filtered.length === 0 && !loading && (
+          <div className="text-center text-slate-500 italic py-10 bg-white/30 rounded-3xl">
+            {activeTab === "Food"
+              ? "No meals saved yet. Go eat something delicious! 🍔"
+              : "No adventures yet. Go do something fun! 🎈"}
+          </div>
+        )}
         
         {filtered.map(item => (
           <div key={item.id} className="bg-white/60 backdrop-blur-md border border-white/60 p-6 rounded-3xl shadow-sm relative group hover:scale-[1.01] transition-transform">

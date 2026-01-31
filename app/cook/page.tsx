@@ -236,6 +236,13 @@ export default function CookPage() {
           <span className="font-bold text-slate-700">{toastMessage}</span>
         </div>
       )}
+
+      <button
+        onClick={() => setShowNameModal(true)}
+        className="mt-6 text-xs text-slate-400 hover:text-rose-500 transition-colors"
+      >
+        Change Name
+      </button>
     </div>
   );
 }
