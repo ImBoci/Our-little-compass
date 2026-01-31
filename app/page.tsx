@@ -75,14 +75,20 @@ export default function Home() {
         return;
       }
 
-      const registration = await navigator.serviceWorker.register("/sw.js");
-      console.log("[Push] service worker registered:", registration.scope);
-      const readyRegistration = await navigator.serviceWorker.ready;
-      console.log("[Push] service worker ready:", readyRegistration.scope);
-      const existing = await readyRegistration.pushManager.getSubscription();
+      const reg = await navigator.serviceWorker.register("/sw.js");
+      console.log("[Push] service worker registered:", reg.scope);
+      let waitCount = 0;
+      while (!reg.active && waitCount < 50) {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        waitCount += 1;
+      }
+      if (!reg.active) {
+        throw new Error("Service worker not active yet.");
+      }
+      const existing = await reg.pushManager.getSubscription();
       const subscription =
         existing ||
-        (await readyRegistration.pushManager.subscribe({
+        (await reg.pushManager.subscribe({
           userVisibleOnly: true,
           applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
         }));

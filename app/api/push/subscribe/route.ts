@@ -8,6 +8,7 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { subscription, user } = body || {};
     console.log("📥 Received subscription request for user:", body?.user);
+    console.log("Saving sub for:", body?.user);
 
     if (!subscription || !subscription.endpoint) {
       return NextResponse.json({ error: "Invalid subscription payload." }, { status: 400 });
