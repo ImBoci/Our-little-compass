@@ -2,22 +2,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { Heart, Star } from "lucide-react";
 
-export default function RomanticBackground() {
+interface RomanticBackgroundProps {
+  mode: "day" | "night";
+}
+
+export default function RomanticBackground({ mode }: RomanticBackgroundProps) {
   const [mounted, setMounted] = useState(false);
-  const [mode, setMode] = useState<"day" | "night">("day");
   useEffect(() => setMounted(true), []);
   if (!mounted) return null;
-
-  useEffect(() => {
-    if (typeof document === "undefined") return;
-    const updateMode = () => {
-      setMode(document.documentElement.classList.contains("dark") ? "night" : "day");
-    };
-    updateMode();
-    const observer = new MutationObserver(updateMode);
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
-    return () => observer.disconnect();
-  }, []);
 
   const particles = useMemo(
     () =>

@@ -30,9 +30,9 @@ export default function ThemeProvider({ children }: { children: React.ReactNode 
   }, []);
 
   useEffect(() => {
-    if (typeof document !== "undefined") {
-      document.body.dataset.theme = theme;
-    }
+    if (typeof document === "undefined") return;
+    document.body.dataset.theme = theme;
+    document.documentElement.classList.toggle("dark", theme === "night");
   }, [theme]);
 
   const value = useMemo(
