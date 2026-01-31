@@ -7,9 +7,10 @@ import { useTheme } from "@/components/ThemeProvider";
 export default function Home() {
   const { theme, toggleTheme } = useTheme();
   const [diffDays, setDiffDays] = useState<number | null>(null);
-  const [pushStatus, setPushStatus] = useState<string | null>(null);
+  const [pushMessage, setPushMessage] = useState<string | null>(null);
   const [isEnablingPush, setIsEnablingPush] = useState(false);
   const [isPushActive, setIsPushActive] = useState(false);
+  const [pushStatus, setPushStatus] = useState<"loading" | "subscribed" | "not-subscribed">("loading");
   const [userName, setUserName] = useState<string | null>(null);
   const [showNameModal, setShowNameModal] = useState(false);
   const [nameInput, setNameInput] = useState("");
@@ -33,6 +34,39 @@ export default function Home() {
     } else {
       setShowNameModal(true);
     }
+  }, []);
+
+  useEffect(() => {
+    const checkSubscription = async () => {
+      if (typeof window === "undefined") return;
+      if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+        setPushStatus("not-subscribed");
+        return;
+      }
+      try {
+        const reg = await navigator.serviceWorker.ready;
+        const sub = await reg.pushManager.getSubscription();
+        if (!sub) {
+          setPushStatus("not-subscribed");
+          return;
+        }
+        const response = await fetch("/api/push/check", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ endpoint: sub.endpoint }),
+        });
+        if (!response.ok) {
+          setPushStatus("not-subscribed");
+          return;
+        }
+        const data = await response.json().catch(() => ({}));
+        setPushStatus(data?.subscribed ? "subscribed" : "not-subscribed");
+      } catch {
+        setPushStatus("not-subscribed");
+      }
+    };
+
+    checkSubscription();
   }, []);
 
   const urlBase64ToUint8Array = (base64String: string) => {
@@ -60,7 +94,7 @@ export default function Home() {
       const storedName = localStorage.getItem("userName");
       const resolvedName = storedName || userName;
       if (!resolvedName) {
-        setPushStatus("Please set your name first.");
+        setPushMessage("Please set your name first.");
         setShowNameModal(true);
         return;
       }
@@ -73,24 +107,24 @@ export default function Home() {
       console.log("[Push] existing permission:", Notification.permission);
 
       if (!supportsNotifications || !supportsServiceWorker || !supportsPush) {
-        setPushStatus("Push notifications aren't supported on this device.");
+        setPushMessage("Push notifications aren't supported on this device.");
         return;
       }
 
       const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY?.trim();
       console.log("[Push] VAPID public key:", vapidPublicKey);
       if (!vapidPublicKey) {
-        setPushStatus("Missing VAPID public key. Add NEXT_PUBLIC_VAPID_PUBLIC_KEY.");
+        setPushMessage("Missing VAPID public key. Add NEXT_PUBLIC_VAPID_PUBLIC_KEY.");
         return;
       }
 
       setIsEnablingPush(true);
       setIsPushActive(false);
-      setPushStatus("⏳ Connecting...");
+      setPushMessage("⏳ Connecting...");
       const permission = await Notification.requestPermission();
       console.log("[Push] permission result:", permission);
       if (permission !== "granted") {
-        setPushStatus(`Permission denied (${permission}). Enable notifications in browser settings.`);
+        setPushMessage(`Permission denied (${permission}). Enable notifications in browser settings.`);
         return;
       }
 
@@ -121,15 +155,16 @@ export default function Home() {
       });
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        setPushStatus(data?.error || "Database error while saving subscription.");
+        setPushMessage(data?.error || "Database error while saving subscription.");
         return;
       }
       setIsPushActive(true);
-      setPushStatus("✅ Notifications Active");
+      setPushStatus("subscribed");
+      setPushMessage("✅ Notifications Active");
     } catch (error) {
       console.error("[Push] enable notifications failed:", error);
       const message = error instanceof Error ? error.message : "Unknown error";
-      setPushStatus(`Couldn't enable notifications: ${message}`);
+      setPushMessage(`Couldn't enable notifications: ${message}`);
     } finally {
       setIsEnablingPush(false);
     }
@@ -209,22 +244,23 @@ export default function Home() {
           </div>
         </Link>
       </div>
-      <div className="mt-10 flex flex-col items-center gap-3">
-        <button
-          onClick={handleEnableNotifications}
-          className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[var(--card-bg)] backdrop-blur-md border border-white/50 text-[var(--text-color)] font-semibold shadow-sm hover:bg-white/40 hover:scale-105 transition-all"
-          disabled={isEnablingPush}
-        >
-          {isEnablingPush
-            ? "⏳ Connecting..."
-            : isPushActive
-            ? "✅ Notifications Active"
-            : "🔔 Enable Notifications"}
-        </button>
-        {pushStatus && (
-          <p className="text-sm text-[var(--text-color)]/80">{pushStatus}</p>
-        )}
-      </div>
+      {pushStatus === "not-subscribed" && (
+        <div className="mt-10 flex flex-col items-center gap-3">
+          <button
+            onClick={handleEnableNotifications}
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[var(--card-bg)] backdrop-blur-md border border-white/50 text-[var(--text-color)] font-semibold shadow-sm hover:bg-white/40 hover:scale-105 transition-all"
+            disabled={isEnablingPush}
+          >
+            {isEnablingPush ? "⏳ Connecting..." : "🔔 Enable Notifications"}
+          </button>
+          {pushMessage && (
+            <p className="text-sm text-[var(--text-color)]/80">{pushMessage}</p>
+          )}
+        </div>
+      )}
+      {pushStatus === "subscribed" && (
+        <p className="mt-10 text-xs text-[var(--text-color)]/70">🔔 Notifications Active</p>
+      )}
       <button
         onClick={() => setShowNameModal(true)}
         className="mt-6 text-xs text-slate-400 hover:text-rose-500 transition-colors"
