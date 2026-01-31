@@ -1,133 +1,93 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Trash2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { ArrowLeft, Trash2, Calendar, Star, User } from "lucide-react";
 import Link from "next/link";
-import WeatherWidget from "@/components/WeatherWidget";
-
-type Memory = {
-  id: number;
-  name: string;
-  type: string;
-  rating: number;
-  note: string | null;
-  date: string;
-};
 
 export default function MemoriesPage() {
-  const [memories, setMemories] = useState<Memory[]>([]);
+  const [activeTab, setActiveTab] = useState<'Food' | 'Activity'>('Food');
+  const [memories, setMemories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchMemories = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const res = await fetch("/api/memories");
-      if (!res.ok) {
-        throw new Error("Failed to fetch memories");
-      }
-      const data = await res.json();
-      setMemories(Array.isArray(data) ? data : []);
-    } catch (err) {
-      console.error("Failed to load memories:", err);
-      setError("Failed to load memories");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [deletingId, setDeletingId] = useState<number | null>(null);
 
   useEffect(() => {
-    fetchMemories();
+    fetch("/api/memories").then(r => r.json()).then(data => {
+      if(Array.isArray(data)) setMemories(data);
+      setLoading(false);
+    });
   }, []);
 
-  const handleDelete = async (id: number) => {
-    if (!confirm("Delete this memory?")) return;
-    const res = await fetch(`/api/memories?id=${id}`, { method: "DELETE" });
-    if (res.ok) {
-      setMemories(prev => prev.filter(memory => memory.id !== id));
-      return;
-    }
-    setError("Failed to delete memory");
+  const handleDelete = async () => {
+    if (!deletingId) return;
+    await fetch(`/api/memories?id=${deletingId}`, { method: 'DELETE' });
+    setMemories(memories.filter(m => m.id !== deletingId));
+    setDeletingId(null);
   };
 
-  const cards = useMemo(() => {
-    return memories.map(memory => ({
-      ...memory,
-      displayDate: new Date(memory.date).toLocaleDateString(undefined, {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      }),
-      stars: "⭐".repeat(Math.max(0, Math.min(5, memory.rating))),
-    }));
-  }, [memories]);
+  const filtered = memories.filter(m => m.type === activeTab);
 
   return (
-    <div className="min-h-screen p-4 md:p-8 flex flex-col items-center bg-transparent">
-      <div className="w-full max-w-5xl flex flex-col gap-6">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-white/30 backdrop-blur-md border border-white/40 rounded-full text-slate-700 font-medium shadow-sm hover:bg-white/60 hover:scale-105 hover:shadow-md transition-all duration-300 group"
-          >
-            <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
-            <span>Back Home</span>
-          </Link>
-          <div className="text-center md:text-left">
-            <h1 className="text-4xl font-serif font-bold text-slate-800">Our Memories</h1>
-            <p className="text-slate-600">A timeline of our sweetest adventures.</p>
-          </div>
-          <div className="flex justify-center md:justify-end">
-            <WeatherWidget />
-          </div>
-        </div>
-
-        {loading && (
-          <div className="text-center text-slate-600 animate-pulse">Loading memories...</div>
-        )}
-
-        {error && (
-          <div className="text-center text-rose-600 font-medium">{error}</div>
-        )}
-
-        {!loading && memories.length === 0 && (
-          <div className="text-center text-slate-500 py-16 bg-white/20 border border-white/40 rounded-3xl backdrop-blur-md">
-            No memories yet. Go have an adventure!
-          </div>
-        )}
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {cards.map(memory => (
-            <div
-              key={memory.id}
-              className="bg-white/30 backdrop-blur-xl border border-white/50 rounded-3xl p-6 shadow-lg hover:shadow-xl transition-all hover:scale-[1.01]"
-            >
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="text-sm text-slate-500">{memory.displayDate}</p>
-                  <h3 className="text-2xl font-serif font-bold text-slate-800">{memory.name}</h3>
-                  <div className="flex items-center gap-2 mt-2">
-                    <span className="text-xs px-3 py-1 rounded-full bg-rose-100 text-rose-700 border border-rose-200">
-                      {memory.type}
-                    </span>
-                    <span className="text-sm">{memory.stars}</span>
-                  </div>
-                </div>
-                <button
-                  onClick={() => handleDelete(memory.id)}
-                  className="p-2 rounded-full bg-white/60 border border-white/60 text-rose-500 hover:text-rose-700 hover:bg-white transition-all"
-                  aria-label="Delete memory"
-                >
-                  <Trash2 size={18} />
-                </button>
-              </div>
-              {memory.note && (
-                <p className="mt-4 text-slate-700 italic">"{memory.note}"</p>
-              )}
-            </div>
-          ))}
-        </div>
+    <div className="min-h-screen p-4 flex flex-col items-center bg-transparent">
+      <div className="w-full max-w-2xl relative mb-8">
+        <Link href="/" className="absolute top-1 left-0 flex items-center gap-2 px-5 py-2.5 bg-white/30 backdrop-blur-md border border-white/40 rounded-full text-slate-700 font-medium shadow-sm hover:bg-white/60 transition-all">
+          <ArrowLeft size={18} /> Home
+        </Link>
+        <h1 className="text-center font-serif text-4xl text-slate-800 font-bold drop-shadow-sm mt-16 md:mt-0">Our Memories</h1>
       </div>
+
+      {/* Tabs */}
+      <div className="flex bg-white/40 p-1 rounded-full mb-8 backdrop-blur-md border border-white/50 shadow-sm">
+        <button onClick={() => setActiveTab('Food')} className={`px-8 py-2 rounded-full transition-all font-bold ${activeTab === 'Food' ? 'bg-rose-500 text-white shadow-md' : 'text-slate-600 hover:bg-white/50'}`}>Foods</button>
+        <button onClick={() => setActiveTab('Activity')} className={`px-8 py-2 rounded-full transition-all font-bold ${activeTab === 'Activity' ? 'bg-purple-600 text-white shadow-md' : 'text-slate-600 hover:bg-white/50'}`}>Activities</button>
+      </div>
+
+      {/* List */}
+      <div className="w-full max-w-2xl space-y-4 pb-20">
+        {filtered.length === 0 && !loading && <div className="text-center text-slate-500 italic py-10 bg-white/30 rounded-3xl">No memories yet. Go do something fun!</div>}
+        
+        {filtered.map(item => (
+          <div key={item.id} className="bg-white/60 backdrop-blur-md border border-white/60 p-6 rounded-3xl shadow-sm relative group hover:scale-[1.01] transition-transform">
+            <div className="flex justify-between items-start mb-2">
+              <div>
+                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                  <Calendar size={12} /> {new Date(item.date).toLocaleDateString()}
+                </span>
+                <h3 className="font-serif text-2xl text-slate-800 font-bold">{item.name}</h3>
+              </div>
+              <div className="flex items-center gap-2 bg-amber-100/80 text-amber-600 px-3 py-1 rounded-full text-sm font-bold border border-amber-200">
+                <Star size={14} fill="currentColor" /> {item.rating}
+                {item.user && <span className="text-slate-600 font-medium">- {item.user}</span>}
+              </div>
+            </div>
+            
+            {item.note && <p className="text-slate-600 italic mb-3">"{item.note}"</p>}
+            
+            {item.user && (
+              <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
+                <div className="bg-slate-200 p-1 rounded-full"><User size={12} /></div>
+                Reviewed by {item.user}
+              </div>
+            )}
+
+            <button onClick={() => setDeletingId(item.id)} className="absolute bottom-6 right-6 p-2 text-slate-300 hover:text-red-500 transition-colors">
+              <Trash2 size={20} />
+            </button>
+          </div>
+        ))}
+      </div>
+
+      {/* Custom Delete Modal */}
+      {deletingId && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-white/90 backdrop-blur-xl rounded-3xl p-8 max-w-sm w-full shadow-2xl border border-white/60 text-center">
+            <h3 className="text-xl font-bold text-slate-800 mb-2">Forget this memory?</h3>
+            <p className="text-slate-600 mb-6 text-sm">This action cannot be undone.</p>
+            <div className="flex gap-3">
+              <button onClick={() => setDeletingId(null)} className="flex-1 py-3 rounded-xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200">Keep it</button>
+              <button onClick={handleDelete} className="flex-1 py-3 rounded-xl font-bold text-white bg-red-500 hover:bg-red-600 shadow-lg">Delete</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

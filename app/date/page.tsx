@@ -19,6 +19,11 @@ export default function DatePage() {
   const [rating, setRating] = useState(5);
   const [note, setNote] = useState("");
   const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("Memory Saved!");
+
+  // Identity State
+  const [userName, setUserName] = useState<string | null>(null);
+  const [showIdentityModal, setShowIdentityModal] = useState(false);
 
   // Filter State
   const [search, setSearch] = useState("");
@@ -32,6 +37,15 @@ export default function DatePage() {
       }
       setLoading(false);
     }).catch(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    const stored = typeof window !== "undefined" ? localStorage.getItem("userName") : null;
+    if (stored) {
+      setUserName(stored);
+    } else {
+      setShowIdentityModal(true);
+    }
   }, []);
 
   const handleShuffle = () => {
@@ -49,8 +63,15 @@ export default function DatePage() {
     }
   };
 
+  const selectIdentity = (name: string) => {
+    setUserName(name);
+    localStorage.setItem("userName", name);
+    setShowIdentityModal(false);
+  };
+
   const saveMemory = async () => {
     if (!completingItem) return;
+    const user = userName || localStorage.getItem("userName") || "Unknown";
     await fetch("/api/memories", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -59,12 +80,14 @@ export default function DatePage() {
         type: "Activity",
         rating,
         note,
-        date: new Date().toISOString()
+        date: new Date().toISOString(),
+        user,
       })
     });
     setCompletingItem(null);
     setNote("");
     setRating(5);
+    setToastMessage(`Memory Saved by ${user}!`);
     setShowToast(true);
     setTimeout(() => setShowToast(false), 3000);
   };
@@ -236,13 +259,26 @@ export default function DatePage() {
         </div>
       )}
 
+      {showIdentityModal && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-white/90 backdrop-blur-xl rounded-3xl p-8 max-w-sm w-full shadow-2xl border border-white/60 text-center">
+            <h3 className="text-2xl font-serif font-bold text-slate-800 mb-2">Who are you?</h3>
+            <p className="text-slate-600 mb-6">Choose your identity to save memories.</p>
+            <div className="flex gap-3">
+              <button onClick={() => selectIdentity("Me")} className="flex-1 py-3 rounded-xl font-bold text-white bg-rose-500 hover:bg-rose-600 shadow-lg">Me</button>
+              <button onClick={() => selectIdentity("Partner")} className="flex-1 py-3 rounded-xl font-bold text-white bg-purple-500 hover:bg-purple-600 shadow-lg">Partner</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Success Toast */}
       {showToast && (
         <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[110] flex items-center gap-2 bg-white/80 backdrop-blur-md px-6 py-3 rounded-full shadow-2xl border border-white/50 animate-in slide-in-from-top-4 fade-in duration-300">
           <div className="bg-green-500 rounded-full p-1">
             <CheckCircle size={16} className="text-white" />
           </div>
-          <span className="font-bold text-slate-700">Memory Saved!</span>
+          <span className="font-bold text-slate-700">{toastMessage}</span>
         </div>
       )}
     </div>

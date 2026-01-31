@@ -29,9 +29,10 @@ model Activity {
 model Memory {
   id          Int      @id @default(autoincrement())
   name        String
-  type        String   // "Food" or "Activity"
+  type        String
   date        DateTime @default(now())
-  rating      Int      // 1 to 5
+  rating      Int
   note        String?
-  image_url   String?  // Optional: for future photo uploads
+  image_url   String?
+  user        String?
 }

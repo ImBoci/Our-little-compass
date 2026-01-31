@@ -18,7 +18,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, type, rating, note, date } = body;
+    const { name, type, rating, note, date, user } = body;
 
     if (!name || typeof name !== "string") {
       return NextResponse.json({ error: "Name is required and must be a string" }, { status: 400 });
@@ -45,6 +45,7 @@ export async function POST(request: Request) {
         rating: numericRating,
         note: typeof note === "string" ? note.trim() || null : null,
         date: parsedDate,
+        user: typeof user === "string" ? user.trim() || null : null,
       },
     });
 
