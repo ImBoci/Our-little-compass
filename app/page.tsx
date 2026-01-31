@@ -10,6 +10,9 @@ export default function Home() {
   const [pushStatus, setPushStatus] = useState<string | null>(null);
   const [isEnablingPush, setIsEnablingPush] = useState(false);
   const [isPushActive, setIsPushActive] = useState(false);
+  const [userName, setUserName] = useState<string | null>(null);
+  const [showNameModal, setShowNameModal] = useState(false);
+  const [nameInput, setNameInput] = useState("");
 
   useEffect(() => {
     const start = process.env.NEXT_PUBLIC_RELATIONSHIP_START_DATE;
@@ -20,6 +23,15 @@ export default function Home() {
       setDiffDays(diff > 0 ? diff : 0);
     } else {
       setDiffDays(0);
+    }
+  }, []);
+
+  useEffect(() => {
+    const stored = typeof window !== "undefined" ? localStorage.getItem("userName") : null;
+    if (stored) {
+      setUserName(stored);
+    } else {
+      setShowNameModal(true);
     }
   }, []);
 
@@ -45,6 +57,13 @@ export default function Home() {
   const handleEnableNotifications = async () => {
     if (typeof window === "undefined") return;
     try {
+      const storedName = localStorage.getItem("userName");
+      const resolvedName = storedName || userName;
+      if (!resolvedName) {
+        setPushStatus("Please set your name first.");
+        setShowNameModal(true);
+        return;
+      }
       const supportsServiceWorker = "serviceWorker" in navigator;
       const supportsNotifications = "Notification" in window;
       const supportsPush = "PushManager" in window;
@@ -95,11 +114,10 @@ export default function Home() {
       console.log("[Push] subscription created:", subscription);
       console.log("Subscription Object:", subscription);
 
-      const userName = localStorage.getItem("userName") || "Anonymous";
       const response = await fetch("/api/push/subscribe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user: userName, subscription }),
+        body: JSON.stringify({ user: resolvedName, subscription }),
       });
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
@@ -129,6 +147,9 @@ export default function Home() {
       <p className="font-sans text-xl text-slate-700 dark:text-slate-300 mb-12 italic drop-shadow-sm px-2">
         Where should we go next?
       </p>
+      {userName && (
+        <p className="mb-6 text-sm text-[var(--text-color)]/80">Welcome back, {userName}!</p>
+      )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl w-full px-4">
         {/* Food Card - Rose Neon */}
@@ -204,6 +225,38 @@ export default function Home() {
           <p className="text-sm text-[var(--text-color)]/80">{pushStatus}</p>
         )}
       </div>
+      <button
+        onClick={() => setShowNameModal(true)}
+        className="mt-6 text-xs text-slate-400 hover:text-rose-500 transition-colors"
+      >
+        Change Name
+      </button>
+      {showNameModal && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-[var(--card-bg)] rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl">
+            <h3 className="text-2xl font-serif font-bold mb-2">Who are you?</h3>
+            <p className="text-slate-500 mb-4 text-sm">Enter your name so we know who reviewed this!</p>
+            <input
+              value={nameInput}
+              onChange={(e) => setNameInput(e.target.value)}
+              className="w-full border rounded-xl p-3 mb-4 text-center bg-[var(--input-bg)] text-[var(--text-color)] placeholder:text-slate-400"
+              placeholder="Your Name"
+            />
+            <button
+              onClick={() => {
+                if (nameInput.trim()) {
+                  localStorage.setItem("userName", nameInput.trim());
+                  setUserName(nameInput.trim());
+                  setShowNameModal(false);
+                }
+              }}
+              className="w-full bg-rose-500 text-white py-3 rounded-xl font-bold"
+            >
+              Save Name
+            </button>
+          </div>
+        </div>
+      )}
       <Link
         href="/manage"
         className="fixed bottom-6 right-6 z-50 flex items-center justify-center w-12 h-12 bg-white/20 backdrop-blur-md border border-white/40 rounded-full text-slate-500 shadow-lg hover:bg-white/40 hover:scale-110 transition-all duration-300 group"
