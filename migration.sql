@@ -1,2 +1,5 @@
-ALTER TABLE "Food" ADD COLUMN "image_url" TEXT;
-ALTER TABLE "Activity" ADD COLUMN "image_url" TEXT;
+CREATE TABLE "PushSubscription" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, 
+    "user" TEXT NOT NULL, 
+    "payload" TEXT NOT NULL, 
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP);

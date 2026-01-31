@@ -76,10 +76,12 @@
     "tailwindcss-animate": "^1.0.7",
     "typescript": "^5",
     "vaul": "^1.1.2",
+    "web-push": "^3.6.7",
     "zod": "^4.3.5"
   },
   "devDependencies": {
     "@types/sqlite3": "^3.1.11",
+    "@types/web-push": "^3.6.4",
     "ignore-loader": "^0.1.2"
   }
 }

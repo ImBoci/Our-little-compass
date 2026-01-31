@@ -115,23 +115,26 @@ export default function DatePage() {
     setTimeout(() => setShowToast(false), 3000);
   };
 
-  const handleShareInvite = async () => {
+  const handleSendPushInvite = async () => {
     if (!randomActivity?.name) return;
     const location = randomActivity.location ? randomActivity.location : "a surprise spot";
+    const storedName = localStorage.getItem("userName");
+    const resolvedName = storedName || userName || "Anonymous";
     const message = `Our adventure is decided! 🌹 ${randomActivity.name} at ${location}. #OurLittleCompass`;
     try {
-      if (typeof navigator !== "undefined" && navigator.share) {
-        await navigator.share({ text: message });
+      const response = await fetch("/api/push/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sender: resolvedName, message }),
+      });
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        showToastMessage(data?.error || "Couldn't send push. Try again.", "warning");
         return;
       }
-      if (typeof navigator !== "undefined" && navigator.clipboard) {
-        await navigator.clipboard.writeText(message);
-        showToastMessage("Invite copied to clipboard!", "success");
-        return;
-      }
-      showToastMessage("Couldn't share invite. Try again.", "warning");
+      showToastMessage("Push sent to your partner!", "success");
     } catch {
-      showToastMessage("Couldn't share invite. Try again.", "warning");
+      showToastMessage("Couldn't send push. Try again.", "warning");
     }
   };
 
@@ -272,10 +275,10 @@ export default function DatePage() {
                 </button>
                 {isRevealed && randomActivity && (
                   <button
-                    onClick={handleShareInvite}
+                    onClick={handleSendPushInvite}
                     className="mt-4 inline-flex items-center gap-2 px-6 py-3 rounded-full bg-rose-500/20 dark:bg-rose-500/40 backdrop-blur-md border-2 border-rose-300/70 text-[var(--text-color)] font-semibold shadow-sm hover:bg-rose-500/30 hover:scale-105 transition-all"
                   >
-                    Share Invite 🌹
+                    Send Push to Partner 🚀
                   </button>
                 )}
             </div>

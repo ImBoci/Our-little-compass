@@ -7,6 +7,8 @@ import { useTheme } from "@/components/ThemeProvider";
 export default function Home() {
   const { theme, toggleTheme } = useTheme();
   const [diffDays, setDiffDays] = useState<number | null>(null);
+  const [pushStatus, setPushStatus] = useState<string | null>(null);
+  const [isEnablingPush, setIsEnablingPush] = useState(false);
 
   useEffect(() => {
     const start = process.env.NEXT_PUBLIC_RELATIONSHIP_START_DATE;
@@ -19,6 +21,62 @@ export default function Home() {
       setDiffDays(0);
     }
   }, []);
+
+  const urlBase64ToUint8Array = (base64String: string) => {
+    const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+    const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; i += 1) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+  };
+
+  const handleEnableNotifications = async () => {
+    if (typeof window === "undefined") return;
+    if (!("Notification" in window) || !("serviceWorker" in navigator) || !("PushManager" in window)) {
+      setPushStatus("Push notifications aren't supported on this device.");
+      return;
+    }
+    const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+    if (!vapidPublicKey) {
+      setPushStatus("Missing VAPID public key. Add NEXT_PUBLIC_VAPID_PUBLIC_KEY.");
+      return;
+    }
+    try {
+      setIsEnablingPush(true);
+      const permission = await Notification.requestPermission();
+      if (permission !== "granted") {
+        setPushStatus("Notifications are blocked. Enable them in browser settings.");
+        return;
+      }
+      const registration = await navigator.serviceWorker.register("/sw.js");
+      const existing = await registration.pushManager.getSubscription();
+      const subscription =
+        existing ||
+        (await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
+        }));
+      const userName = localStorage.getItem("userName") || "Anonymous";
+      const response = await fetch("/api/push/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user: userName, subscription }),
+      });
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        setPushStatus(data?.error || "Failed to save subscription.");
+        return;
+      }
+      setPushStatus("Notifications enabled ✨");
+    } catch {
+      setPushStatus("Couldn't enable notifications. Try again.");
+    } finally {
+      setIsEnablingPush(false);
+    }
+  };
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4 text-center bg-transparent">
@@ -90,6 +148,18 @@ export default function Home() {
             </div>
           </div>
         </Link>
+      </div>
+      <div className="mt-10 flex flex-col items-center gap-3">
+        <button
+          onClick={handleEnableNotifications}
+          className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[var(--card-bg)] backdrop-blur-md border border-white/50 text-[var(--text-color)] font-semibold shadow-sm hover:bg-white/40 hover:scale-105 transition-all"
+          disabled={isEnablingPush}
+        >
+          {isEnablingPush ? "Enabling..." : "🔔 Enable Notifications"}
+        </button>
+        {pushStatus && (
+          <p className="text-sm text-[var(--text-color)]/80">{pushStatus}</p>
+        )}
       </div>
       <Link
         href="/manage"

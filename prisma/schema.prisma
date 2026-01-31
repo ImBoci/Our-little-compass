@@ -37,3 +37,10 @@ model Memory {
   image_url   String?
   user        String?
 }
+
+model PushSubscription {
+  id        Int      @id @default(autoincrement())
+  user      String   // Name of the person (e.g., "Dani" or "Viki")
+  payload   String   // The subscription JSON string
+  createdAt DateTime @default(now())
+}
