@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { MapPin, Shuffle, ArrowLeft, RotateCcw, ExternalLink, Search, CheckCircle, Star } from "lucide-react";
+import { MapPin, Shuffle, ArrowLeft, RotateCcw, ExternalLink, Search, CheckCircle, Star, ImageIcon, Map } from "lucide-react";
 import Link from "next/link";
 import WeatherWidget from "@/components/WeatherWidget";
 
@@ -25,6 +25,9 @@ export default function DatePage() {
   const [userName, setUserName] = useState<string | null>(null);
   const [showNameModal, setShowNameModal] = useState(false);
   const [nameInput, setNameInput] = useState("");
+
+  // Flip State
+  const [flippedId, setFlippedId] = useState<string | number | null>(null);
 
   // Filter State
   const [search, setSearch] = useState("");
@@ -148,9 +151,16 @@ export default function DatePage() {
                                     </div>
                                     {randomActivity.description && <p className="text-lg text-slate-700 font-light italic mt-2">"{randomActivity.description}"</p>}
                                     {randomActivity.location && (
+                                      randomActivity.location === "Több helyszín" ? (
+                                        <div className="mt-4 flex items-center gap-2 font-medium px-5 py-2.5 rounded-full bg-white/40 text-slate-500 border border-slate-200 cursor-default">
+                                          <Map size={18} />
+                                          <span>Multiple Locations</span>
+                                        </div>
+                                      ) : (
                                         <button onClick={() => setIsFlipped(true)} className="mt-4 flex items-center gap-2 font-medium px-5 py-2.5 rounded-full bg-white/60 text-slate-700 hover:bg-purple-600 hover:text-white transition-all duration-300 shadow-sm border border-purple-100 hover:shadow-purple-300/50 cursor-pointer pointer-events-auto">
-                                            <MapPin size={18} /> <span className="truncate max-w-[200px]">{randomActivity.location}</span>
+                                          <MapPin size={18} /> <span className="truncate max-w-[200px]">{randomActivity.location}</span>
                                         </button>
+                                      )
                                     )}
                                 </div>
                             ) : <div className="text-slate-600">No activities found!</div>}
@@ -201,28 +211,75 @@ export default function DatePage() {
                 {/* Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {filteredActivities.map(act => (
-                        <div key={act.id} className="bg-white/60 backdrop-blur-sm border border-white/60 p-6 rounded-2xl hover:shadow-lg transition-all hover:scale-[1.02] relative group">
-                            {/* COMPLETE BUTTON */}
-                            <button 
-                              onClick={() => setCompletingItem(act)}
-                              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-amber-500 hover:scale-110 transition-all"
-                              title="Mark as completed"
+                        <div key={act.id} className="relative w-full perspective-1000">
+                          <div className={`relative w-full h-full transition-all duration-700 transform-style-3d ${flippedId === act.id ? 'rotate-y-180' : ''}`}>
+                            {/* Front */}
+                            <div
+                              className="absolute inset-0 backface-hidden bg-white/60 backdrop-blur-sm border border-white/60 p-6 rounded-2xl hover:shadow-lg transition-all"
+                              onClick={() => setFlippedId(act.id)}
                             >
-                              <CheckCircle size={24} />
-                            </button>
+                              {/* COMPLETE BUTTON */}
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setCompletingItem(act);
+                                }}
+                                className="absolute top-4 right-4 p-2 text-slate-400 hover:text-amber-500 hover:scale-110 transition-all"
+                                title="Mark as completed"
+                              >
+                                <CheckCircle size={24} />
+                              </button>
 
-                            <h3 className="font-bold text-xl text-slate-800 mb-1 pr-8">{act.name}</h3>
-                            {act.location && (
-                                <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(act.location)}`} target="_blank" className="inline-flex items-center gap-1 text-sm text-purple-700 hover:underline mb-2">
-                                    <MapPin size={14} /> {act.location}
-                                </a>
-                            )}
-                            <div className="flex flex-wrap gap-2 mb-3">
-                                {act.type && act.type.split(',').map((t: string, i: number) => (
-                                    <span key={i} className="bg-purple-100 text-purple-700 text-xs px-2 py-0.5 rounded-full">{t.trim()}</span>
-                                ))}
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setFlippedId(act.id);
+                                }}
+                                className="absolute top-4 left-4 p-2 text-slate-400 hover:text-purple-500 hover:scale-110 transition-all"
+                                title="View image"
+                              >
+                                <ImageIcon size={22} />
+                              </button>
+
+                              <h3 className="font-bold text-xl text-slate-800 mb-1 pr-8">{act.name}</h3>
+                              {act.location && (
+                                  <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(act.location)}`} target="_blank" className="inline-flex items-center gap-1 text-sm text-purple-700 hover:underline mb-2" onClick={(e) => e.stopPropagation()}>
+                                      <MapPin size={14} /> {act.location}
+                                  </a>
+                              )}
+                              <div className="flex flex-wrap gap-2 mb-3">
+                                  {act.type && act.type.split(',').map((t: string, i: number) => (
+                                      <span key={i} className="bg-purple-100 text-purple-700 text-xs px-2 py-0.5 rounded-full">{t.trim()}</span>
+                                  ))}
+                              </div>
+                              <p className="text-slate-600 text-sm">{act.description}</p>
                             </div>
-                            <p className="text-slate-600 text-sm">{act.description}</p>
+
+                            {/* Back */}
+                            <div className="absolute inset-0 backface-hidden rotate-y-180 bg-white/60 backdrop-blur-sm border border-white/60 p-4 rounded-2xl flex flex-col items-center justify-center gap-4">
+                              {act.image_url ? (
+                                <img
+                                  src={act.image_url}
+                                  alt={act.name}
+                                  className="w-full h-48 object-cover rounded-xl border border-white/70 shadow"
+                                />
+                              ) : (
+                                <button
+                                  onClick={() => window.open(`https://www.google.com/search?tbm=isch&q=${encodeURIComponent(act.name)}`, "_blank")}
+                                  className="px-4 py-2 rounded-full bg-white/70 text-slate-700 border border-white/80 hover:bg-white transition-all"
+                                >
+                                  Search Image
+                                </button>
+                              )}
+
+                              <button
+                                onClick={() => setFlippedId(null)}
+                                className="px-4 py-2 rounded-full bg-purple-600 text-white hover:bg-purple-700 transition-all"
+                              >
+                                Close
+                              </button>
+                            </div>
+                          </div>
                         </div>
                     ))}
                 </div>

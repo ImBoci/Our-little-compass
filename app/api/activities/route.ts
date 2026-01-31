@@ -16,7 +16,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, description, location, type } = body;
+    const { name, description, location, type, image_url } = body;
 
     if (!name || typeof name !== "string") {
       return NextResponse.json({ error: "Name is required and must be a string" }, { status: 400 });
@@ -28,6 +28,7 @@ export async function POST(request: Request) {
         description: description?.trim() || null,
         location: location?.trim() || null,
         type: type?.trim() || null,
+        image_url: typeof image_url === "string" ? image_url.trim() || null : null,
       },
     });
 
@@ -41,7 +42,7 @@ export async function POST(request: Request) {
 export async function PUT(request: Request) {
   try {
     const body = await request.json();
-    const { id, name, description, location, type } = body;
+    const { id, name, description, location, type, image_url } = body;
 
     const numId = Number(id);
     if (!id || Number.isNaN(numId)) {
@@ -59,6 +60,7 @@ export async function PUT(request: Request) {
         description: description?.trim() || null,
         location: location?.trim() || null,
         type: type?.trim() || null,
+        image_url: typeof image_url === "string" ? image_url.trim() || null : null,
       },
     });
 

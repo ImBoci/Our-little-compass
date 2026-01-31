@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name, description, category = "Other" } = body;
+    const { name, description, category = "Other", image_url } = body;
 
     if (!name || typeof name !== "string") {
       return NextResponse.json({ error: "Name is required and must be a string" }, { status: 400 });
@@ -43,6 +43,7 @@ export async function POST(request: NextRequest) {
         name: name.trim(),
         description: description?.trim() || null,
         category: typeof category === "string" ? category.trim() || "Other" : "Other",
+        image_url: typeof image_url === "string" ? image_url.trim() || null : null,
       },
     });
 
@@ -61,7 +62,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { id, name, description, category } = body;
+    const { id, name, description, category, image_url } = body;
     const normalizedId = normalizeFoodId(id);
 
     if (!normalizedId) {
@@ -78,6 +79,7 @@ export async function PUT(request: NextRequest) {
         name: name.trim(),
         description: description?.trim() || null,
         category: typeof category === "string" ? category.trim() || "Other" : "Other",
+        image_url: typeof image_url === "string" ? image_url.trim() || null : null,
       },
     });
 

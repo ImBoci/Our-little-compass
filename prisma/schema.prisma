@@ -24,6 +24,7 @@ model Activity {
   description String?
   location    String?
   type        String?
+  image_url   String?
 }
 
 model Memory {
