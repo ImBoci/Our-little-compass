@@ -10,7 +10,7 @@ type ScratchOffProps = {
 export default function ScratchOff({
   isResetting,
   onComplete,
-  fogColor = "rgba(240, 242, 245, 0.95)",
+  fogColor,
 }: ScratchOffProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -30,29 +30,33 @@ export default function ScratchOff({
 
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
+    const isDark =
+      typeof document !== "undefined" &&
+      document.documentElement.classList.contains("dark");
+    const baseColor = fogColor || (isDark ? "#1e293b" : "#e2e8f0");
+
     ctx.globalCompositeOperation = "source-over";
-    ctx.globalAlpha = 1;
-    ctx.fillStyle = fogColor;
+    ctx.globalAlpha = 1.0;
+    ctx.fillStyle = baseColor;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Subtle noise texture
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    for (let i = 0; i < imageData.data.length; i += 4) {
-      const noise = Math.floor(Math.random() * 12) - 6;
-      imageData.data[i] = Math.min(255, Math.max(0, imageData.data[i] + noise));
-      imageData.data[i + 1] = Math.min(255, Math.max(0, imageData.data[i + 1] + noise));
-      imageData.data[i + 2] = Math.min(255, Math.max(0, imageData.data[i + 2] + noise));
+    // Dither noise so the reveal stays fully hidden.
+    ctx.globalAlpha = 0.35;
+    ctx.fillStyle = isDark ? "#334155" : "#cbd5e1";
+    const dots = 4000;
+    for (let i = 0; i < dots; i += 1) {
+      const x = Math.floor(Math.random() * canvas.width);
+      const y = Math.floor(Math.random() * canvas.height);
+      ctx.fillRect(x, y, 1, 1);
     }
-    ctx.putImageData(imageData, 0, 0);
 
-    ctx.globalAlpha = 0.8;
-    const isDark = typeof document !== "undefined" && document.documentElement.classList.contains("dark");
-    ctx.fillStyle = isDark ? "#f8fafc" : "#64748b";
-    ctx.font = "600 16px var(--font-playfair, serif)";
+    ctx.globalAlpha = 1.0;
+    ctx.fillStyle = isDark ? "#f8fafc" : "#475569";
+    ctx.font = "700 18px var(--font-playfair, serif)";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText("Scratch to see our adventure", canvas.width / 2, canvas.height / 2);
-    ctx.globalAlpha = 1;
+    ctx.globalAlpha = 1.0;
   };
 
   const clearAtPoint = (x: number, y: number) => {
