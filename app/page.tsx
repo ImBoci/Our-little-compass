@@ -1,19 +1,11 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { UtensilsCrossed, CalendarHeart, BookHeart, Settings, Heart, Moon, Sun } from "lucide-react";
-import { useTheme } from "@/components/ThemeProvider";
+import { UtensilsCrossed, CalendarHeart, BookHeart, Heart, Menu } from "lucide-react";
 
 export default function Home() {
-  const { theme, toggleTheme } = useTheme();
   const [diffDays, setDiffDays] = useState<number | null>(null);
-  const [pushMessage, setPushMessage] = useState<string | null>(null);
-  const [isEnablingPush, setIsEnablingPush] = useState(false);
-  const [isPushActive, setIsPushActive] = useState(false);
-  const [pushStatus, setPushStatus] = useState<"loading" | "subscribed" | "not-subscribed">("loading");
   const [userName, setUserName] = useState<string | null>(null);
-  const [showNameModal, setShowNameModal] = useState(false);
-  const [nameInput, setNameInput] = useState("");
 
   useEffect(() => {
     const start = process.env.NEXT_PUBLIC_RELATIONSHIP_START_DATE;
@@ -31,147 +23,18 @@ export default function Home() {
     const stored = typeof window !== "undefined" ? localStorage.getItem("userName") : null;
     if (stored) {
       setUserName(stored);
-    } else {
-      setShowNameModal(true);
     }
   }, []);
-
-  useEffect(() => {
-    const checkSubscription = async () => {
-      if (typeof window === "undefined") return;
-      if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
-        setPushStatus("not-subscribed");
-        return;
-      }
-      try {
-        const reg = await navigator.serviceWorker.ready;
-        const sub = await reg.pushManager.getSubscription();
-        if (!sub) {
-          setPushStatus("not-subscribed");
-          return;
-        }
-        const response = await fetch("/api/push/check", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ endpoint: sub.endpoint }),
-        });
-        if (!response.ok) {
-          setPushStatus("not-subscribed");
-          return;
-        }
-        const data = await response.json().catch(() => ({}));
-        setPushStatus(data?.subscribed ? "subscribed" : "not-subscribed");
-      } catch {
-        setPushStatus("not-subscribed");
-      }
-    };
-
-    checkSubscription();
-  }, []);
-
-  const urlBase64ToUint8Array = (base64String: string) => {
-    if (!base64String || base64String.trim().length === 0) {
-      throw new Error("VAPID public key is missing or empty.");
-    }
-    const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
-    const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
-    let rawData = "";
-    try {
-      rawData = window.atob(base64);
-    } catch (error) {
-      throw new Error("VAPID public key is invalid base64.");
-    }
-    const outputArray = new Uint8Array(rawData.length);
-    for (let i = 0; i < rawData.length; i += 1) {
-      outputArray[i] = rawData.charCodeAt(i);
-    }
-    return outputArray;
-  };
-
-  const handleEnableNotifications = async () => {
-    if (typeof window === "undefined") return;
-    try {
-      const storedName = localStorage.getItem("userName");
-      const resolvedName = storedName || userName;
-      if (!resolvedName) {
-        setPushMessage("Please set your name first.");
-        setShowNameModal(true);
-        return;
-      }
-      const supportsServiceWorker = "serviceWorker" in navigator;
-      const supportsNotifications = "Notification" in window;
-      const supportsPush = "PushManager" in window;
-      console.log("[Push] serviceWorker supported:", supportsServiceWorker);
-      console.log("[Push] notifications supported:", supportsNotifications);
-      console.log("[Push] push manager supported:", supportsPush);
-      console.log("[Push] existing permission:", Notification.permission);
-
-      if (!supportsNotifications || !supportsServiceWorker || !supportsPush) {
-        setPushMessage("Push notifications aren't supported on this device.");
-        return;
-      }
-
-      const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY?.trim();
-      console.log("[Push] VAPID public key:", vapidPublicKey);
-      if (!vapidPublicKey) {
-        setPushMessage("Missing VAPID public key. Add NEXT_PUBLIC_VAPID_PUBLIC_KEY.");
-        return;
-      }
-
-      setIsEnablingPush(true);
-      setIsPushActive(false);
-      setPushMessage("⏳ Connecting...");
-      const permission = await Notification.requestPermission();
-      console.log("[Push] permission result:", permission);
-      if (permission !== "granted") {
-        setPushMessage(`Permission denied (${permission}). Enable notifications in browser settings.`);
-        return;
-      }
-
-      const reg = await navigator.serviceWorker.register("/sw.js");
-      console.log("[Push] service worker registered:", reg.scope);
-      let waitCount = 0;
-      while (!reg.active && waitCount < 50) {
-        await new Promise((resolve) => setTimeout(resolve, 100));
-        waitCount += 1;
-      }
-      if (!reg.active) {
-        throw new Error("Service worker not active yet.");
-      }
-      const existing = await reg.pushManager.getSubscription();
-      const subscription =
-        existing ||
-        (await reg.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
-        }));
-      console.log("[Push] subscription created:", subscription);
-      console.log("Subscription Object:", subscription);
-
-      const response = await fetch("/api/push/subscribe", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user: resolvedName, subscription }),
-      });
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        setPushMessage(data?.error || "Database error while saving subscription.");
-        return;
-      }
-      setIsPushActive(true);
-      setPushStatus("subscribed");
-      setPushMessage("✅ Notifications Active");
-    } catch (error) {
-      console.error("[Push] enable notifications failed:", error);
-      const message = error instanceof Error ? error.message : "Unknown error";
-      setPushMessage(`Couldn't enable notifications: ${message}`);
-    } finally {
-      setIsEnablingPush(false);
-    }
-  };
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4 text-center bg-transparent">
+      <Link
+        href="/settings"
+        className="fixed top-6 right-6 z-50 flex items-center justify-center w-10 h-10 bg-white/20 backdrop-blur-md border border-white/40 rounded-full text-slate-500 shadow-lg hover:bg-white/40 hover:scale-110 transition-all duration-300"
+        title="Settings"
+      >
+        <Menu size={18} />
+      </Link>
       <h1 className="font-serif text-4xl md:text-6xl text-[var(--text-color)] mb-2 tracking-tight drop-shadow-sm text-balance px-2">
         Our Little Compass
       </h1>
@@ -244,69 +107,6 @@ export default function Home() {
           </div>
         </Link>
       </div>
-      {pushStatus === "not-subscribed" && (
-        <div className="mt-10 flex flex-col items-center gap-3">
-          <button
-            onClick={handleEnableNotifications}
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[var(--card-bg)] backdrop-blur-md border border-white/50 text-[var(--text-color)] font-semibold shadow-sm hover:bg-white/40 hover:scale-105 transition-all"
-            disabled={isEnablingPush}
-          >
-            {isEnablingPush ? "⏳ Connecting..." : "🔔 Enable Notifications"}
-          </button>
-          {pushMessage && (
-            <p className="text-sm text-[var(--text-color)]/80">{pushMessage}</p>
-          )}
-        </div>
-      )}
-      {pushStatus === "subscribed" && (
-        <p className="mt-10 text-xs text-[var(--text-color)]/70">🔔 Notifications Active</p>
-      )}
-      <button
-        onClick={() => setShowNameModal(true)}
-        className="mt-6 text-xs text-slate-400 hover:text-rose-500 transition-colors"
-      >
-        Change Name
-      </button>
-      {showNameModal && (
-        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-[var(--card-bg)] rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl">
-            <h3 className="text-2xl font-serif font-bold mb-2">Who are you?</h3>
-            <p className="text-slate-500 mb-4 text-sm">Enter your name so we know who reviewed this!</p>
-            <input
-              value={nameInput}
-              onChange={(e) => setNameInput(e.target.value)}
-              className="w-full border rounded-xl p-3 mb-4 text-center bg-[var(--input-bg)] text-[var(--text-color)] placeholder:text-slate-400"
-              placeholder="Your Name"
-            />
-            <button
-              onClick={() => {
-                if (nameInput.trim()) {
-                  localStorage.setItem("userName", nameInput.trim());
-                  setUserName(nameInput.trim());
-                  setShowNameModal(false);
-                }
-              }}
-              className="w-full bg-rose-500 text-white py-3 rounded-xl font-bold"
-            >
-              Save Name
-            </button>
-          </div>
-        </div>
-      )}
-      <Link
-        href="/manage"
-        className="fixed bottom-6 right-6 z-50 flex items-center justify-center w-12 h-12 bg-white/20 backdrop-blur-md border border-white/40 rounded-full text-slate-500 shadow-lg hover:bg-white/40 hover:scale-110 transition-all duration-300 group"
-        title="Manage Database"
-      >
-        <Settings size={22} className="group-hover:rotate-90 transition-transform duration-500" />
-      </Link>
-      <button
-        onClick={toggleTheme}
-        className="fixed top-6 right-6 z-50 flex items-center justify-center w-10 h-10 bg-white/20 backdrop-blur-md border border-white/40 rounded-full text-slate-500 shadow-lg hover:bg-white/40 hover:scale-110 transition-all duration-300"
-        title="Toggle theme"
-      >
-        {theme === "night" ? <Sun size={18} /> : <Moon size={18} />}
-      </button>
     </div>
   );
 }

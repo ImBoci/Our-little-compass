@@ -3,3 +3,10 @@ CREATE TABLE "PushSubscription" (
     "user" TEXT NOT NULL, 
     "payload" TEXT NOT NULL, 
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP);
+
+CREATE TABLE "AppNotification" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, 
+    "title" TEXT NOT NULL, 
+    "body" TEXT NOT NULL, 
+    "sender" TEXT NOT NULL, 
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP);

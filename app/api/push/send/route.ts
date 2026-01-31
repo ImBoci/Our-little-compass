@@ -31,8 +31,9 @@ export async function POST(request: Request) {
     const targets = subscriptions;
     console.log("[Push] target subscriptions:", targets.length, "sender:", sender);
 
+    const title = "Our Little Compass";
     const payload = JSON.stringify({
-      title: "Our Little Compass",
+      title,
       body: message,
       url: "/",
     });
@@ -70,6 +71,15 @@ export async function POST(request: Request) {
     }
 
     const sent = results.filter((result) => result.status === "fulfilled").length;
+    if (sent > 0) {
+      await prisma.appNotification.create({
+        data: {
+          title,
+          body: message,
+          sender: typeof sender === "string" && sender.trim().length > 0 ? sender.trim() : "Anonymous",
+        },
+      });
+    }
     return NextResponse.json({ success: true, sent });
   } catch (error) {
     console.error("Failed to send push notifications:", error);
