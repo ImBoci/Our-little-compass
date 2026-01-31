@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { MapPin, Shuffle, ArrowLeft, RotateCcw, ExternalLink, Search, CheckCircle, Star, ImageIcon, Map } from "lucide-react";
+import { MapPin, Shuffle, ArrowLeft, RotateCcw, ExternalLink, Search, CheckCircle, Star, Image, CircleAlert, Map } from "lucide-react";
 import Link from "next/link";
 import WeatherWidget from "@/components/WeatherWidget";
 
@@ -20,6 +20,7 @@ export default function DatePage() {
   const [note, setNote] = useState("");
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("Memory Saved!");
+  const [toastVariant, setToastVariant] = useState<'success' | 'warning'>('success');
 
   // Identity State
   const [userName, setUserName] = useState<string | null>(null);
@@ -67,6 +68,21 @@ export default function DatePage() {
     }
   };
 
+  const showToastMessage = (message: string, variant: 'success' | 'warning') => {
+    setToastVariant(variant);
+    setToastMessage(message);
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 3000);
+  };
+
+  const handleCardFlip = (item: any) => {
+    if (item.image_url) {
+      setFlippedId(item.id);
+      return;
+    }
+    showToastMessage("No image available for this item yet.", 'warning');
+  };
+
   const saveMemory = async () => {
     if (!completingItem) return;
     const storedName = localStorage.getItem("userName");
@@ -86,9 +102,7 @@ export default function DatePage() {
     setCompletingItem(null);
     setNote("");
     setRating(5);
-    setToastMessage(`Memory Saved by ${resolvedName}!`);
-    setShowToast(true);
-    setTimeout(() => setShowToast(false), 3000);
+    showToastMessage(`Memory Saved by ${resolvedName}!`, 'success');
   };
 
   const types = Array.from(new Set(activities.flatMap(a => a.type ? a.type.split(',').map((t:string) => t.trim()) : []))).sort();
@@ -216,31 +230,24 @@ export default function DatePage() {
                             {/* Front */}
                             <div
                               className={`absolute inset-0 backface-hidden bg-white/60 backdrop-blur-sm border border-white/60 p-6 rounded-2xl hover:shadow-lg transition-all ${flippedId === act.id ? 'pointer-events-none' : 'pointer-events-auto'}`}
-                              onClick={() => setFlippedId(act.id)}
+                              onClick={() => handleCardFlip(act)}
+                              role="button"
                             >
                               <button 
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   setCompletingItem(act);
                                 }}
-                                className="absolute top-4 right-4 p-2 text-slate-400 hover:text-amber-500 hover:scale-110 transition-all"
+                                className="absolute top-4 right-4 p-2 text-slate-400 hover:text-amber-500 hover:scale-110 transition-all z-10"
                                 title="Mark as completed"
                               >
                                 <CheckCircle size={22} />
                               </button>
 
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setFlippedId(act.id);
-                                }}
-                                className="absolute top-4 left-4 p-2 text-slate-400 hover:text-purple-500 hover:scale-110 transition-all"
-                                title="View image"
-                              >
-                                <ImageIcon size={20} />
-                              </button>
-
-                              <h3 className="font-bold text-lg text-slate-800 mb-1 pr-8">{act.name}</h3>
+                              <h3 className="font-bold text-lg text-slate-800 mb-1 pr-8 flex items-center gap-2">
+                                {act.name}
+                                {act.image_url && <Image size={14} className="text-slate-400" />}
+                              </h3>
                               {act.location && (
                                   <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(act.location)}`} target="_blank" className="inline-flex items-center gap-1 text-sm text-purple-700 hover:underline mb-2" onClick={(e) => e.stopPropagation()}>
                                       <MapPin size={14} /> {act.location}
@@ -256,21 +263,12 @@ export default function DatePage() {
 
                             {/* Back */}
                             <div className={`absolute inset-0 backface-hidden rotate-y-180 bg-white/60 backdrop-blur-sm border border-white/60 rounded-2xl overflow-hidden ${flippedId === act.id ? 'pointer-events-auto' : 'pointer-events-none'}`}>
-                              {act.image_url ? (
+                              {act.image_url && (
                                 <img
                                   src={act.image_url}
                                   alt={act.name}
                                   className="absolute inset-0 w-full h-full object-cover"
                                 />
-                              ) : (
-                                <div className="absolute inset-0 flex items-center justify-center">
-                                  <button
-                                    onClick={() => window.open(`https://www.google.com/search?tbm=isch&q=${encodeURIComponent(act.name)}`, "_blank")}
-                                    className="px-4 py-2 rounded-full bg-white/80 text-slate-700 border border-white/80 hover:bg-white transition-all"
-                                  >
-                                    Search Image
-                                  </button>
-                                </div>
                               )}
 
                               <button
@@ -343,8 +341,12 @@ export default function DatePage() {
       {/* Success Toast */}
       {showToast && (
         <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[110] flex items-center gap-2 bg-white/80 backdrop-blur-md px-6 py-3 rounded-full shadow-2xl border border-white/50 animate-in slide-in-from-top-4 fade-in duration-300">
-          <div className="bg-green-500 rounded-full p-1">
-            <CheckCircle size={16} className="text-white" />
+          <div className={`rounded-full p-1 ${toastVariant === 'warning' ? 'bg-amber-500' : 'bg-green-500'}`}>
+            {toastVariant === 'warning' ? (
+              <CircleAlert size={16} className="text-white" />
+            ) : (
+              <CheckCircle size={16} className="text-white" />
+            )}
           </div>
           <span className="font-bold text-slate-700">{toastMessage}</span>
         </div>

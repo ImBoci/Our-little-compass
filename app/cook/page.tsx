@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Shuffle, ArrowLeft, Search, CheckCircle, Star, ImageIcon } from "lucide-react";
+import { Shuffle, ArrowLeft, Search, CheckCircle, Star, Image, CircleAlert } from "lucide-react";
 import Link from "next/link";
 
 export default function CookPage() {
@@ -21,6 +21,7 @@ export default function CookPage() {
   const [note, setNote] = useState("");
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("Memory Saved!");
+  const [toastVariant, setToastVariant] = useState<'success' | 'warning'>('success');
 
   // Identity State
   const [userName, setUserName] = useState<string | null>(null);
@@ -60,6 +61,21 @@ export default function CookPage() {
     }
   };
 
+  const showToastMessage = (message: string, variant: 'success' | 'warning') => {
+    setToastVariant(variant);
+    setToastMessage(message);
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 3000);
+  };
+
+  const handleCardFlip = (item: any) => {
+    if (item.image_url) {
+      setFlippedId(item.id);
+      return;
+    }
+    showToastMessage("No image available for this item yet.", 'warning');
+  };
+
   const saveMemory = async () => {
     if (!completingItem) return;
     const storedName = localStorage.getItem("userName");
@@ -79,9 +95,7 @@ export default function CookPage() {
     setCompletingItem(null);
     setNote("");
     setRating(5);
-    setToastMessage(`Memory Saved by ${resolvedName}!`);
-    setShowToast(true);
-    setTimeout(() => setShowToast(false), 3000);
+    showToastMessage(`Memory Saved by ${resolvedName}!`, 'success');
   };
 
   const categories = Array.from(new Set(foods.flatMap(f => f.category ? f.category.split(',').map((c:string) => c.trim()) : []))).sort();
@@ -158,31 +172,24 @@ export default function CookPage() {
                           {/* Front */}
                           <div
                             className={`absolute inset-0 backface-hidden bg-white/60 backdrop-blur-sm border border-white/60 p-6 rounded-2xl hover:shadow-lg transition-all ${flippedId === food.id ? 'pointer-events-none' : 'pointer-events-auto'}`}
-                            onClick={() => setFlippedId(food.id)}
+                            onClick={() => handleCardFlip(food)}
+                            role="button"
                           >
                             <button 
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setCompletingItem(food);
                               }}
-                              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-amber-500 hover:scale-110 transition-all"
+                              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-amber-500 hover:scale-110 transition-all z-10"
                               title="Mark as cooked"
                             >
                               <CheckCircle size={22} />
                             </button>
 
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setFlippedId(food.id);
-                              }}
-                              className="absolute top-4 left-4 p-2 text-slate-400 hover:text-rose-500 hover:scale-110 transition-all"
-                              title="View image"
-                            >
-                              <ImageIcon size={20} />
-                            </button>
-
-                            <h3 className="font-bold text-lg text-slate-800 mb-2 pr-8">{food.name}</h3>
+                            <h3 className="font-bold text-lg text-slate-800 mb-2 pr-8 flex items-center gap-2">
+                              {food.name}
+                              {food.image_url && <Image size={14} className="text-slate-400" />}
+                            </h3>
                             <div className="flex flex-wrap gap-2 mb-2">
                                 {food.category && food.category.split(',').map((t: string, i: number) => (
                                     <span key={i} className="bg-rose-100 text-rose-700 text-xs px-2 py-0.5 rounded-full">{t.trim()}</span>
@@ -193,21 +200,12 @@ export default function CookPage() {
 
                           {/* Back */}
                           <div className={`absolute inset-0 backface-hidden rotate-y-180 bg-white/60 backdrop-blur-sm border border-white/60 rounded-2xl overflow-hidden ${flippedId === food.id ? 'pointer-events-auto' : 'pointer-events-none'}`}>
-                            {food.image_url ? (
+                            {food.image_url && (
                               <img
                                 src={food.image_url}
                                 alt={food.name}
                                 className="absolute inset-0 w-full h-full object-cover"
                               />
-                            ) : (
-                              <div className="absolute inset-0 flex items-center justify-center">
-                                <button
-                                  onClick={() => window.open(`https://www.google.com/search?tbm=isch&q=${encodeURIComponent(food.name)}`, "_blank")}
-                                  className="px-4 py-2 rounded-full bg-white/80 text-slate-700 border border-white/80 hover:bg-white transition-all"
-                                >
-                                  Search Image
-                                </button>
-                              </div>
                             )}
 
                             <button
@@ -279,8 +277,12 @@ export default function CookPage() {
       {/* Success Toast */}
       {showToast && (
         <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[110] flex items-center gap-2 bg-white/80 backdrop-blur-md px-6 py-3 rounded-full shadow-2xl border border-white/50 animate-in slide-in-from-top-4 fade-in duration-300">
-          <div className="bg-green-500 rounded-full p-1">
-            <CheckCircle size={16} className="text-white" />
+          <div className={`rounded-full p-1 ${toastVariant === 'warning' ? 'bg-amber-500' : 'bg-green-500'}`}>
+            {toastVariant === 'warning' ? (
+              <CircleAlert size={16} className="text-white" />
+            ) : (
+              <CheckCircle size={16} className="text-white" />
+            )}
           </div>
           <span className="font-bold text-slate-700">{toastMessage}</span>
         </div>
