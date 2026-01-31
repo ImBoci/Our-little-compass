@@ -10,6 +10,7 @@ export default function CookPage() {
   const [loading, setLoading] = useState(true);
   const [isAnimating, setIsAnimating] = useState(false);
   const [isSpinning, setIsSpinning] = useState(false);
+  const [isRevealed, setIsRevealed] = useState(true);
   const [flippedId, setFlippedId] = useState<string | number | null>(null);
   
   // Filter State
@@ -73,6 +74,7 @@ export default function CookPage() {
     if (foods.length === 0 || isSpinning) return;
     setIsSpinning(true);
     setIsAnimating(true);
+    setIsRevealed(false);
 
     const getRandomFood = () => foods[Math.floor(Math.random() * foods.length)];
     let finalFood = getRandomFood();
@@ -100,6 +102,17 @@ export default function CookPage() {
     setToastMessage(message);
     setShowToast(true);
     setTimeout(() => setShowToast(false), 3000);
+  };
+
+  const handleShareInvite = async () => {
+    if (!randomFood?.name) return;
+    const message = `I've decided! 🍽️ Tonight we are having: ${randomFood.name}. Get your appetite ready! 🥂 #OurLittleCompass`;
+    try {
+      await navigator.clipboard.writeText(message);
+      showToastMessage("Invite copied to clipboard!", "success");
+    } catch {
+      showToastMessage("Couldn't copy invite. Try again.", "warning");
+    }
   };
 
   const handleCardFlip = (item: any) => {
@@ -167,7 +180,15 @@ export default function CookPage() {
       {/* RANDOM TAB */}
       {activeTab === 'random' && (
           <div className="flex flex-col items-center w-full">
-              <div className="w-full max-w-[90vw] sm:max-w-md p-8 sm:p-10 rounded-3xl border-2 border-white/40 text-center relative transition-all duration-500" style={{ background: "rgba(255, 255, 255, 0.25)", backdropFilter: "blur(16px)" }}>
+              <div
+                className="w-full max-w-[90vw] sm:max-w-md p-8 sm:p-10 rounded-3xl border-2 border-white/40 text-center relative transition-all duration-500 cursor-pointer"
+                style={{ background: "rgba(255, 255, 255, 0.25)", backdropFilter: "blur(16px)" }}
+                onClick={() => {
+                  if (!isSpinning && !isRevealed) {
+                    setIsRevealed(true);
+                  }
+                }}
+              >
                   {randomFood ? (
                   <div className={`space-y-6 transition-all duration-150 ease-in-out ${isSpinning ? 'blur-sm translate-y-2' : 'blur-0 translate-y-0'}`}>
                       <h2 className="font-serif text-3xl md:text-4xl font-bold text-slate-900 leading-tight hyphens-auto break-words">{randomFood.name}</h2>
@@ -179,10 +200,26 @@ export default function CookPage() {
                       {randomFood.description && <p className="text-lg md:text-xl text-slate-700 font-light italic">"{randomFood.description}"</p>}
                   </div>
                   ) : <div className="text-slate-600">No foods found!</div>}
+
+                  {!isSpinning && !isRevealed && (
+                    <div className="absolute inset-2 rounded-3xl bg-white/70 backdrop-blur-xl border border-white/60 flex items-center justify-center text-slate-700 font-semibold text-sm sm:text-base shadow-inner transition-opacity duration-300 animate-pulse">
+                      <span className="bg-gradient-to-r from-white/40 via-white/90 to-white/40 px-4 py-2 rounded-full">
+                        Tap to Reveal our adventure...
+                      </span>
+                    </div>
+                  )}
               </div>
               <button onClick={handleShuffle} className="mt-12 group relative inline-flex items-center gap-3 bg-rose-500 text-white px-8 py-4 rounded-full font-bold text-lg transition-all duration-300 hover:scale-105 hover:bg-rose-600 hover:shadow-[0_0_30px_#f43f5e]">
                   <Shuffle className="group-hover:rotate-180 transition-transform duration-500" /> Shuffle Again
               </button>
+              {isRevealed && randomFood && (
+                <button
+                  onClick={handleShareInvite}
+                  className="mt-4 inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white/40 backdrop-blur-md border border-rose-200 text-rose-700 font-semibold shadow-sm hover:bg-rose-100/70 hover:scale-105 transition-all"
+                >
+                  Share Invite 🌹
+                </button>
+              )}
           </div>
       )}
 

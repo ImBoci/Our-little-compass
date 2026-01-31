@@ -14,6 +14,7 @@ export default function DatePage() {
   const [isFlipped, setIsFlipped] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const [isSpinning, setIsSpinning] = useState(false);
+  const [isRevealed, setIsRevealed] = useState(true);
 
   // Memory/Rating State
   const [completingItem, setCompletingItem] = useState<any>(null);
@@ -80,6 +81,7 @@ export default function DatePage() {
     setIsFlipped(false);
     setIsSpinning(true);
     setIsAnimating(true);
+    setIsRevealed(false);
 
     const getRandomActivity = () => activities[Math.floor(Math.random() * activities.length)];
     let finalActivity = getRandomActivity();
@@ -107,6 +109,18 @@ export default function DatePage() {
     setToastMessage(message);
     setShowToast(true);
     setTimeout(() => setShowToast(false), 3000);
+  };
+
+  const handleShareInvite = async () => {
+    if (!randomActivity?.name) return;
+    const location = randomActivity.location ? randomActivity.location : "a surprise spot";
+    const message = `You have a date! 🌹 Activity: ${randomActivity.name} at ${location}. See you there! ❤️ #OurLittleCompass`;
+    try {
+      await navigator.clipboard.writeText(message);
+      showToastMessage("Invite copied to clipboard!", "success");
+    } catch {
+      showToastMessage("Couldn't copy invite. Try again.", "warning");
+    }
   };
 
   const handleCardFlip = (item: any) => {
@@ -190,7 +204,14 @@ export default function DatePage() {
         {/* === RANDOM TAB (3D Flip) === */}
         {activeTab === 'random' && (
             <div className="flex flex-col items-center">
-                <div className="relative w-full max-w-[90vw] sm:max-w-md h-[450px] perspective-1000">
+                <div
+                  className="relative w-full max-w-[90vw] sm:max-w-md h-[450px] perspective-1000 cursor-pointer"
+                  onClick={() => {
+                    if (!isSpinning && !isRevealed) {
+                      setIsRevealed(true);
+                    }
+                  }}
+                >
                     <div className={`relative w-full h-full transition-all duration-700 transform-style-3d ${isFlipped ? 'rotate-y-180' : ''}`}>
                         {/* FRONT */}
                         <div className={`absolute inset-0 backface-hidden flex flex-col items-center justify-center p-8 rounded-3xl border-2 border-white/40 shadow-[0_0_40px_rgba(168,85,247,0.15)] text-center ${!isFlipped ? 'z-10 pointer-events-auto' : 'z-0 pointer-events-none'}`} style={{ background: "rgba(255, 255, 255, 0.35)", backdropFilter: "blur(16px)" }}>
@@ -217,6 +238,14 @@ export default function DatePage() {
                                     )}
                                 </div>
                             ) : <div className="text-slate-600">No activities found!</div>}
+
+                            {!isSpinning && !isRevealed && (
+                              <div className="absolute inset-2 rounded-3xl bg-white/70 backdrop-blur-xl border border-white/60 flex items-center justify-center text-slate-700 font-semibold text-sm sm:text-base shadow-inner transition-opacity duration-300 animate-pulse">
+                                <span className="bg-gradient-to-r from-white/40 via-white/90 to-white/40 px-4 py-2 rounded-full">
+                                  Tap to Reveal our adventure...
+                                </span>
+                              </div>
+                            )}
                         </div>
                         {/* BACK */}
                         <div className={`absolute inset-0 backface-hidden rotate-y-180 rounded-3xl border-2 border-white/40 shadow-xl overflow-hidden bg-white ${isFlipped ? 'z-10 pointer-events-auto' : 'z-0 pointer-events-none'}`}>
@@ -235,6 +264,14 @@ export default function DatePage() {
                 <button onClick={handleShuffle} className="mt-12 group relative inline-flex items-center gap-3 bg-purple-600 text-white px-8 py-4 rounded-full font-bold text-lg transition-all duration-300 hover:scale-105 hover:bg-purple-700 hover:shadow-[0_0_30px_#a855f7]">
                     <Shuffle className="group-hover:rotate-180 transition-transform duration-500" /> Pick Another
                 </button>
+                {isRevealed && randomActivity && (
+                  <button
+                    onClick={handleShareInvite}
+                    className="mt-4 inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white/40 backdrop-blur-md border border-amber-200 text-amber-700 font-semibold shadow-sm hover:bg-amber-100/70 hover:scale-105 transition-all"
+                  >
+                    Share Invite 🌹
+                  </button>
+                )}
             </div>
         )}
 
