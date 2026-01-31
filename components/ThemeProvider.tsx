@@ -23,18 +23,37 @@ export function useTheme() {
 }
 
 export default function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<ThemeMode>("day");
+  const [theme, setTheme] = useState<ThemeMode>(() => {
+    if (typeof window === "undefined") return "day";
+    const stored = window.localStorage.getItem("theme");
+    if (stored === "day" || stored === "night") {
+      return stored;
+    }
+    const prefersDark =
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches;
+    return prefersDark ? "night" : "day";
+  });
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    const hour = new Date().getHours();
-    const isNight = hour >= 20 || hour < 6;
-    setTheme(isNight ? "night" : "day");
+    if (typeof window === "undefined") return;
+    const stored = window.localStorage.getItem("theme");
+    if (stored === "day" || stored === "night") {
+      setTheme(stored);
+      return;
+    }
+    const prefersDark =
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches;
+    setTheme(prefersDark ? "night" : "day");
   }, []);
 
   useEffect(() => {
     if (typeof document === "undefined") return;
+    window.localStorage.setItem("theme", theme);
+    document.documentElement.dataset.theme = theme;
     document.body.dataset.theme = theme;
     document.documentElement.classList.toggle("dark", theme === "night");
   }, [theme]);

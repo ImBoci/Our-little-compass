@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Playfair_Display, Lato } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import ThemeProvider from "@/components/ThemeProvider";
 
@@ -38,6 +39,9 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body suppressHydrationWarning className={`${playfair.variable} ${lato.variable} font-sans`}>
+        <Script id="theme-init" strategy="beforeInteractive">
+          {`(function(){try{var t=localStorage.getItem('theme');if(t!=='day'&&t!=='night'){var p=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches;t=p?'night':'day';}if(t==='night'){document.documentElement.classList.add('dark');}document.documentElement.dataset.theme=t;}catch(e){}})();`}
+        </Script>
         <ThemeProvider>
           <main className="relative z-10 min-h-screen flex flex-col">
             {children}
