@@ -1,6 +1,6 @@
 import { createClient } from '@libsql/client'
 import dotenv from 'dotenv'
-import { execSync } from 'child_process'
+import fs from 'fs'
 
 // Load environment variables
 dotenv.config()
@@ -28,11 +28,9 @@ async function pushSchemaToTurso() {
       authToken: authToken,
     })
 
-    // Generate SQL directly from Prisma schema
-    console.log('⚙️ Generating SQL from Prisma Schema...')
-    const sqlContent = execSync(
-      'npx prisma migrate diff --from-empty --to-schema-datamodel prisma/schema.prisma --script'
-    ).toString('utf8')
+    // Read SQL from manual migration file
+    console.log('📂 Reading SQL from migration.sql...')
+    const sqlContent = fs.readFileSync('migration.sql', 'utf8')
 
     // Debug: Show first 50 characters to verify generation
     console.log(`📝 SQL starts with: ${sqlContent.substring(0, 50).replace(/\n/g, ' ')}...`)
