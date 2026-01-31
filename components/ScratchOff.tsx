@@ -18,6 +18,7 @@ export default function ScratchOff({
   const [isDone, setIsDone] = useState(false);
 
   const drawFog = () => {
+    if (typeof window === "undefined") return;
     const canvas = canvasRef.current;
     const container = containerRef.current;
     if (!canvas || !container) return;
@@ -101,11 +102,13 @@ export default function ScratchOff({
   };
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
     if (isDone) return;
     drawFog();
   }, []);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
     if (isResetting) {
       setIsDone(false);
       drawFog();

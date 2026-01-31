@@ -2,10 +2,11 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { UtensilsCrossed, CalendarHeart, BookHeart, Settings, Heart, Moon, Sun } from "lucide-react";
+import { useTheme } from "@/components/ThemeProvider";
 
 export default function Home() {
-  const [diffDays, setDiffDays] = useState(0);
-  const [isDark, setIsDark] = useState(false);
+  const { theme, toggleTheme } = useTheme();
+  const [diffDays, setDiffDays] = useState<number | null>(null);
 
   useEffect(() => {
     const startDate = new Date(process.env.NEXT_PUBLIC_RELATIONSHIP_START_DATE || "2022-09-02");
@@ -15,20 +16,17 @@ export default function Home() {
     setDiffDays(Number.isFinite(days) && days >= 0 ? days : 0);
   }, []);
 
-  useEffect(() => {
-    if (typeof document === "undefined") return;
-    setIsDark(document.documentElement.classList.contains("dark"));
-  }, []);
-
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4 text-center bg-transparent">
       <h1 className="font-serif text-4xl md:text-6xl text-slate-800 mb-2 tracking-tight drop-shadow-sm text-balance px-2">
         Our Little Compass
       </h1>
-      <div className="mt-1 mb-4 flex items-center justify-center gap-2 text-slate-500 font-serif text-center px-4">
-        <Heart size={14} className="text-rose-400 animate-pulse" />
-        <span>Day {diffDays} of our journey together</span>
-      </div>
+      {diffDays !== null && (
+        <div className="mt-1 mb-4 flex items-center justify-center gap-2 text-slate-500 font-serif text-center px-4">
+          <Heart size={14} className="text-rose-400 animate-pulse" />
+          <span>Day {diffDays} of our journey together</span>
+        </div>
+      )}
       <p className="font-sans text-xl text-slate-700 mb-12 italic drop-shadow-sm px-2">
         Where should we go next?
       </p>
@@ -102,15 +100,11 @@ export default function Home() {
         <Settings size={22} className="group-hover:rotate-90 transition-transform duration-500" />
       </Link>
       <button
-        onClick={() => {
-          if (typeof document === "undefined") return;
-          document.documentElement.classList.toggle("dark");
-          setIsDark(document.documentElement.classList.contains("dark"));
-        }}
+        onClick={toggleTheme}
         className="fixed top-6 right-6 z-50 flex items-center justify-center w-10 h-10 bg-white/20 backdrop-blur-md border border-white/40 rounded-full text-slate-500 shadow-lg hover:bg-white/40 hover:scale-110 transition-all duration-300"
         title="Toggle theme"
       >
-        {isDark ? <Sun size={18} /> : <Moon size={18} />}
+        {theme === "night" ? <Sun size={18} /> : <Moon size={18} />}
       </button>
     </div>
   );

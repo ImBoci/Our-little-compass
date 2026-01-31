@@ -1,27 +1,37 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Heart, Star } from "lucide-react";
 
 interface RomanticBackgroundProps {
   mode: "day" | "night";
 }
 
+type Particle = {
+  id: number;
+  left: string;
+  size: number;
+  duration: string;
+  delay: string;
+};
+
 export default function RomanticBackground({ mode }: RomanticBackgroundProps) {
   const [mounted, setMounted] = useState(false);
+  const [particles, setParticles] = useState<Particle[]>([]);
   useEffect(() => setMounted(true), []);
   if (!mounted) return null;
 
-  const particles = useMemo(
-    () =>
-      Array.from({ length: mode === "night" ? 70 : 50 }).map((_, i) => ({
-        id: i,
-        left: `${Math.random() * 100}%`,
-        size: Math.random() * (mode === "night" ? 10 : 20) + (mode === "night" ? 6 : 10),
-        duration: `${Math.random() * 9 + 6}s`,
-        delay: `${Math.random() * 5}s`,
-      })),
-    [mode]
-  );
+  useEffect(() => {
+    if (!mounted) return;
+    const count = mode === "night" ? 70 : 50;
+    const nextParticles = Array.from({ length: count }).map((_, i) => ({
+      id: i,
+      left: `${Math.random() * 100}%`,
+      size: Math.random() * (mode === "night" ? 10 : 20) + (mode === "night" ? 6 : 10),
+      duration: `${Math.random() * 9 + 6}s`,
+      delay: `${Math.random() * 5}s`,
+    }));
+    setParticles(nextParticles);
+  }, [mode, mounted]);
 
   const backgroundStyle =
     mode === "night"
