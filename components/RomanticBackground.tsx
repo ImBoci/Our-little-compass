@@ -18,7 +18,6 @@ export default function RomanticBackground({ mode }: RomanticBackgroundProps) {
   const [mounted, setMounted] = useState(false);
   const [particles, setParticles] = useState<Particle[]>([]);
   useEffect(() => setMounted(true), []);
-  if (!mounted) return null;
 
   useEffect(() => {
     if (!mounted) return;
@@ -37,6 +36,8 @@ export default function RomanticBackground({ mode }: RomanticBackgroundProps) {
     mode === "night"
       ? "linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)"
       : "linear-gradient(135deg, #fdc2d6 0%, #cbcbff 50%, #caf4fa 100%)";
+
+  if (!mounted) return null;
 
   return (
     <div className="fixed inset-0 pointer-events-none z-[-1] overflow-hidden">

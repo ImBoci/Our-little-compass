@@ -37,7 +37,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${playfair.variable} ${lato.variable} font-sans`}>
+      <body suppressHydrationWarning className={`${playfair.variable} ${lato.variable} font-sans`}>
         <ThemeProvider>
           <main className="relative z-10 min-h-screen flex flex-col">
             {children}

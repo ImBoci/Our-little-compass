@@ -6,7 +6,7 @@ import { useTheme } from "@/components/ThemeProvider";
 
 export default function Home() {
   const { theme, toggleTheme } = useTheme();
-  const [diffDays, setDiffDays] = useState(0);
+  const [diffDays, setDiffDays] = useState<number | null>(null);
 
   useEffect(() => {
     const start = process.env.NEXT_PUBLIC_RELATIONSHIP_START_DATE;
@@ -15,6 +15,8 @@ export default function Home() {
         (new Date().getTime() - new Date(start).getTime()) / (1000 * 60 * 60 * 24)
       );
       setDiffDays(diff > 0 ? diff : 0);
+    } else {
+      setDiffDays(0);
     }
   }, []);
 
@@ -25,7 +27,7 @@ export default function Home() {
       </h1>
       <div className="mt-1 mb-4 flex items-center justify-center gap-2 text-slate-500 font-serif text-center px-4">
         <Heart size={14} className="text-rose-400 animate-pulse" />
-        <span>Day {diffDays} of our journey together</span>
+        <span>{diffDays === null ? "Day 0 of our journey together" : `Day ${diffDays} of our journey together`}</span>
       </div>
       <p className="font-sans text-xl text-slate-700 mb-12 italic drop-shadow-sm px-2">
         Where should we go next?
