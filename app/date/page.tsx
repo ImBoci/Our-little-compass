@@ -13,6 +13,7 @@ export default function DatePage() {
   // Random Tab State
   const [isFlipped, setIsFlipped] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [isSpinning, setIsSpinning] = useState(false);
 
   // Memory/Rating State
   const [completingItem, setCompletingItem] = useState<any>(null);
@@ -54,18 +55,51 @@ export default function DatePage() {
   }, []);
 
   const handleShuffle = () => {
-    if (activities.length > 0) {
-      setIsFlipped(false);
-      setIsAnimating(true);
-      setTimeout(() => {
-        let newAct;
-        do {
-          newAct = activities[Math.floor(Math.random() * activities.length)];
-        } while (activities.length > 1 && newAct === randomActivity);
-        setRandomActivity(newAct);
-        setIsAnimating(false);
-      }, 300);
+    if (activities.length === 0 || isSpinning) return;
+    setIsFlipped(false);
+    setIsSpinning(true);
+    setIsAnimating(true);
+
+    const getRandomActivity = () => activities[Math.floor(Math.random() * activities.length)];
+    let finalActivity = getRandomActivity();
+    if (activities.length > 1) {
+      while (finalActivity === randomActivity) {
+        finalActivity = getRandomActivity();
+      }
     }
+
+    const spinSteps = Math.min(15, Math.max(10, Math.floor(Math.random() * 6) + 10));
+    let step = 0;
+    let delay = 60;
+    let timer: ReturnType<typeof setInterval> | null = null;
+
+    const tick = () => {
+      step += 1;
+      setRandomActivity(getRandomActivity());
+
+      if (step === spinSteps - 3) {
+        if (timer) clearInterval(timer);
+        delay = 100;
+        timer = setInterval(tick, delay);
+        return;
+      }
+
+      if (step === spinSteps - 1) {
+        if (timer) clearInterval(timer);
+        delay = 160;
+        timer = setInterval(tick, delay);
+        return;
+      }
+
+      if (step >= spinSteps) {
+        if (timer) clearInterval(timer);
+        setRandomActivity(finalActivity);
+        setIsAnimating(false);
+        setIsSpinning(false);
+      }
+    };
+
+    timer = setInterval(tick, delay);
   };
 
   const showToastMessage = (message: string, variant: 'success' | 'warning') => {
@@ -157,7 +191,7 @@ export default function DatePage() {
                         {/* FRONT */}
                         <div className={`absolute inset-0 backface-hidden flex flex-col items-center justify-center p-8 rounded-3xl border-2 border-white/40 shadow-[0_0_40px_rgba(168,85,247,0.15)] text-center ${!isFlipped ? 'z-10 pointer-events-auto' : 'z-0 pointer-events-none'}`} style={{ background: "rgba(255, 255, 255, 0.35)", backdropFilter: "blur(16px)" }}>
                             {randomActivity ? (
-                                <div className={`space-y-6 flex flex-col items-center w-full transition-all duration-300 ease-in-out ${isAnimating ? 'opacity-0 scale-95 blur-md translate-y-4' : 'opacity-100 scale-100 blur-0 translate-y-0'}`}>
+                                <div className={`space-y-6 flex flex-col items-center w-full transition-all duration-150 ease-in-out ${isSpinning || isAnimating ? 'blur-[1px] translate-y-1' : 'blur-0 translate-y-0'}`}>
                                     <h2 className="font-serif text-4xl font-bold text-slate-900 leading-tight">{randomActivity.name}</h2>
                                     <div className="flex flex-wrap gap-2 justify-center">
                                         {randomActivity.type && randomActivity.type.split(',').map((t: string, i: number) => (

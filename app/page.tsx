@@ -1,12 +1,29 @@
 import Link from "next/link";
-import { UtensilsCrossed, CalendarHeart, BookHeart, Settings } from "lucide-react";
+import { UtensilsCrossed, CalendarHeart, BookHeart, Settings, Heart } from "lucide-react";
 
 export default function Home() {
+  const relationshipStart = process.env.NEXT_PUBLIC_RELATIONSHIP_START_DATE;
+  const daysSinceStart = (() => {
+    if (!relationshipStart) return null;
+    const startDate = new Date(relationshipStart);
+    if (Number.isNaN(startDate.getTime())) return null;
+    const today = new Date();
+    const diffMs = today.getTime() - startDate.getTime();
+    const days = Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1;
+    return days > 0 ? days : 0;
+  })();
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4 text-center bg-transparent">
       <h1 className="font-serif text-5xl md:text-6xl text-slate-800 mb-2 tracking-tight drop-shadow-sm">
         Our Little Compass
       </h1>
+      {daysSinceStart !== null && (
+        <div className="mt-1 mb-4 flex items-center justify-center gap-2 text-slate-500 font-serif">
+          <Heart size={14} className="text-rose-400" />
+          <span>Day {daysSinceStart} of our journey</span>
+        </div>
+      )}
       <p className="font-sans text-xl text-slate-700 mb-12 italic drop-shadow-sm">
         Where should we go next?
       </p>

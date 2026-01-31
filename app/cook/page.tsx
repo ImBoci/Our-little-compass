@@ -9,6 +9,7 @@ export default function CookPage() {
   const [randomFood, setRandomFood] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [isSpinning, setIsSpinning] = useState(false);
   const [flippedId, setFlippedId] = useState<string | number | null>(null);
   
   // Filter State
@@ -48,17 +49,50 @@ export default function CookPage() {
   }, []);
 
   const handleShuffle = () => {
-    if (foods.length > 0) {
-      setIsAnimating(true);
-      setTimeout(() => {
-        let newFood;
-        do {
-          newFood = foods[Math.floor(Math.random() * foods.length)];
-        } while (foods.length > 1 && newFood === randomFood);
-        setRandomFood(newFood);
-        setIsAnimating(false);
-      }, 300);
+    if (foods.length === 0 || isSpinning) return;
+    setIsSpinning(true);
+    setIsAnimating(true);
+
+    const getRandomFood = () => foods[Math.floor(Math.random() * foods.length)];
+    let finalFood = getRandomFood();
+    if (foods.length > 1) {
+      while (finalFood === randomFood) {
+        finalFood = getRandomFood();
+      }
     }
+
+    const spinSteps = Math.min(15, Math.max(10, Math.floor(Math.random() * 6) + 10));
+    let step = 0;
+    let delay = 60;
+    let timer: ReturnType<typeof setInterval> | null = null;
+
+    const tick = () => {
+      step += 1;
+      setRandomFood(getRandomFood());
+
+      if (step === spinSteps - 3) {
+        if (timer) clearInterval(timer);
+        delay = 100;
+        timer = setInterval(tick, delay);
+        return;
+      }
+
+      if (step === spinSteps - 1) {
+        if (timer) clearInterval(timer);
+        delay = 160;
+        timer = setInterval(tick, delay);
+        return;
+      }
+
+      if (step >= spinSteps) {
+        if (timer) clearInterval(timer);
+        setRandomFood(finalFood);
+        setIsAnimating(false);
+        setIsSpinning(false);
+      }
+    };
+
+    timer = setInterval(tick, delay);
   };
 
   const showToastMessage = (message: string, variant: 'success' | 'warning') => {
@@ -131,7 +165,7 @@ export default function CookPage() {
           <div className="flex flex-col items-center w-full">
               <div className="w-full max-w-md p-10 rounded-3xl border-2 border-white/40 text-center relative transition-all duration-500" style={{ background: "rgba(255, 255, 255, 0.25)", backdropFilter: "blur(16px)" }}>
                   {randomFood ? (
-                  <div className={`space-y-6 transition-all duration-300 ease-in-out ${isAnimating ? 'opacity-0 scale-95 blur-md translate-y-4' : 'opacity-100 scale-100 blur-0 translate-y-0'}`}>
+                  <div className={`space-y-6 transition-all duration-150 ease-in-out ${isSpinning || isAnimating ? 'blur-[1px] translate-y-1' : 'blur-0 translate-y-0'}`}>
                       <h2 className="font-serif text-4xl font-bold text-slate-900 leading-tight">{randomFood.name}</h2>
                       <div className="flex flex-wrap gap-2 justify-center">
                           {randomFood.category && randomFood.category.split(',').map((tag: string, i: number) => (
