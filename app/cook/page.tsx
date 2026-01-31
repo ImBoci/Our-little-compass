@@ -97,7 +97,7 @@ export default function CookPage() {
   return (
     <div className="flex flex-col items-center min-h-screen p-4 bg-transparent">
       <Link href="/" className="absolute top-6 left-6 z-50 flex items-center gap-2 px-5 py-2.5 bg-white/30 backdrop-blur-md border border-white/40 rounded-full text-slate-700 font-medium shadow-sm hover:bg-white/60 hover:scale-105 hover:shadow-md transition-all duration-300 group">
-          <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" /> Back Home
+        <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" /> Back Home
       </Link>
       
       <div className="mt-12 mb-8 text-center">
@@ -135,7 +135,7 @@ export default function CookPage() {
 
       {/* LIST TAB */}
       {activeTab === 'list' && (
-          <div className="w-full max-w-4xl animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
+          <div className="w-full max-w-5xl animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
               {/* Filters */}
               <div className="bg-white/40 backdrop-blur-md rounded-2xl p-4 mb-6 border border-white/50">
                   <div className="relative mb-4">
@@ -151,16 +151,15 @@ export default function CookPage() {
               </div>
 
               {/* Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {filteredFoods.map(food => (
-                      <div key={food.id} className="relative w-full perspective-1000">
-                        <div className={`relative w-full h-full transition-all duration-700 transform-style-3d ${flippedId === food.id ? 'rotate-y-180' : ''}`}>
+                      <div key={food.id} className="relative h-[220px] w-full perspective-1000">
+                        <div className={`absolute inset-0 transition-all duration-700 transform-style-3d ${flippedId === food.id ? 'rotate-y-180' : ''}`}>
                           {/* Front */}
                           <div
-                            className="absolute inset-0 backface-hidden bg-white/60 backdrop-blur-sm border border-white/60 p-6 rounded-2xl hover:shadow-lg transition-all"
+                            className={`absolute inset-0 backface-hidden bg-white/60 backdrop-blur-sm border border-white/60 p-6 rounded-2xl hover:shadow-lg transition-all ${flippedId === food.id ? 'pointer-events-none' : 'pointer-events-auto'}`}
                             onClick={() => setFlippedId(food.id)}
                           >
-                            {/* COMPLETE BUTTON */}
                             <button 
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -169,7 +168,7 @@ export default function CookPage() {
                               className="absolute top-4 right-4 p-2 text-slate-400 hover:text-amber-500 hover:scale-110 transition-all"
                               title="Mark as cooked"
                             >
-                              <CheckCircle size={24} />
+                              <CheckCircle size={22} />
                             </button>
 
                             <button
@@ -180,38 +179,40 @@ export default function CookPage() {
                               className="absolute top-4 left-4 p-2 text-slate-400 hover:text-rose-500 hover:scale-110 transition-all"
                               title="View image"
                             >
-                              <ImageIcon size={22} />
+                              <ImageIcon size={20} />
                             </button>
 
-                            <h3 className="font-bold text-xl text-slate-800 mb-2 pr-8">{food.name}</h3>
-                            <div className="flex flex-wrap gap-2 mb-3">
+                            <h3 className="font-bold text-lg text-slate-800 mb-2 pr-8">{food.name}</h3>
+                            <div className="flex flex-wrap gap-2 mb-2">
                                 {food.category && food.category.split(',').map((t: string, i: number) => (
                                     <span key={i} className="bg-rose-100 text-rose-700 text-xs px-2 py-0.5 rounded-full">{t.trim()}</span>
                                 ))}
                             </div>
-                            <p className="text-slate-600 text-sm">{food.description}</p>
+                            <p className="text-slate-600 text-sm line-clamp-2">{food.description}</p>
                           </div>
 
                           {/* Back */}
-                          <div className="absolute inset-0 backface-hidden rotate-y-180 bg-white/60 backdrop-blur-sm border border-white/60 p-4 rounded-2xl flex flex-col items-center justify-center gap-4">
+                          <div className={`absolute inset-0 backface-hidden rotate-y-180 bg-white/60 backdrop-blur-sm border border-white/60 rounded-2xl overflow-hidden ${flippedId === food.id ? 'pointer-events-auto' : 'pointer-events-none'}`}>
                             {food.image_url ? (
                               <img
                                 src={food.image_url}
                                 alt={food.name}
-                                className="w-full h-48 object-cover rounded-xl border border-white/70 shadow"
+                                className="absolute inset-0 w-full h-full object-cover"
                               />
                             ) : (
-                              <button
-                                onClick={() => window.open(`https://www.google.com/search?tbm=isch&q=${encodeURIComponent(food.name)}`, "_blank")}
-                                className="px-4 py-2 rounded-full bg-white/70 text-slate-700 border border-white/80 hover:bg-white transition-all"
-                              >
-                                Search Image
-                              </button>
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                <button
+                                  onClick={() => window.open(`https://www.google.com/search?tbm=isch&q=${encodeURIComponent(food.name)}`, "_blank")}
+                                  className="px-4 py-2 rounded-full bg-white/80 text-slate-700 border border-white/80 hover:bg-white transition-all"
+                                >
+                                  Search Image
+                                </button>
+                              </div>
                             )}
 
                             <button
                               onClick={() => setFlippedId(null)}
-                              className="px-4 py-2 rounded-full bg-rose-500 text-white hover:bg-rose-600 transition-all"
+                              className="absolute bottom-3 right-3 px-4 py-2 rounded-full bg-rose-500 text-white hover:bg-rose-600 transition-all shadow"
                             >
                               Close
                             </button>

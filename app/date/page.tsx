@@ -187,7 +187,7 @@ export default function DatePage() {
 
         {/* === LIST TAB === */}
         {activeTab === 'list' && (
-            <div className="w-full max-w-4xl animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="w-full max-w-5xl animate-in fade-in slide-in-from-bottom-4 duration-500">
                 {/* Filters */}
                 <div className="bg-white/40 backdrop-blur-md rounded-2xl p-4 mb-6 border border-white/50">
                     <div className="relative mb-4">
@@ -209,16 +209,15 @@ export default function DatePage() {
                 </div>
 
                 {/* Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {filteredActivities.map(act => (
-                        <div key={act.id} className="relative w-full perspective-1000">
-                          <div className={`relative w-full h-full transition-all duration-700 transform-style-3d ${flippedId === act.id ? 'rotate-y-180' : ''}`}>
+                        <div key={act.id} className="relative h-[220px] w-full perspective-1000">
+                          <div className={`absolute inset-0 transition-all duration-700 transform-style-3d ${flippedId === act.id ? 'rotate-y-180' : ''}`}>
                             {/* Front */}
                             <div
-                              className="absolute inset-0 backface-hidden bg-white/60 backdrop-blur-sm border border-white/60 p-6 rounded-2xl hover:shadow-lg transition-all"
+                              className={`absolute inset-0 backface-hidden bg-white/60 backdrop-blur-sm border border-white/60 p-6 rounded-2xl hover:shadow-lg transition-all ${flippedId === act.id ? 'pointer-events-none' : 'pointer-events-auto'}`}
                               onClick={() => setFlippedId(act.id)}
                             >
-                              {/* COMPLETE BUTTON */}
                               <button 
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -227,7 +226,7 @@ export default function DatePage() {
                                 className="absolute top-4 right-4 p-2 text-slate-400 hover:text-amber-500 hover:scale-110 transition-all"
                                 title="Mark as completed"
                               >
-                                <CheckCircle size={24} />
+                                <CheckCircle size={22} />
                               </button>
 
                               <button
@@ -238,43 +237,45 @@ export default function DatePage() {
                                 className="absolute top-4 left-4 p-2 text-slate-400 hover:text-purple-500 hover:scale-110 transition-all"
                                 title="View image"
                               >
-                                <ImageIcon size={22} />
+                                <ImageIcon size={20} />
                               </button>
 
-                              <h3 className="font-bold text-xl text-slate-800 mb-1 pr-8">{act.name}</h3>
+                              <h3 className="font-bold text-lg text-slate-800 mb-1 pr-8">{act.name}</h3>
                               {act.location && (
                                   <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(act.location)}`} target="_blank" className="inline-flex items-center gap-1 text-sm text-purple-700 hover:underline mb-2" onClick={(e) => e.stopPropagation()}>
                                       <MapPin size={14} /> {act.location}
                                   </a>
                               )}
-                              <div className="flex flex-wrap gap-2 mb-3">
+                              <div className="flex flex-wrap gap-2 mb-2">
                                   {act.type && act.type.split(',').map((t: string, i: number) => (
                                       <span key={i} className="bg-purple-100 text-purple-700 text-xs px-2 py-0.5 rounded-full">{t.trim()}</span>
                                   ))}
                               </div>
-                              <p className="text-slate-600 text-sm">{act.description}</p>
+                              <p className="text-slate-600 text-sm line-clamp-2">{act.description}</p>
                             </div>
 
                             {/* Back */}
-                            <div className="absolute inset-0 backface-hidden rotate-y-180 bg-white/60 backdrop-blur-sm border border-white/60 p-4 rounded-2xl flex flex-col items-center justify-center gap-4">
+                            <div className={`absolute inset-0 backface-hidden rotate-y-180 bg-white/60 backdrop-blur-sm border border-white/60 rounded-2xl overflow-hidden ${flippedId === act.id ? 'pointer-events-auto' : 'pointer-events-none'}`}>
                               {act.image_url ? (
                                 <img
                                   src={act.image_url}
                                   alt={act.name}
-                                  className="w-full h-48 object-cover rounded-xl border border-white/70 shadow"
+                                  className="absolute inset-0 w-full h-full object-cover"
                                 />
                               ) : (
-                                <button
-                                  onClick={() => window.open(`https://www.google.com/search?tbm=isch&q=${encodeURIComponent(act.name)}`, "_blank")}
-                                  className="px-4 py-2 rounded-full bg-white/70 text-slate-700 border border-white/80 hover:bg-white transition-all"
-                                >
-                                  Search Image
-                                </button>
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                  <button
+                                    onClick={() => window.open(`https://www.google.com/search?tbm=isch&q=${encodeURIComponent(act.name)}`, "_blank")}
+                                    className="px-4 py-2 rounded-full bg-white/80 text-slate-700 border border-white/80 hover:bg-white transition-all"
+                                  >
+                                    Search Image
+                                  </button>
+                                </div>
                               )}
 
                               <button
                                 onClick={() => setFlippedId(null)}
-                                className="px-4 py-2 rounded-full bg-purple-600 text-white hover:bg-purple-700 transition-all"
+                                className="absolute bottom-3 right-3 px-4 py-2 rounded-full bg-purple-600 text-white hover:bg-purple-700 transition-all shadow"
                               >
                                 Close
                               </button>
