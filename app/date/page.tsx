@@ -118,14 +118,18 @@ export default function DatePage() {
   const handleShareInvite = async () => {
     if (!randomActivity?.name) return;
     const location = randomActivity.location ? randomActivity.location : "a surprise spot";
-    const message = `You have a date! 🌹 Activity: ${randomActivity.name} at ${location}. See you there! ❤️ #OurLittleCompass`;
+    const message = `Our adventure is decided! 🌹 ${randomActivity.name} at ${location}. #OurLittleCompass`;
     try {
-      if (navigator.share) {
+      if (typeof navigator !== "undefined" && navigator.share) {
         await navigator.share({ text: message });
         return;
       }
-      await navigator.clipboard.writeText(message);
-      showToastMessage("Invite copied to clipboard!", "success");
+      if (typeof navigator !== "undefined" && navigator.clipboard) {
+        await navigator.clipboard.writeText(message);
+        showToastMessage("Invite copied to clipboard!", "success");
+        return;
+      }
+      showToastMessage("Couldn't share invite. Try again.", "warning");
     } catch {
       showToastMessage("Couldn't share invite. Try again.", "warning");
     }

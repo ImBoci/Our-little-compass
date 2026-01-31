@@ -110,14 +110,19 @@ export default function CookPage() {
 
   const handleShareInvite = async () => {
     if (!randomFood?.name) return;
-    const message = `I've decided! 🍽️ Tonight we are having: ${randomFood.name}. Get your appetite ready! 🥂 #OurLittleCompass`;
+    const location = "home";
+    const message = `Our adventure is decided! 🌹 ${randomFood.name} at ${location}. #OurLittleCompass`;
     try {
-      if (navigator.share) {
+      if (typeof navigator !== "undefined" && navigator.share) {
         await navigator.share({ text: message });
         return;
       }
-      await navigator.clipboard.writeText(message);
-      showToastMessage("Invite copied to clipboard!", "success");
+      if (typeof navigator !== "undefined" && navigator.clipboard) {
+        await navigator.clipboard.writeText(message);
+        showToastMessage("Invite copied to clipboard!", "success");
+        return;
+      }
+      showToastMessage("Couldn't share invite. Try again.", "warning");
     } catch {
       showToastMessage("Couldn't share invite. Try again.", "warning");
     }

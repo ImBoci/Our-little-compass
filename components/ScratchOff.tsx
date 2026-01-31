@@ -10,7 +10,7 @@ type ScratchOffProps = {
 export default function ScratchOff({
   isResetting,
   onComplete,
-  fogColor = "#e2e8f0",
+  fogColor = "#cbd5e1",
 }: ScratchOffProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -28,7 +28,10 @@ export default function ScratchOff({
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
     ctx.globalCompositeOperation = "source-over";
-    ctx.fillStyle = fogColor;
+    const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+    gradient.addColorStop(0, fogColor);
+    gradient.addColorStop(1, "#e2e8f0");
+    ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // Subtle noise texture
@@ -40,6 +43,14 @@ export default function ScratchOff({
       imageData.data[i + 2] = Math.min(255, Math.max(0, imageData.data[i + 2] + noise));
     }
     ctx.putImageData(imageData, 0, 0);
+
+    ctx.globalAlpha = 0.8;
+    ctx.fillStyle = "#64748b";
+    ctx.font = "600 16px var(--font-playfair, serif)";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("Scratch to reveal...", canvas.width / 2, canvas.height / 2);
+    ctx.globalAlpha = 1;
   };
 
   const clearAtPoint = (x: number, y: number) => {
