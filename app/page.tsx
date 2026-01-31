@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { UtensilsCrossed, CalendarHeart, BookHeart } from "lucide-react";
+import { UtensilsCrossed, CalendarHeart, BookHeart, Settings } from "lucide-react";
 
 export default function Home() {
   return (
@@ -72,6 +72,13 @@ export default function Home() {
           </div>
         </Link>
       </div>
+      <Link
+        href="/manage"
+        className="fixed bottom-6 right-6 z-50 flex items-center justify-center w-12 h-12 bg-white/20 backdrop-blur-md border border-white/40 rounded-full text-slate-500 shadow-lg hover:bg-white/40 hover:scale-110 transition-all duration-300 group"
+        title="Manage Database"
+      >
+        <Settings size={22} className="group-hover:rotate-90 transition-transform duration-500" />
+      </Link>
     </div>
   );
 }
