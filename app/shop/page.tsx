@@ -15,6 +15,7 @@ export default function ShopPage() {
   const [loading, setLoading] = useState(true);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
+  const [copyPulse, setCopyPulse] = useState(false);
   const pendingDeletes = useRef<{ [key: number]: NodeJS.Timeout }>({});
 
   useEffect(() => {
@@ -106,12 +107,14 @@ export default function ShopPage() {
   };
 
   const copyForReminders = async () => {
-    const text = items.map(i => i.name).join("\n");
+    const text = items.map(i => `- ${i.name}`).join("\n");
     try {
       await navigator.clipboard.writeText(text);
-      setToastMessage("Copied! Paste into Reminders to create separate tasks.");
+      setToastMessage("Copied! Pro Tip: Open Reminders and paste directly into the list (not inside a task) to create separate items.");
       setShowToast(true);
       setTimeout(() => setShowToast(false), 3000);
+      setCopyPulse(true);
+      setTimeout(() => setCopyPulse(false), 600);
     } catch (error) {
       console.error("Failed to copy list", error);
     }
@@ -183,7 +186,7 @@ export default function ShopPage() {
         </div>
 
         <div className="flex gap-3 pt-2 border-t border-slate-200/50 dark:border-slate-700/50">
-          <button onClick={copyForReminders} className="flex-1 py-3 rounded-xl font-bold text-slate-700 bg-white/50 hover:bg-white/70 shadow-lg text-sm flex items-center justify-center gap-2 transition-all"><Copy size={16} /> Copy</button>
+          <button onClick={copyForReminders} className={`flex-1 py-3 rounded-xl font-bold text-slate-700 bg-white/50 hover:bg-white/70 shadow-lg text-sm flex items-center justify-center gap-2 transition-all ${copyPulse ? "animate-pulse" : ""}`}><Copy size={16} /> Copy</button>
           <button onClick={shareList} className="flex-1 py-3 rounded-xl font-bold text-white bg-emerald-500 hover:bg-emerald-600 shadow-lg text-sm flex items-center justify-center gap-2 transition-all"><Share size={16} /> Share</button>
         </div>
       </div>
