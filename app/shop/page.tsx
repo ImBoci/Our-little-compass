@@ -93,12 +93,6 @@ export default function ShopPage() {
     await fetch(`/api/shop?id=${id}`, { method: "DELETE" });
   };
 
-  const clearCompleted = async () => {
-    if(!confirm("Clear all checked items immediately?")) return;
-    setItems(items.filter(i => !i.checked));
-    await fetch(`/api/shop?action=clear_completed`, { method: "DELETE" });
-  };
-
   const exportToApple = () => {
     const text = items.map(i => `- [${i.checked ? 'x' : ' '}] ${i.name}`).join("\n");
     if (navigator.share) {
@@ -174,9 +168,8 @@ export default function ShopPage() {
           ))}
         </div>
 
-        <div className="flex gap-3 pt-2 border-t border-slate-200/50 dark:border-slate-700/50">
-          <button onClick={clearCompleted} className="flex-1 py-3 rounded-xl font-bold text-slate-600 dark:text-slate-300 bg-white/50 dark:bg-slate-700/50 hover:bg-white dark:hover:bg-slate-600 border border-white/50 dark:border-slate-600 text-sm transition-all">Clear Done</button>
-          <button onClick={exportToApple} className="flex-1 py-3 rounded-xl font-bold text-white bg-emerald-500 hover:bg-emerald-600 shadow-lg text-sm flex items-center justify-center gap-2 transition-all"><Share size={16} /> Export</button>
+        <div className="flex pt-2 border-t border-slate-200/50 dark:border-slate-700/50">
+          <button onClick={exportToApple} className="w-full py-3 rounded-xl font-bold text-white bg-emerald-500 hover:bg-emerald-600 shadow-lg text-sm flex items-center justify-center gap-2 transition-all"><Share size={16} /> Export</button>
         </div>
       </div>
     </div>
