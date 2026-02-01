@@ -35,10 +35,10 @@ export default function MilestonesPage() {
         <header className="flex items-center justify-between mb-8">
           <Link
             href="/"
-            className="flex items-center justify-center p-3 bg-white/30 backdrop-blur-md border border-white/40 rounded-full text-[var(--text-color)] opacity-80 hover:opacity-100 transition-all shadow-sm group"
+            className="flex items-center gap-2 px-5 py-2.5 bg-white/30 backdrop-blur-md border border-white/40 rounded-full text-[var(--text-color)] font-medium shadow-sm hover:bg-white/60 hover:scale-105 hover:shadow-md transition-all duration-300 group z-50"
           >
-            <ArrowLeft size={20} className="transition-transform group-hover:-translate-x-1" />
-            <span className="hidden md:inline ml-2 pr-1 font-medium">Home</span>
+            <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
+            <span className="hidden md:inline ml-1">Back Home</span>
           </Link>
           <h1 className="font-serif text-3xl md:text-4xl text-[var(--text-color)] font-bold text-center flex-1">
             Milestones

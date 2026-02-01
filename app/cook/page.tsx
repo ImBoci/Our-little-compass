@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
-import { Shuffle, ArrowLeft, Search, CheckCircle, Star, Image, CircleAlert, ShoppingCart } from "lucide-react";
+import { Shuffle, ArrowLeft, Search, CheckCircle, Star, Image, CircleAlert, ShoppingCart, ShoppingBasket } from "lucide-react";
 import Link from "next/link";
 import ScratchOff from "@/components/ScratchOff";
 import ScrollToTopButton from "@/components/ScrollToTopButton";
@@ -175,6 +175,35 @@ export default function CookPage() {
     }
   };
 
+  const handleAddIngredientsFromDescription = async (description?: string) => {
+    if (!description) {
+      showToastMessage("No ingredients listed for this meal.", "warning");
+      return;
+    }
+    const items = description
+      .split(",")
+      .map((item: string) => item.trim())
+      .filter((item: string) => item.length > 0);
+    if (items.length === 0) {
+      showToastMessage("No ingredients listed for this meal.", "warning");
+      return;
+    }
+    try {
+      const response = await fetch("/api/shop", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ names: items }),
+      });
+      if (!response.ok) {
+        showToastMessage("Couldn't add ingredients. Try again.", "warning");
+        return;
+      }
+      showToastMessage("Ingredients added to list!", "success");
+    } catch {
+      showToastMessage("Couldn't add ingredients. Try again.", "warning");
+    }
+  };
+
   const handleCardFlip = (item: any) => {
     if (item.image_url) {
       setFlippedId(item.id);
@@ -328,16 +357,28 @@ export default function CookPage() {
                             onClick={() => handleCardFlip(food)}
                             role="button"
                           >
-                            <button 
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setCompletingItem(food);
-                              }}
-                              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-amber-500 hover:scale-110 transition-all z-10"
-                              title="Mark as cooked"
-                            >
-                              <CheckCircle size={22} />
-                            </button>
+                            <div className="absolute top-4 right-4 flex items-center gap-2 z-10">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleAddIngredientsFromDescription(food.description);
+                                }}
+                                className="p-2 text-emerald-500 hover:text-emerald-600 hover:scale-110 transition-all"
+                                title="Add ingredients to shopping list"
+                              >
+                                <ShoppingBasket size={20} />
+                              </button>
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setCompletingItem(food);
+                                }}
+                                className="p-2 text-slate-400 hover:text-amber-500 hover:scale-110 transition-all"
+                                title="Mark as cooked"
+                              >
+                                <CheckCircle size={22} />
+                              </button>
+                            </div>
 
                             <h3 className="font-bold text-lg text-[var(--text-color)] mb-2 pr-8 flex items-center gap-2 hyphens-auto break-words">
                               {food.name}
