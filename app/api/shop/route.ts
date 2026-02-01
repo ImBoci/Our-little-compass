@@ -18,7 +18,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, names } = body || {};
+    const { name, names, user } = body || {};
 
     const items: string[] = Array.isArray(names)
       ? names
@@ -31,11 +31,18 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Name is required." }, { status: 400 });
     }
 
-    const created = await prisma.shoppingItem.createMany({
-      data: cleaned.map((item) => ({ name: item })),
-    });
+    const resolvedUser =
+      typeof user === "string" && user.trim().length > 0 ? user.trim() : null;
 
-    return NextResponse.json({ success: true, count: created.count });
+    const createdItems = await prisma.$transaction(
+      cleaned.map((item) =>
+        prisma.shoppingItem.create({
+          data: { name: item, user: resolvedUser },
+        })
+      )
+    );
+
+    return NextResponse.json(createdItems);
   } catch (error) {
     console.error("Failed to create shopping items:", error);
     return NextResponse.json({ error: "Failed to create shopping items." }, { status: 500 });

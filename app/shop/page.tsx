@@ -7,6 +7,7 @@ interface ShoppingItem {
   id: number;
   name: string;
   checked: boolean;
+  user?: string | null;
 }
 
 export default function ShopPage() {
@@ -16,6 +17,8 @@ export default function ShopPage() {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const [copyPulse, setCopyPulse] = useState(false);
+  const [userName, setUserName] = useState<string | null>(null);
+  const [cooldown, setCooldown] = useState(0);
   const pendingDeletes = useRef<{ [key: number]: NodeJS.Timeout }>({});
 
   useEffect(() => {
@@ -28,14 +31,30 @@ export default function ShopPage() {
     };
   }, []);
 
+  useEffect(() => {
+    const stored = typeof window !== "undefined" ? localStorage.getItem("userName") : null;
+    if (stored) {
+      setUserName(stored);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const timer = setInterval(() => {
+      setCooldown((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [cooldown]);
+
   const addItem = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     const name = input.trim();
     if (!name) return;
+    const resolvedUser = userName || "Anonymous";
 
     // Optimistic Add with Temporary ID
     const tempId = Date.now(); 
-    const newItem = { id: tempId, name: name, checked: false };
+    const newItem = { id: tempId, name: name, checked: false, user: resolvedUser };
     
     setItems(prev => [...prev, newItem]);
     setInput("");
@@ -44,14 +63,14 @@ export default function ShopPage() {
       const res = await fetch("/api/shop", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name }) 
+        body: JSON.stringify({ name, user: resolvedUser }) 
       });
       
       if (res.ok) {
         const savedData = await res.json();
         const savedItem = Array.isArray(savedData) ? savedData[0] : savedData;
         // Swap temp ID with real DB ID, KEEPING the name secure
-        setItems(prev => prev.map(i => i.id === tempId ? { ...i, id: savedItem.id } : i));
+        setItems(prev => prev.map(i => i.id === tempId ? { ...i, id: savedItem?.id ?? i.id, user: savedItem?.user ?? i.user } : i));
       }
     } catch (error) {
       console.error("Failed to save item", error);
@@ -106,17 +125,49 @@ export default function ShopPage() {
     }
   };
 
+  const showToastMessage = (message: string) => {
+    setToastMessage(message);
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 3000);
+  };
+
   const copyForReminders = async () => {
     const text = items.map(i => `- ${i.name}`).join("\n");
     try {
       await navigator.clipboard.writeText(text);
-      setToastMessage("Copied! Pro Tip: Open Reminders and paste directly into the list (not inside a task) to create separate items.");
-      setShowToast(true);
-      setTimeout(() => setShowToast(false), 3000);
+      showToastMessage("Copied! Pro Tip: Open Reminders and paste directly into the list (not inside a task) to create separate items.");
       setCopyPulse(true);
       setTimeout(() => setCopyPulse(false), 600);
     } catch (error) {
       console.error("Failed to copy list", error);
+    }
+  };
+
+  const handleAlertPartner = async () => {
+    const resolvedName = userName || "Anonymous";
+    try {
+      const response = await fetch("/api/push/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sender: resolvedName,
+          message: `${resolvedName} just updated the shopping list! 🛒`,
+          url: "/shop",
+        }),
+      });
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        if (response.status === 429 && typeof data?.remainingSeconds === "number") {
+          setCooldown(data.remainingSeconds);
+          showToastMessage("Cooldown active. Please wait.");
+          return;
+        }
+        showToastMessage(data?.error || "Couldn't alert your partner. Try again.");
+        return;
+      }
+      showToastMessage("Alert sent to your partner! 🔔");
+    } catch {
+      showToastMessage("Couldn't alert your partner. Try again.");
     }
   };
 
@@ -169,6 +220,11 @@ export default function ShopPage() {
                 <span className={`text-lg transition-all ${item.checked ? 'text-slate-400 line-through' : 'text-[var(--text-color)] font-medium'}`}>
                   {item.name}
                 </span>
+                {item.user && (
+                  <span className="text-xs text-[var(--text-color)]/60 ml-2">
+                    • {item.user}
+                  </span>
+                )}
                 {item.checked && <span className="text-xs text-emerald-500 animate-pulse ml-2 font-medium">Deleting...</span>}
               </div>
               
@@ -188,6 +244,19 @@ export default function ShopPage() {
         <div className="flex gap-3 pt-2 border-t border-slate-200/50 dark:border-slate-700/50">
           <button onClick={copyForReminders} className={`flex-1 py-3 rounded-xl font-bold text-slate-700 bg-white/50 hover:bg-white/70 shadow-lg text-sm flex items-center justify-center gap-2 transition-all ${copyPulse ? "animate-pulse" : ""}`}><Copy size={16} /> Copy</button>
           <button onClick={shareList} className="flex-1 py-3 rounded-xl font-bold text-white bg-emerald-500 hover:bg-emerald-600 shadow-lg text-sm flex items-center justify-center gap-2 transition-all"><Share size={16} /> Share</button>
+          <button
+            onClick={handleAlertPartner}
+            disabled={cooldown > 0}
+            className={`flex-1 py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all ${
+              cooldown > 0
+                ? "bg-white/10 border border-white/30 text-[var(--text-color)]/60 cursor-not-allowed"
+                : "bg-white/30 backdrop-blur-md border border-white/40 text-[var(--text-color)] hover:bg-white/50"
+            }`}
+          >
+            {cooldown > 0
+              ? `Wait ${Math.floor(cooldown / 60)}:${String(cooldown % 60).padStart(2, "0")}`
+              : "Alert Partner 🔔"}
+          </button>
         </div>
       </div>
 

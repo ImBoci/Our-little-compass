@@ -15,7 +15,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { sender, message } = body || {};
+    const { sender, message, url } = body || {};
     const resolvedSender =
       typeof sender === "string" && sender.trim().length > 0 ? sender.trim() : "Anonymous";
 
@@ -52,10 +52,11 @@ export async function POST(request: Request) {
     console.log("[Push] target subscriptions:", targets.length, "sender:", resolvedSender);
 
     const title = "Our Little Compass";
+    const resolvedUrl = typeof url === "string" && url.trim().length > 0 ? url : "/";
     const payload = JSON.stringify({
       title,
       body: message,
-      url: "/",
+      url: resolvedUrl,
     });
 
     const results = await Promise.allSettled(
