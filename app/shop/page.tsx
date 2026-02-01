@@ -116,10 +116,10 @@ export default function ShopPage() {
       <div className="w-full max-w-lg relative flex items-center justify-center mb-8 pt-4 min-h-[50px]">
         <Link 
           href="/" 
-          className="absolute left-0 flex items-center justify-center p-3 bg-white/30 backdrop-blur-md border border-white/40 rounded-full text-[var(--text-color)] hover:bg-white/60 hover:scale-105 hover:shadow-md transition-all shadow-sm group z-50"
+          className="absolute left-0 flex items-center gap-2 px-5 py-2.5 bg-white/30 backdrop-blur-md border border-white/40 rounded-full text-[var(--text-color)] font-medium shadow-sm hover:bg-white/60 hover:scale-105 hover:shadow-md transition-all duration-300 group z-50"
         >
-          <ArrowLeft size={20} className="transition-transform group-hover:-translate-x-1" />
-          <span className="hidden md:inline ml-2 pr-1 font-medium">Home</span>
+          <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
+          <span className="hidden md:inline ml-1">Back Home</span>
         </Link>
         
         <h1 className="font-serif text-3xl font-bold drop-shadow-sm flex items-center gap-2 text-[var(--text-color)]">
