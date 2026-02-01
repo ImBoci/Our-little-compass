@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
-import { ArrowLeft, Trash2, Check, Share, Plus, ShoppingBasket, Undo2, Copy } from "lucide-react";
+import { ArrowLeft, Trash2, Check, Plus, ShoppingBasket, Undo2, Copy } from "lucide-react";
 import Link from "next/link";
 
 interface ShoppingItem {
@@ -115,16 +115,6 @@ export default function ShopPage() {
     await fetch(`/api/shop?id=${id}`, { method: "DELETE" });
   };
 
-  const shareList = () => {
-    const text = items.map(i => `- [${i.checked ? 'x' : ' '}] ${i.name}`).join("\n");
-    if (navigator.share) {
-      navigator.share({ title: "Grocery List", text: text }).catch(console.error);
-    } else {
-      navigator.clipboard.writeText(text);
-      alert("List copied to clipboard!");
-    }
-  };
-
   const showToastMessage = (message: string) => {
     setToastMessage(message);
     setShowToast(true);
@@ -135,7 +125,7 @@ export default function ShopPage() {
     const text = items.map(i => `- ${i.name}`).join("\n");
     try {
       await navigator.clipboard.writeText(text);
-      showToastMessage("Copied! Pro Tip: Open Reminders and paste directly into the list (not inside a task) to create separate items.");
+      showToastMessage("List copied to clipboard!");
       setCopyPulse(true);
       setTimeout(() => setCopyPulse(false), 600);
     } catch (error) {
@@ -242,20 +232,24 @@ export default function ShopPage() {
         </div>
 
         <div className="flex gap-3 pt-2 border-t border-slate-200/50 dark:border-slate-700/50">
-          <button onClick={copyForReminders} className={`flex-1 py-3 rounded-xl font-bold text-slate-700 bg-white/50 hover:bg-white/70 shadow-lg text-sm flex items-center justify-center gap-2 transition-all ${copyPulse ? "animate-pulse" : ""}`}><Copy size={16} /> Copy</button>
-          <button onClick={shareList} className="flex-1 py-3 rounded-xl font-bold text-white bg-emerald-500 hover:bg-emerald-600 shadow-lg text-sm flex items-center justify-center gap-2 transition-all"><Share size={16} /> Share</button>
+          <button
+            onClick={copyForReminders}
+            className={`flex-1 py-3 rounded-xl font-bold text-[var(--text-color)] bg-white/30 backdrop-blur-md border border-white/40 hover:bg-white/60 text-sm flex items-center justify-center gap-2 transition-all ${copyPulse ? "animate-pulse" : ""}`}
+          >
+            <Copy size={16} /> 📋 Copy
+          </button>
           <button
             onClick={handleAlertPartner}
             disabled={cooldown > 0}
             className={`flex-1 py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all ${
               cooldown > 0
                 ? "bg-white/10 border border-white/30 text-[var(--text-color)]/60 cursor-not-allowed"
-                : "bg-white/30 backdrop-blur-md border border-white/40 text-[var(--text-color)] hover:bg-white/50"
+                : "bg-white/30 backdrop-blur-md border border-white/40 text-[var(--text-color)] hover:bg-white/60"
             }`}
           >
             {cooldown > 0
               ? `Wait ${Math.floor(cooldown / 60)}:${String(cooldown % 60).padStart(2, "0")}`
-              : "Alert Partner 🔔"}
+              : "🔔 Alert Partner"}
           </button>
         </div>
       </div>
