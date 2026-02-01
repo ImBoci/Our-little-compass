@@ -1,213 +1,148 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useState, useEffect } from "react";
+import { ArrowLeft, Trash2, Check, Share, Plus, ShoppingBasket } from "lucide-react";
 import Link from "next/link";
-import { ArrowLeft, ShoppingBasket, Trash2, Check } from "lucide-react";
 
-type ShoppingItem = {
+interface ShoppingItem {
   id: number;
   name: string;
   checked: boolean;
-  createdAt: string;
-};
+}
 
 export default function ShopPage() {
   const [items, setItems] = useState<ShoppingItem[]>([]);
-  const [input, setInput] = useState(\"\");
-  const [isLoading, setIsLoading] = useState(true);
-  const [message, setMessage] = useState<string | null>(null);
-
-  const uncheckedCount = useMemo(() => items.filter((item) => !item.checked).length, [items]);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadItems = async () => {
-      try {
-        const response = await fetch("/api/shop");
-        const data = await response.json();
-        setItems(Array.isArray(data) ? data : []);
-      } catch {
-        setItems([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    loadItems();
+    fetch("/api/shop").then(r => r.json()).then(data => {
+      if(Array.isArray(data)) setItems(data);
+      setLoading(false);
+    });
   }, []);
 
-  const handleAddItem = async () => {
-    const value = input.trim();
-    if (!value) return;
-    setInput(\"\");
-    setMessage(null);
-    try {
-      const response = await fetch("/api/shop", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: value }),
-      });
-      if (!response.ok) {
-        setMessage(\"Could not add item.\");
-        return;
-      }
-      const refreshed = await fetch("/api/shop");
-      const data = await refreshed.json();
-      setItems(Array.isArray(data) ? data : []);
-    } catch {
-      setMessage(\"Could not add item.\");
+  const addItem = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!input.trim()) return;
+
+    const res = await fetch("/api/shop", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: input.trim() })
+    });
+    
+    if (res.ok) {
+      const newItem = await res.json();
+      // Add to list immediately
+      setItems(prev => Array.isArray(newItem) ? [...prev, ...newItem] : [...prev, newItem]);
+      setInput("");
     }
   };
 
-  const handleToggle = async (item: ShoppingItem) => {
-    setItems((prev) =>
-      prev.map((entry) => (entry.id === item.id ? { ...entry, checked: !entry.checked } : entry))
-    );
-    try {
-      await fetch("/api/shop", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: item.id, checked: !item.checked }),
-      });
-    } catch {
-      setItems((prev) =>
-        prev.map((entry) => (entry.id === item.id ? { ...entry, checked: item.checked } : entry))
-      );
+  const toggleItem = async (id: number, current: boolean) => {
+    // Optimistic update
+    setItems(items.map(i => i.id === id ? { ...i, checked: !current } : i));
+    await fetch("/api/shop", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, checked: !current })
+    });
+  };
+
+  const deleteItem = async (id: number) => {
+    setItems(items.filter(i => i.id !== id));
+    await fetch(`/api/shop?id=${id}`, { method: "DELETE" });
+  };
+
+  const clearCompleted = async () => {
+    if(!confirm("Clear all checked items?")) return;
+    setItems(items.filter(i => !i.checked));
+    await fetch(`/api/shop?action=clear_completed`, { method: "DELETE" });
+  };
+
+  const exportToApple = () => {
+    const text = items.map(i => `- [${i.checked ? 'x' : ' '}] ${i.name}`).join("\n");
+    if (navigator.share) {
+      navigator.share({
+        title: "Grocery List",
+        text: text
+      }).catch(console.error);
+    } else {
+      navigator.clipboard.writeText(text);
+      alert("List copied to clipboard! Paste into Reminders/Notes.");
     }
   };
 
-  const handleDelete = async (id: number) => {
-    setItems((prev) => prev.filter((item) => item.id !== id));
-    try {
-      await fetch(`/api/shop?id=${id}`, { method: "DELETE" });
-    } catch {
-      setMessage(\"Could not delete item.\");
-    }
-  };
-
-  const handleClearCompleted = async () => {
-    try {
-      await fetch("/api/shop?action=clear_completed", { method: "DELETE" });
-      setItems((prev) => prev.filter((item) => !item.checked));
-    } catch {
-      setMessage(\"Could not clear completed items.\");
-    }
-  };
-
-  const handleExport = async () => {
-    const lines = items.map((item) => `- [${item.checked ? \"x\" : \" \"}] ${item.name}`);
-    const text = lines.join(\"\\n\");
-    try {
-      if (typeof navigator !== "undefined" && navigator.share) {
-        await navigator.share({ text });
-        return;
-      }
-      await navigator.clipboard.writeText(text);
-      setMessage(\"List copied to clipboard.\");
-    } catch {
-      setMessage(\"Could not export list.\");
-    }
-  };
+  if (loading) return <div className="flex min-h-screen items-center justify-center text-emerald-800 animate-pulse font-serif text-xl">Loading list...</div>;
 
   return (
     <div className="min-h-screen p-4 flex flex-col items-center bg-transparent">
-      <div className="w-full max-w-3xl">
-        <header className="flex items-center justify-between mb-8">
-          <Link
-            href="/"
-            className="flex items-center justify-center p-3 bg-white/30 backdrop-blur-md border border-white/40 rounded-full text-[var(--text-color)] opacity-80 hover:opacity-100 transition-all shadow-sm group"
-          >
-            <ArrowLeft size={20} className="transition-transform group-hover:-translate-x-1" />
-            <span className="hidden md:inline ml-2 pr-1 font-medium">Home</span>
-          </Link>
-          <h1 className="font-serif text-3xl md:text-4xl text-[var(--text-color)] font-bold text-center flex-1">
-            Shopping List
-          </h1>
-          <div className="w-[52px] md:w-[88px]" />
-        </header>
+      <div className="w-full max-w-lg flex items-center justify-between mb-8 gap-4 relative z-50 pt-4">
+        <Link href="/" className="flex items-center gap-2 px-5 py-2.5 bg-white/30 backdrop-blur-md border border-white/40 rounded-full text-slate-700 font-medium shadow-sm hover:bg-white/60 transition-all">
+          <ArrowLeft size={18} /> Home
+        </Link>
+        <h1 className="font-serif text-3xl text-slate-800 font-bold drop-shadow-sm flex items-center gap-2">
+          <ShoppingBasket className="text-emerald-600" /> Shopping
+        </h1>
+      </div>
 
-        <div className="bg-emerald-50/70 dark:bg-emerald-900/30 backdrop-blur-xl border border-emerald-200/60 dark:border-emerald-400/30 rounded-3xl p-6 shadow-xl">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded-full bg-emerald-100/80 text-emerald-600 flex items-center justify-center">
-              <ShoppingBasket size={20} />
-            </div>
-            <div>
-              <h2 className="font-serif text-xl text-[var(--text-color)] font-bold">Fresh Picks</h2>
-              <p className="text-sm text-[var(--text-color)]/70">
-                {uncheckedCount} items left to grab.
-              </p>
-            </div>
-          </div>
+      {/* Main Card */}
+      <div className="w-full max-w-lg bg-white/60 backdrop-blur-xl border border-white/60 p-6 rounded-[2rem] shadow-xl flex flex-col gap-6">
+        
+        {/* Input */}
+        <form onSubmit={addItem} className="flex gap-2">
+          <input 
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Add item..."
+            className="flex-1 bg-white/60 border border-white/60 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all placeholder:text-slate-400 text-slate-800"
+          />
+          <button type="submit" className="bg-emerald-500 text-white px-4 rounded-xl hover:bg-emerald-600 transition-colors shadow-md">
+            <Plus size={24} />
+          </button>
+        </form>
 
-          <div className="flex flex-col sm:flex-row gap-3 mb-4">
-            <input
-              value={input}
-              onChange={(event) => setInput(event.target.value)}
-              placeholder="Add an ingredient..."
-              className="flex-1 bg-white/70 dark:bg-slate-900/40 border border-emerald-200/60 dark:border-emerald-400/30 rounded-2xl px-4 py-3 text-[var(--text-color)] placeholder:text-emerald-400/70 focus:outline-none focus:ring-2 focus:ring-emerald-300"
-            />
-            <button
-              onClick={handleAddItem}
-              className="px-6 py-3 rounded-2xl bg-emerald-500 text-white font-semibold shadow-md hover:bg-emerald-600 transition-all"
+        {/* List */}
+        <div className="space-y-2 max-h-[60vh] overflow-y-auto pr-1">
+          {items.length === 0 && <div className="text-center text-slate-500 italic py-8">Your list is empty. Time to stock up! 🥦</div>}
+          
+          {items.map(item => (
+            <div 
+              key={item.id} 
+              className={`flex items-center justify-between p-3 rounded-xl border transition-all duration-300 ${item.checked ? 'bg-emerald-50/50 border-emerald-100 opacity-70' : 'bg-white/80 border-white/50 shadow-sm'}`}
             >
-              Add
-            </button>
-          </div>
-
-          {message && <p className="text-sm text-[var(--text-color)]/70 mb-4">{message}</p>}
-
-          <div className="space-y-3">
-            {isLoading ? (
-              <p className="text-sm text-[var(--text-color)]/70">Loading list...</p>
-            ) : items.length === 0 ? (
-              <p className="text-sm text-[var(--text-color)]/70">No items yet. Add your first ingredient!</p>
-            ) : (
-              items.map((item) => (
-                <div
-                  key={item.id}
-                  className="flex items-center justify-between gap-3 bg-white/60 dark:bg-slate-900/30 border border-white/50 rounded-2xl px-4 py-3"
-                >
-                  <button
-                    onClick={() => handleToggle(item)}
-                    className={`w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all ${
-                      item.checked
-                        ? "bg-emerald-500 border-emerald-500 text-white"
-                        : "border-emerald-300 text-emerald-400"
-                    }`}
-                    aria-label=\"Toggle item\"
-                  >
-                    {item.checked && <Check size={16} />}
-                  </button>
-                  <span
-                    className={`flex-1 text-[var(--text-color)] ${
-                      item.checked ? "line-through text-[var(--text-color)]/60" : ""
-                    }`}
-                  >
-                    {item.name}
-                  </span>
-                  <button
-                    onClick={() => handleDelete(item.id)}
-                    className="p-2 rounded-full text-emerald-500 hover:text-emerald-600 hover:bg-emerald-100/60 transition-all"
-                    aria-label=\"Delete item\"
-                  >
-                    <Trash2 size={16} />
-                  </button>
+              <div 
+                onClick={() => toggleItem(item.id, item.checked)}
+                className="flex items-center gap-3 flex-1 cursor-pointer"
+              >
+                <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${item.checked ? 'bg-emerald-500 border-emerald-500' : 'border-slate-300'}`}>
+                  {item.checked && <Check size={14} className="text-white" />}
                 </div>
-              ))
-            )}
-          </div>
+                <span className={`text-lg ${item.checked ? 'text-slate-400 line-through' : 'text-slate-800 font-medium'}`}>
+                  {item.name}
+                </span>
+              </div>
+              <button onClick={() => deleteItem(item.id)} className="p-2 text-slate-400 hover:text-red-500 transition-colors">
+                <Trash2 size={18} />
+              </button>
+            </div>
+          ))}
+        </div>
 
-          <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-between">
-            <button
-              onClick={handleClearCompleted}
-              className="px-4 py-2 rounded-full border border-emerald-300/60 text-emerald-600 font-semibold hover:bg-emerald-100/60 transition-all"
-            >
-              Clear Completed
-            </button>
-            <button
-              onClick={handleExport}
-              className="px-5 py-2 rounded-full bg-emerald-500 text-white font-semibold shadow-md hover:bg-emerald-600 transition-all"
-            >
-              Export to Apple Reminders
-            </button>
-          </div>
+        {/* Footer Actions */}
+        <div className="flex gap-3 pt-2 border-t border-slate-200/50">
+          <button 
+            onClick={clearCompleted}
+            className="flex-1 py-3 rounded-xl font-bold text-slate-600 bg-white/50 hover:bg-white border border-white/50 text-sm transition-all"
+          >
+            Clear Done
+          </button>
+          <button 
+            onClick={exportToApple}
+            className="flex-1 py-3 rounded-xl font-bold text-white bg-emerald-500 hover:bg-emerald-600 shadow-lg text-sm flex items-center justify-center gap-2 transition-all"
+          >
+            <Share size={16} /> Export
+          </button>
         </div>
       </div>
     </div>
