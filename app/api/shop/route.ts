@@ -8,10 +8,18 @@ export async function GET() {
     const items = await prisma.shoppingItem.findMany({
       orderBy: [{ checked: "asc" }, { createdAt: "asc" }],
     });
-    return NextResponse.json(items);
+    return NextResponse.json(items, {
+      headers: {
+        "Cache-Control": "no-store, max-age=0",
+      },
+    });
   } catch (error) {
     console.error("Failed to fetch shopping items:", error);
-    return NextResponse.json([]);
+    return NextResponse.json([], {
+      headers: {
+        "Cache-Control": "no-store, max-age=0",
+      },
+    });
   }
 }
 
@@ -32,17 +40,22 @@ export async function POST(request: Request) {
     }
 
     const resolvedUser =
-      typeof user === "string" && user.trim().length > 0 ? user.trim() : null;
+      typeof user === "string" && user.trim().length > 0 ? user.trim() : "Anonymous";
 
-    const createdItems = await prisma.$transaction(
-      cleaned.map((item) =>
-        prisma.shoppingItem.create({
-          data: { name: item, user: resolvedUser },
-        })
-      )
-    );
+    try {
+      const createdItems = await prisma.$transaction(
+        cleaned.map((item) =>
+          prisma.shoppingItem.create({
+            data: { name: item, user: resolvedUser },
+          })
+        )
+      );
 
-    return NextResponse.json(createdItems);
+      return NextResponse.json(createdItems);
+    } catch (createError) {
+      console.error("Failed to create shopping items (db):", createError);
+      return NextResponse.json({ error: "Failed to create shopping items." }, { status: 500 });
+    }
   } catch (error) {
     console.error("Failed to create shopping items:", error);
     return NextResponse.json({ error: "Failed to create shopping items." }, { status: 500 });

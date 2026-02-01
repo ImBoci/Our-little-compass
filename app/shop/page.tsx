@@ -52,13 +52,6 @@ export default function ShopPage() {
     if (!name) return;
     const resolvedUser = userName || "Anonymous";
 
-    // Optimistic Add with Temporary ID
-    const tempId = Date.now(); 
-    const newItem = { id: tempId, name: name, checked: false, user: resolvedUser };
-    
-    setItems(prev => [...prev, newItem]);
-    setInput("");
-
     try {
       const res = await fetch("/api/shop", {
         method: "POST",
@@ -66,14 +59,22 @@ export default function ShopPage() {
         body: JSON.stringify({ name, user: resolvedUser }) 
       });
       
-      if (res.ok) {
-        const savedData = await res.json();
-        const savedItem = Array.isArray(savedData) ? savedData[0] : savedData;
-        // Swap temp ID with real DB ID, KEEPING the name secure
-        setItems(prev => prev.map(i => i.id === tempId ? { ...i, id: savedItem?.id ?? i.id, user: savedItem?.user ?? i.user } : i));
+      if (!res.ok) {
+        alert("Failed to save the item. Please try again.");
+        return;
+      }
+
+      const savedData = await res.json();
+      const savedItem = Array.isArray(savedData) ? savedData[0] : savedData;
+      if (savedItem?.id) {
+        setItems((prev) => [...prev, savedItem]);
+        setInput("");
+      } else {
+        alert("Failed to save the item. Please try again.");
       }
     } catch (error) {
       console.error("Failed to save item", error);
+      alert("Failed to save the item. Please try again.");
     }
   };
 
