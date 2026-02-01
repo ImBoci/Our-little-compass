@@ -223,12 +223,12 @@ function SettingsContent() {
     <div className="min-h-screen px-4 py-10 flex justify-center bg-transparent">
       <div className="w-full max-w-4xl">
         <header className="flex items-center justify-between mb-8">
-          <Link
-            href="/"
-            className="flex items-center gap-2 px-4 py-2 bg-[var(--card-bg)] backdrop-blur-md border border-white/50 rounded-full text-[var(--text-color)] text-sm font-medium shadow-sm hover:bg-white/60 transition-all"
+          <Link 
+            href="/" 
+            className="flex items-center gap-2 px-5 py-2.5 bg-white/30 backdrop-blur-md border border-white/40 rounded-full text-[var(--text-color)] font-medium shadow-sm hover:bg-white/60 hover:scale-105 hover:shadow-md transition-all duration-300 group z-50"
           >
-            <ArrowLeft size={16} />
-            <span className="hidden md:inline ml-2">Back Home</span>
+            <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
+            <span className="hidden md:inline ml-1">Back Home</span>
           </Link>
           <h1 className="font-serif text-2xl md:text-3xl text-[var(--text-color)] font-bold">Settings Hub</h1>
           <div className="w-[88px]" />
