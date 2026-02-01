@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
-import { ArrowLeft, Trash2, Check, Share, Plus, ShoppingBasket, Undo2 } from "lucide-react";
+import { ArrowLeft, Trash2, Check, Share, Plus, ShoppingBasket, Undo2, Copy } from "lucide-react";
 import Link from "next/link";
 
 interface ShoppingItem {
@@ -13,6 +13,8 @@ export default function ShopPage() {
   const [items, setItems] = useState<ShoppingItem[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(true);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
   const pendingDeletes = useRef<{ [key: number]: NodeJS.Timeout }>({});
 
   useEffect(() => {
@@ -93,13 +95,25 @@ export default function ShopPage() {
     await fetch(`/api/shop?id=${id}`, { method: "DELETE" });
   };
 
-  const exportToApple = () => {
+  const shareList = () => {
     const text = items.map(i => `- [${i.checked ? 'x' : ' '}] ${i.name}`).join("\n");
     if (navigator.share) {
       navigator.share({ title: "Grocery List", text: text }).catch(console.error);
     } else {
       navigator.clipboard.writeText(text);
       alert("List copied to clipboard!");
+    }
+  };
+
+  const copyForReminders = async () => {
+    const text = items.map(i => i.name).join("\n");
+    try {
+      await navigator.clipboard.writeText(text);
+      setToastMessage("Copied! Paste into Reminders to create separate tasks.");
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+    } catch (error) {
+      console.error("Failed to copy list", error);
     }
   };
 
@@ -168,10 +182,17 @@ export default function ShopPage() {
           ))}
         </div>
 
-        <div className="flex pt-2 border-t border-slate-200/50 dark:border-slate-700/50">
-          <button onClick={exportToApple} className="w-full py-3 rounded-xl font-bold text-white bg-emerald-500 hover:bg-emerald-600 shadow-lg text-sm flex items-center justify-center gap-2 transition-all"><Share size={16} /> Export</button>
+        <div className="flex gap-3 pt-2 border-t border-slate-200/50 dark:border-slate-700/50">
+          <button onClick={copyForReminders} className="flex-1 py-3 rounded-xl font-bold text-slate-700 bg-white/50 hover:bg-white/70 shadow-lg text-sm flex items-center justify-center gap-2 transition-all"><Copy size={16} /> Copy</button>
+          <button onClick={shareList} className="flex-1 py-3 rounded-xl font-bold text-white bg-emerald-500 hover:bg-emerald-600 shadow-lg text-sm flex items-center justify-center gap-2 transition-all"><Share size={16} /> Share</button>
         </div>
       </div>
+
+      {showToast && (
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[110] flex items-center gap-2 bg-white/80 backdrop-blur-md px-6 py-3 rounded-full shadow-2xl border border-white/50 animate-in slide-in-from-top-4 fade-in duration-300">
+          <span className="font-bold text-slate-700">{toastMessage}</span>
+        </div>
+      )}
     </div>
   );
 }
