@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { UtensilsCrossed, CalendarHeart, BookHeart, Menu, HeartPulse } from "lucide-react";
+import { UtensilsCrossed, CalendarHeart, BookHeart, Menu, HeartPulse, ShoppingBasket } from "lucide-react";
 
 export default function Home() {
   const [userName, setUserName] = useState<string | null>(null);
@@ -15,6 +15,13 @@ export default function Home() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4 text-center bg-transparent">
+      <Link
+        href="/shop"
+        className="fixed bottom-6 left-6 z-[100] flex items-center justify-center w-14 h-14 bg-emerald-100/80 dark:bg-emerald-900/50 backdrop-blur-md border-2 border-emerald-300/70 dark:border-emerald-500/50 rounded-full text-emerald-600 dark:text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.2)] hover:scale-110 transition-all duration-300"
+        title="Shopping List"
+      >
+        <ShoppingBasket size={26} />
+      </Link>
       <Link
         href="/settings"
         className="fixed top-6 right-6 z-[100] flex items-center justify-center w-14 h-14 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border-2 border-rose-400 dark:border-purple-500 rounded-full text-rose-600 dark:text-purple-400 shadow-[0_0_15px_rgba(225,29,72,0.2)] dark:shadow-[0_0_15px_rgba(168,85,247,0.2)] hover:scale-110 transition-all duration-300"

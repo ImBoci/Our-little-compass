@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
-import { Shuffle, ArrowLeft, Search, CheckCircle, Star, Image, CircleAlert } from "lucide-react";
+import { Shuffle, ArrowLeft, Search, CheckCircle, Star, Image, CircleAlert, ShoppingCart } from "lucide-react";
 import Link from "next/link";
 import ScratchOff from "@/components/ScratchOff";
 import ScrollToTopButton from "@/components/ScrollToTopButton";
@@ -146,6 +146,35 @@ export default function CookPage() {
     }
   };
 
+  const handleAddIngredients = async () => {
+    if (!randomFood?.description) {
+      showToastMessage("No ingredients listed for this meal.", "warning");
+      return;
+    }
+    const items = randomFood.description
+      .split(",")
+      .map((item: string) => item.trim())
+      .filter((item: string) => item.length > 0);
+    if (items.length === 0) {
+      showToastMessage("No ingredients listed for this meal.", "warning");
+      return;
+    }
+    try {
+      const response = await fetch("/api/shop", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ names: items }),
+      });
+      if (!response.ok) {
+        showToastMessage("Couldn't add ingredients. Try again.", "warning");
+        return;
+      }
+      showToastMessage("Ingredients added to list! 🛒", "success");
+    } catch {
+      showToastMessage("Couldn't add ingredients. Try again.", "warning");
+    }
+  };
+
   const handleCardFlip = (item: any) => {
     if (item.image_url) {
       setFlippedId(item.id);
@@ -239,9 +268,20 @@ export default function CookPage() {
                     </div>
                   )}
               </div>
-              <button onClick={handleShuffle} className="mt-12 group relative inline-flex items-center gap-3 bg-rose-500 text-white px-8 py-4 rounded-full font-bold text-lg transition-all duration-300 hover:scale-105 hover:bg-rose-600 hover:shadow-[0_0_30px_#f43f5e]">
-                  <Shuffle className="group-hover:rotate-180 transition-transform duration-500" /> Shuffle Again
-              </button>
+              <div className="mt-12 flex flex-wrap items-center justify-center gap-3">
+                <button onClick={handleShuffle} className="group relative inline-flex items-center gap-3 bg-rose-500 text-white px-8 py-4 rounded-full font-bold text-lg transition-all duration-300 hover:scale-105 hover:bg-rose-600 hover:shadow-[0_0_30px_#f43f5e]">
+                    <Shuffle className="group-hover:rotate-180 transition-transform duration-500" /> Shuffle Again
+                </button>
+                {randomFood && (
+                  <button
+                    onClick={handleAddIngredients}
+                    className="inline-flex items-center justify-center p-3 rounded-full bg-white/20 backdrop-blur-md border border-rose-200/60 text-rose-600 hover:bg-rose-100/40 transition-all shadow-sm"
+                    title="Add ingredients to shopping list"
+                  >
+                    <ShoppingCart size={22} />
+                  </button>
+                )}
+              </div>
               {isRevealed && randomFood && (
                 <button
                   onClick={handleSendPushInvite}

@@ -52,3 +52,10 @@ model AppNotification {
   sender    String
   createdAt DateTime @default(now())
 }
+
+model ShoppingItem {
+  id        Int      @id @default(autoincrement())
+  name      String
+  checked   Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
