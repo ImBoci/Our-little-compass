@@ -27,6 +27,7 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const { name, names, user } = body || {};
+    console.log("Saving item with data:", body);
 
     const items: string[] = Array.isArray(names)
       ? names
@@ -54,11 +55,15 @@ export async function POST(request: Request) {
       return NextResponse.json(createdItems);
     } catch (createError) {
       console.error("Failed to create shopping items (db):", createError);
-      return NextResponse.json({ error: "Failed to create shopping items." }, { status: 500 });
+      const message =
+        createError instanceof Error ? createError.message : "Failed to create shopping items.";
+      return NextResponse.json({ error: message }, { status: 500 });
     }
   } catch (error) {
     console.error("Failed to create shopping items:", error);
-    return NextResponse.json({ error: "Failed to create shopping items." }, { status: 500 });
+    const message =
+      error instanceof Error ? error.message : "Failed to create shopping items.";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 

@@ -60,7 +60,8 @@ export default function ShopPage() {
       });
       
       if (!res.ok) {
-        alert("Failed to save the item. Please try again.");
+        const errorData = await res.json().catch(() => ({}));
+        alert(`Error: ${errorData.error || "Unknown error"}`);
         return;
       }
 
