@@ -44,15 +44,16 @@ export async function POST(request: Request) {
       typeof user === "string" && user.trim().length > 0 ? user.trim() : "Anonymous";
 
     try {
-      const createdItems = await prisma.$transaction(
-        cleaned.map((item) =>
-          prisma.shoppingItem.create({
-            data: { name: item, user: resolvedUser },
-          })
-        )
-      );
-
-      return NextResponse.json(createdItems);
+      if (cleaned.length > 1) {
+        const result = await prisma.shoppingItem.createMany({
+          data: cleaned.map((name) => ({ name, user: resolvedUser })),
+        });
+        return NextResponse.json({ success: true, count: result.count });
+      }
+      const created = await prisma.shoppingItem.create({
+        data: { name: cleaned[0], user: resolvedUser },
+      });
+      return NextResponse.json([created]);
     } catch (createError) {
       console.error("Failed to create shopping items (db):", createError);
       const message =

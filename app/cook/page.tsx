@@ -146,24 +146,26 @@ export default function CookPage() {
     }
   };
 
-  const handleAddIngredients = async () => {
-    if (!randomFood?.description) {
+  const addToShoppingList = async (description: string | undefined) => {
+    if (!description) {
       showToastMessage("No ingredients listed for this meal.", "warning");
       return;
     }
-    const items = randomFood.description
+    const names = description
       .split(",")
-      .map((item: string) => item.trim())
-      .filter((item: string) => item.length > 0);
-    if (items.length === 0) {
+      .map((s: string) => s.trim())
+      .filter((s: string) => s.length > 0);
+    if (names.length === 0) {
       showToastMessage("No ingredients listed for this meal.", "warning");
       return;
     }
+    const storedName = typeof window !== "undefined" ? localStorage.getItem("userName") : null;
+    const resolvedUser = storedName || userName || "Anonymous";
     try {
       const response = await fetch("/api/shop", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ names: items }),
+        body: JSON.stringify({ names, user: resolvedUser }),
       });
       if (!response.ok) {
         showToastMessage("Couldn't add ingredients. Try again.", "warning");
@@ -175,33 +177,16 @@ export default function CookPage() {
     }
   };
 
+  const handleAddIngredients = async () => {
+    if (!randomFood?.description) {
+      showToastMessage("No ingredients listed for this meal.", "warning");
+      return;
+    }
+    await addToShoppingList(randomFood.description);
+  };
+
   const handleAddIngredientsFromDescription = async (description?: string) => {
-    if (!description) {
-      showToastMessage("No ingredients listed for this meal.", "warning");
-      return;
-    }
-    const items = description
-      .split(",")
-      .map((item: string) => item.trim())
-      .filter((item: string) => item.length > 0);
-    if (items.length === 0) {
-      showToastMessage("No ingredients listed for this meal.", "warning");
-      return;
-    }
-    try {
-      const response = await fetch("/api/shop", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ names: items }),
-      });
-      if (!response.ok) {
-        showToastMessage("Couldn't add ingredients. Try again.", "warning");
-        return;
-      }
-      showToastMessage("Ingredients added to list!", "success");
-    } catch {
-      showToastMessage("Couldn't add ingredients. Try again.", "warning");
-    }
+    await addToShoppingList(description);
   };
 
   const handleCardFlip = (item: any) => {
@@ -357,30 +342,18 @@ export default function CookPage() {
                             onClick={() => handleCardFlip(food)}
                             role="button"
                           >
-                            <div className="absolute top-4 right-4 flex items-center gap-2 z-10">
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleAddIngredientsFromDescription(food.description);
-                                }}
-                                className="p-2 text-emerald-500 hover:text-emerald-600 hover:scale-110 transition-all"
-                                title="Add ingredients to shopping list"
-                              >
-                                <ShoppingBasket size={20} />
-                              </button>
-                              <button 
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setCompletingItem(food);
-                                }}
-                                className="p-2 text-slate-400 hover:text-amber-500 hover:scale-110 transition-all"
-                                title="Mark as cooked"
-                              >
-                                <CheckCircle size={22} />
-                              </button>
-                            </div>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setCompletingItem(food);
+                              }}
+                              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-amber-500 hover:scale-110 transition-all z-10"
+                              title="Mark as cooked"
+                            >
+                              <CheckCircle size={22} />
+                            </button>
 
-                            <h3 className="font-bold text-lg text-[var(--text-color)] mb-2 pr-8 flex items-center gap-2 hyphens-auto break-words">
+                            <h3 className="font-bold text-lg text-[var(--text-color)] mb-2 pr-10 flex items-center gap-2 hyphens-auto break-words">
                               {food.name}
                               {food.image_url && <Image size={14} className="text-slate-400" />}
                             </h3>
@@ -389,7 +362,19 @@ export default function CookPage() {
                                     <span key={i} className="bg-rose-100 text-rose-700 text-xs px-2 py-0.5 rounded-full">{t.trim()}</span>
                                 ))}
                             </div>
-                            <p className="text-[var(--text-color)] text-sm line-clamp-2">{food.description}</p>
+                            <p className="text-[var(--text-color)] text-sm line-clamp-2 mb-2">{food.description}</p>
+                            <div className="flex justify-end items-center mt-auto pt-1">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleAddIngredientsFromDescription(food.description);
+                                }}
+                                className="p-2 text-emerald-500 hover:text-emerald-600 hover:scale-110 transition-all rounded-full bg-white/20 border border-white/40"
+                                title="Add ingredients to shopping list"
+                              >
+                                <ShoppingBasket size={18} />
+                              </button>
+                            </div>
                           </div>
 
                           {/* Back */}

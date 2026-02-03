@@ -51,12 +51,14 @@ export default function ShopPage() {
     const name = input.trim();
     if (!name) return;
     const resolvedUser = userName || "Anonymous";
+    const payload = { name, user: resolvedUser };
+    console.log("Shop addItem payload:", payload);
 
     try {
       const res = await fetch("/api/shop", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, user: resolvedUser }) 
+        body: JSON.stringify(payload),
       });
       
       if (!res.ok) {
@@ -198,9 +200,9 @@ export default function ShopPage() {
           {items.length === 0 && <div className="text-center text-slate-500 dark:text-slate-400 italic py-8">Your list is empty. Time to stock up! 🥦</div>}
           
           {items.map(item => (
-            <div 
-              key={item.id} 
-              className={`flex items-center justify-between p-3 rounded-xl border transition-all duration-500 ${item.checked ? 'bg-emerald-50/30 border-emerald-100/50 opacity-60 scale-[0.98]' : 'bg-white/40 dark:bg-slate-800/40 border-white/50 dark:border-slate-600 shadow-sm'}`}
+            <div
+              key={item.id}
+              className={`flex items-center justify-between p-3 rounded-xl border transition-all duration-500 ${item.checked ? "bg-emerald-50/30 border-emerald-100/50 scale-[0.98] shop-item-fade-out" : "bg-white/40 dark:bg-slate-800/40 border-white/50 dark:border-slate-600 shadow-sm"}`}
             >
               <div 
                 onClick={() => toggleItem(item.id, item.checked)}
