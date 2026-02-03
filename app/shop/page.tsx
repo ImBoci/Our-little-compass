@@ -96,14 +96,14 @@ export default function ShopPage() {
 
     // Auto-Delete Logic
     if (newChecked) {
-      // Schedule delete
       if (pendingDeletes.current[id]) clearTimeout(pendingDeletes.current[id]);
-      
+      const itemName = items.find((i) => i.id === id)?.name ?? "";
       pendingDeletes.current[id] = setTimeout(async () => {
         setItems(prev => prev.filter(i => i.id !== id));
         await fetch(`/api/shop?id=${id}`, { method: "DELETE" });
         delete pendingDeletes.current[id];
-      }, 3000); 
+        if (itemName) sendShopNotification(itemName);
+      }, 3000);
     } else {
       // Cancel delete (Undo)
       if (pendingDeletes.current[id]) {
@@ -123,6 +123,23 @@ export default function ShopPage() {
     setToastMessage(message);
     setShowToast(true);
     setTimeout(() => setShowToast(false), 3000);
+  };
+
+  const sendShopNotification = async (itemName: string) => {
+    const resolvedName = userName || "Anonymous";
+    try {
+      await fetch("/api/push/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sender: resolvedName,
+          message: `${resolvedName} picked up: ${itemName} 🛒`,
+          url: "/shop",
+        }),
+      });
+    } catch (e) {
+      console.error("Failed to send shop notification", e);
+    }
   };
 
   const copyForReminders = async () => {
