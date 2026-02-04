@@ -9,12 +9,10 @@ import {
   Bell,
   User,
   Trash2,
-  LogOut,
   Loader2,
   CheckCircle,
 } from "lucide-react";
 import Link from "next/link";
-import { signOut } from "next-auth/react";
 
 function urlBase64ToUint8Array(base64String: string) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
@@ -31,7 +29,7 @@ function SettingsContent() {
   const searchParams = useSearchParams();
   const initialTab = searchParams.get("tab");
   const [activeTab, setActiveTab] = useState(
-    initialTab === "history" ? "history" : initialTab === "account" ? "account" : "vibe"
+    initialTab === "vibe" ? "vibe" : initialTab === "history" ? "history" : initialTab === "account" ? "account" : "vibe"
   );
   const [theme, setTheme] = useState<"day" | "night">("day");
 
@@ -212,12 +210,6 @@ function SettingsContent() {
 
       <div className="flex bg-[var(--card-bg)] p-1 rounded-full mb-8 backdrop-blur-md border border-white/40 dark:border-slate-600 shadow-sm">
         <button
-          onClick={() => setActiveTab("account")}
-          className={`px-4 py-2 rounded-full text-sm font-bold transition-all ${activeTab === "account" ? "bg-emerald-500 text-white shadow-md" : "text-[var(--text-color)] opacity-70"}`}
-        >
-          Account
-        </button>
-        <button
           onClick={() => setActiveTab("vibe")}
           className={`px-4 py-2 rounded-full text-sm font-bold transition-all ${activeTab === "vibe" ? "bg-rose-500 text-white shadow-md" : "text-[var(--text-color)] opacity-70"}`}
         >
@@ -228,6 +220,12 @@ function SettingsContent() {
           className={`px-4 py-2 rounded-full text-sm font-bold transition-all ${activeTab === "history" ? "bg-purple-600 text-white shadow-md" : "text-[var(--text-color)] opacity-70"}`}
         >
           History
+        </button>
+        <button
+          onClick={() => setActiveTab("account")}
+          className={`px-4 py-2 rounded-full text-sm font-bold transition-all ${activeTab === "account" ? "bg-emerald-500 text-white shadow-md" : "text-[var(--text-color)] opacity-70"}`}
+        >
+          Account
         </button>
       </div>
 
@@ -314,13 +312,6 @@ function SettingsContent() {
                 </button>
               )}
             </div>
-
-            <button
-              onClick={() => signOut({ callbackUrl: "/" })}
-              className="w-full py-4 rounded-2xl border-2 border-red-100 dark:border-red-900/30 text-red-500 font-bold hover:bg-red-50 dark:hover:bg-red-900/20 transition-all flex items-center justify-center gap-2"
-            >
-              <LogOut size={20} /> Log Out Admin
-            </button>
           </div>
         )}
 
