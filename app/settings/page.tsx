@@ -1,485 +1,344 @@
 "use client";
-import { Suspense, useEffect, useMemo, useState } from "react";
+
+import { Suspense, useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
+import { ArrowLeft, Moon, Sun, Bell, User, Trash2, LogOut, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import {
-  ArrowLeft,
-  Bell,
-  Clock,
-  Moon,
-  Settings,
-  Sun,
-  Trash2,
-  User,
-} from "lucide-react";
-import { useTheme } from "@/components/ThemeProvider";
+import { signOut } from "next-auth/react";
 
-type NotificationItem = {
-  id: number;
-  title: string;
-  body: string;
-  sender: string;
-  createdAt: string;
-};
+// Helper function to convert VAPID key
+function urlBase64ToUint8Array(base64String: string) {
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding)
+    .replace(/-/g, "+")
+    .replace(/_/g, "/");
 
-type PushStatus = "loading" | "subscribed" | "unsubscribed" | "blocked";
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
 
 function SettingsContent() {
-  const router = useRouter();
   const searchParams = useSearchParams();
-  const { theme, toggleTheme } = useTheme();
-  const [activeTab, setActiveTab] = useState("vibe");
-  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
-  const [isLoadingHistory, setIsLoadingHistory] = useState(true);
-  const [pushStatus, setPushStatus] = useState<PushStatus>("loading");
-  const [isSendingTest, setIsSendingTest] = useState(false);
-  const [pushMessage, setPushMessage] = useState<string | null>(null);
-  const [isEnablingPush, setIsEnablingPush] = useState(false);
-  const [userName, setUserName] = useState<string | null>(null);
-  const [showNameModal, setShowNameModal] = useState(false);
-  const [nameInput, setNameInput] = useState("");
-  const filteredNotifications = useMemo(() => {
-    if (!notifications.length) return [];
-    return notifications.filter((item) => item.sender !== (userName || ""));
-  }, [notifications, userName]);
+  const initialTab = searchParams.get("tab");
+  const [activeTab, setActiveTab] = useState(
+    initialTab === "history" ? "history" : initialTab === "account" ? "account" : "vibe"
+  );
+  const [theme, setTheme] = useState<"day" | "night">("day");
 
-  useEffect(() => {
-    const tabParam = searchParams.get("tab");
-    if (tabParam) setActiveTab(tabParam);
-  }, [searchParams]);
+  // Notification State
+  const [pushStatus, setPushStatus] = useState<
+    "loading" | "subscribed" | "unsubscribed" | "blocked" | "unsupported"
+  >("loading");
+  const [notifications, setNotifications] = useState<any[]>([]);
 
+  // --- 1. THEME LOGIC ---
   useEffect(() => {
-    const stored = typeof window !== "undefined" ? localStorage.getItem("userName") : null;
-    if (stored) {
-      setUserName(stored);
-    }
+    if (typeof window === "undefined") return;
+    const stored = localStorage.getItem("theme") as "day" | "night" | null;
+    if (stored === "day" || stored === "night") setTheme(stored);
   }, []);
 
+  const toggleTheme = () => {
+    const newTheme = theme === "day" ? "night" : "day";
+    setTheme(newTheme);
+    localStorage.setItem("theme", newTheme);
+    if (typeof document !== "undefined") {
+      if (newTheme === "night") document.documentElement.classList.add("dark");
+      else document.documentElement.classList.remove("dark");
+    }
+  };
+
+  // --- 2. NOTIFICATION CHECK LOGIC (ROBUST) ---
   useEffect(() => {
-    const checkSubscription = async () => {
-      if (typeof window === "undefined") return;
-      if (!("Notification" in window)) {
+    const checkStatus = async () => {
+      try {
+        if (typeof window === "undefined") {
+          setPushStatus("unsubscribed");
+          return;
+        }
+        if (!("Notification" in window)) {
+          setPushStatus("unsupported");
+          return;
+        }
+        if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+          setPushStatus("unsupported");
+          return;
+        }
+
+        if (Notification.permission === "denied") {
+          setPushStatus("blocked");
+          return;
+        }
+
+        const reg = await navigator.serviceWorker.ready;
+        const sub = await reg.pushManager.getSubscription();
+
+        if (sub) {
+          setPushStatus("subscribed");
+        } else {
+          setPushStatus("unsubscribed");
+        }
+      } catch (error) {
+        console.error("Push check failed:", error);
         setPushStatus("unsubscribed");
-        return;
       }
-      if (Notification.permission === "denied") {
+    };
+
+    const timeoutId = setTimeout(() => {
+      setPushStatus((prev) => (prev === "loading" ? "unsubscribed" : prev));
+    }, 2000);
+
+    checkStatus().finally(() => clearTimeout(timeoutId));
+  }, []);
+
+  // --- 3. ENABLE NOTIFICATIONS ---
+  const enableNotifications = async () => {
+    try {
+      setPushStatus("loading");
+      const permission = await Notification.requestPermission();
+      if (permission !== "granted") {
         setPushStatus("blocked");
         return;
       }
-      if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
-        setPushStatus("unsubscribed");
-        return;
-      }
-      try {
-        const reg = await navigator.serviceWorker.ready;
-        const sub = await reg.pushManager.getSubscription();
-        if (!sub) {
-          setPushStatus("unsubscribed");
-          return;
-        }
-        const response = await fetch("/api/push/check", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ endpoint: sub.endpoint }),
-        });
-        if (!response.ok) {
-          setPushStatus("unsubscribed");
-          return;
-        }
-        const data = await response.json().catch(() => ({}));
-        setPushStatus(data?.subscribed ? "subscribed" : "unsubscribed");
-      } catch {
-        setPushStatus("unsubscribed");
-      }
-    };
 
-    checkSubscription();
-  }, []);
+      const reg = await navigator.serviceWorker.ready;
+      const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY?.trim();
+      if (!vapidKey) throw new Error("Missing Public Key");
 
-  useEffect(() => {
-    const loadHistory = async () => {
-      try {
-        const response = await fetch("/api/notifications");
-        if (!response.ok) {
-          setNotifications([]);
-          return;
-        }
-        const data = await response.json();
-        setNotifications(Array.isArray(data) ? data : []);
-      } catch {
-        setNotifications([]);
-      } finally {
-        setIsLoadingHistory(false);
-      }
-    };
+      const sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(vapidKey),
+      });
 
-    loadHistory();
-  }, []);
+      const userName = localStorage.getItem("userName") || "Anonymous";
 
-  const urlBase64ToUint8Array = (base64String: string) => {
-    if (!base64String || base64String.trim().length === 0) {
-      throw new Error("VAPID public key is missing or empty.");
-    }
-    const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
-    const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
-    let rawData = "";
-    try {
-      rawData = window.atob(base64);
-    } catch {
-      throw new Error("VAPID public key is invalid base64.");
-    }
-    const outputArray = new Uint8Array(rawData.length);
-    for (let i = 0; i < rawData.length; i += 1) {
-      outputArray[i] = rawData.charCodeAt(i);
-    }
-    return outputArray;
-  };
-
-  const handleEnableNotifications = async () => {
-    if (typeof window === "undefined") return;
-    try {
-      const storedName = localStorage.getItem("userName");
-      const resolvedName = storedName || userName;
-      if (!resolvedName) {
-        setPushMessage("Please set your name first.");
-        setShowNameModal(true);
-        return;
-      }
-      const supportsServiceWorker = "serviceWorker" in navigator;
-      const supportsNotifications = "Notification" in window;
-      const supportsPush = "PushManager" in window;
-      if (!supportsNotifications || !supportsServiceWorker || !supportsPush) {
-        setPushMessage("Push notifications aren't supported on this device.");
-        return;
-      }
-
-      const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY?.trim();
-      if (!vapidPublicKey) {
-        setPushMessage("Missing VAPID public key. Add NEXT_PUBLIC_VAPID_PUBLIC_KEY.");
-        return;
-      }
-
-      setIsEnablingPush(true);
-      setPushMessage("⏳ Connecting...");
-      const permission = await Notification.requestPermission();
-      if (permission !== "granted") {
-        setPushMessage(`Permission denied (${permission}). Enable notifications in browser settings.`);
-        return;
-      }
-
-      const reg = await navigator.serviceWorker.register("/sw.js");
-      let waitCount = 0;
-      while (!reg.active && waitCount < 50) {
-        await new Promise((resolve) => setTimeout(resolve, 100));
-        waitCount += 1;
-      }
-      if (!reg.active) {
-        throw new Error("Service worker not active yet.");
-      }
-
-      const existing = await reg.pushManager.getSubscription();
-      const subscription =
-        existing ||
-        (await reg.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
-        }));
-
-      const response = await fetch("/api/push/subscribe", {
+      const res = await fetch("/api/push/subscribe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user: resolvedName, subscription }),
+        body: JSON.stringify({ subscription: sub, user: userName }),
       });
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        setPushMessage(data?.error || "Database error while saving subscription.");
-        return;
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data?.error || "Subscribe failed");
       }
+
       setPushStatus("subscribed");
-      setPushMessage("✅ Notifications active");
+      alert("Notifications Enabled! 🔔");
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Unknown error";
-      setPushMessage(`Couldn't enable notifications: ${message}`);
-    } finally {
-      setIsEnablingPush(false);
+      console.error("Enable failed:", error);
+      alert("Failed to enable notifications. Check console.");
+      setPushStatus("unsubscribed");
     }
   };
 
-  const tabs = useMemo(
-    () => [
-      { id: "vibe", label: "Vibe", icon: Sun },
-      { id: "history", label: "History", icon: Clock },
-      { id: "account", label: "Account", icon: User },
-    ],
-    []
-  );
+  // --- 4. HISTORY LOGIC ---
+  useEffect(() => {
+    if (activeTab === "history") {
+      fetch("/api/notifications")
+        .then((r) => r.json())
+        .then((data) => {
+          if (Array.isArray(data)) setNotifications(data);
+        });
+    }
+  }, [activeTab]);
 
-  const handleTabChange = (tab: string) => {
-    setActiveTab(tab);
-    router.push(`/settings?tab=${tab}`);
+  const deleteNoti = async (id: number) => {
+    await fetch(`/api/notifications?id=${id}`, { method: "DELETE" });
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
   };
 
-  const handleTestNotification = async () => {
-    const resolvedName = userName || "Anonymous";
-    setIsSendingTest(true);
-    setPushMessage(null);
+  const sendTestNotification = async () => {
+    const user = localStorage.getItem("userName") || "Anonymous";
     try {
-      const res = await fetch("/api/push/send", {
+      await fetch("/api/push/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          sender: resolvedName,
-          message: `Test notification from ${resolvedName} 🔔`,
+          sender: user,
+          message: `Test notification from ${user} 🔔`,
           url: "/settings",
           ignoreCooldown: true,
         }),
       });
-      if (res.ok) {
-        setPushMessage("Test sent! Check your other device or ask your partner.");
-      } else {
-        const data = await res.json().catch(() => ({}));
-        setPushMessage(data?.error || "Failed to send test.");
-      }
-    } catch {
-      setPushMessage("Failed to send test.");
-    } finally {
-      setIsSendingTest(false);
-    }
-  };
-
-  const handleDeleteNotification = async (id: number) => {
-    setNotifications((prev) => prev.filter((item) => item.id !== id));
-    try {
-      await fetch(`/api/notifications?id=${id}`, { method: "DELETE" });
-    } catch {
-      setNotifications((prev) => prev);
+    } catch (e) {
+      console.error("Test send failed", e);
     }
   };
 
   return (
-    <div className="min-h-screen px-4 py-10 flex justify-center bg-transparent">
-      <div className="w-full max-w-4xl">
-        <header className="flex items-center justify-between mb-8">
-          <Link 
-            href="/" 
-            className="flex items-center gap-2 px-5 py-2.5 bg-white/30 backdrop-blur-md border border-white/40 rounded-full text-[var(--text-color)] font-medium shadow-sm hover:bg-white/60 hover:scale-105 hover:shadow-md transition-all duration-300 group z-50"
-          >
-            <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
-            <span className="hidden md:inline ml-1">Back Home</span>
-          </Link>
-          <h1 className="font-serif text-2xl md:text-3xl text-[var(--text-color)] font-bold">Settings Hub</h1>
-          <div className="w-[88px]" />
-        </header>
+    <div className="min-h-screen p-4 flex flex-col items-center bg-transparent">
+      {/* Header */}
+      <header className="w-full max-w-lg flex items-center justify-between mb-8 gap-4 px-2">
+        <Link
+          href="/"
+          className="flex items-center justify-center p-3 bg-[var(--card-bg)] backdrop-blur-md border border-white/40 dark:border-slate-600 rounded-full text-[var(--text-color)] hover:bg-white/50 transition-all shadow-sm group"
+        >
+          <ArrowLeft size={20} className="transition-transform group-hover:-translate-x-1" />
+          <span className="hidden md:inline ml-2 pr-1 font-medium">Home</span>
+        </Link>
 
-        <div className="bg-[var(--card-bg)]/80 backdrop-blur-xl border border-white/40 rounded-3xl p-3 shadow-xl flex gap-2 mb-8">
-          {tabs.map((tab) => {
-            const Icon = tab.icon;
-            const isActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => handleTabChange(tab.id)}
-                className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-2xl text-sm font-semibold transition-all ${
-                  isActive
-                    ? "bg-rose-500/80 text-white shadow-lg"
-                    : "text-[var(--text-color)]/80 hover:bg-white/20"
-                }`}
-              >
-                <Icon size={16} />
-                {tab.label}
-              </button>
-            );
-          })}
-        </div>
+        <h1 className="font-serif text-2xl md:text-3xl font-bold text-center flex-1 text-[var(--text-color)]">
+          Settings
+        </h1>
 
+        <div className="w-12"></div>
+      </header>
+
+      {/* Tabs */}
+      <div className="flex bg-[var(--card-bg)] p-1 rounded-full mb-8 backdrop-blur-md border border-white/40 dark:border-slate-600 shadow-sm">
+        <button
+          onClick={() => setActiveTab("vibe")}
+          className={`px-4 py-2 rounded-full text-sm font-bold transition-all ${activeTab === "vibe" ? "bg-rose-500 text-white shadow-md" : "text-[var(--text-color)] opacity-70"}`}
+        >
+          Vibe
+        </button>
+        <button
+          onClick={() => setActiveTab("history")}
+          className={`px-4 py-2 rounded-full text-sm font-bold transition-all ${activeTab === "history" ? "bg-purple-600 text-white shadow-md" : "text-[var(--text-color)] opacity-70"}`}
+        >
+          History
+        </button>
+        <button
+          onClick={() => setActiveTab("account")}
+          className={`px-4 py-2 rounded-full text-sm font-bold transition-all ${activeTab === "account" ? "bg-emerald-500 text-white shadow-md" : "text-[var(--text-color)] opacity-70"}`}
+        >
+          Account
+        </button>
+      </div>
+
+      <div className="w-full max-w-lg space-y-6">
+        {/* --- VIBE TAB --- */}
         {activeTab === "vibe" && (
-          <div className="bg-[var(--card-bg)]/80 backdrop-blur-xl border border-white/40 rounded-3xl p-8 shadow-xl">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="font-serif text-xl text-[var(--text-color)] font-bold mb-1">Theme</h2>
-                <p className="text-sm text-[var(--text-color)]/70">Switch between day and night moods.</p>
-              </div>
-              <button
-                onClick={toggleTheme}
-                className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 border border-white/50 text-[var(--text-color)] font-semibold hover:bg-white/40 transition-all"
-              >
-                {theme === "night" ? <Sun size={16} /> : <Moon size={16} />}
-                {theme === "night" ? "Daylight" : "Nightfall"}
-              </button>
-            </div>
+          <div className="bg-[var(--card-bg)] backdrop-blur-xl border border-white/40 dark:border-slate-600 p-6 rounded-[2rem] shadow-xl flex flex-col gap-6 items-center text-center">
+            <h2 className="text-xl font-bold text-[var(--text-color)]">App Theme</h2>
+            <button
+              onClick={toggleTheme}
+              className="w-24 h-24 rounded-full bg-gradient-to-br from-amber-200 to-orange-400 dark:from-slate-700 dark:to-slate-900 flex items-center justify-center shadow-inner transition-all hover:scale-105"
+            >
+              {theme === "day" ? (
+                <Sun size={40} className="text-white" />
+              ) : (
+                <Moon size={40} className="text-yellow-100" />
+              )}
+            </button>
+            <p className="text-sm opacity-70 text-[var(--text-color)]">
+              {theme === "day" ? "Romantic Day" : "Starry Night"}
+            </p>
           </div>
         )}
 
+        {/* --- HISTORY TAB --- */}
         {activeTab === "history" && (
-          <div className="bg-[var(--card-bg)]/80 backdrop-blur-xl border border-white/40 rounded-3xl p-8 shadow-xl">
-            <div className="flex items-center gap-2 mb-6 text-[var(--text-color)]">
-              <Bell size={18} />
-              <h2 className="font-serif text-xl font-bold">Notification History</h2>
-            </div>
-
-            {pushStatus === "unsubscribed" && (
-              <div className="mb-6">
-                <button
-                  onClick={handleEnableNotifications}
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-rose-500/20 dark:bg-rose-500/40 backdrop-blur-md border-2 border-rose-300/70 text-[var(--text-color)] font-semibold shadow-sm hover:bg-rose-500/30 transition-all"
-                  disabled={isEnablingPush}
-                >
-                  {isEnablingPush ? "⏳ Connecting..." : "🔔 Enable Notifications"}
-                </button>
-                {pushMessage && (
-                  <p className="mt-2 text-sm text-[var(--text-color)]/80">{pushMessage}</p>
-                )}
+          <div className="space-y-3">
+            {notifications.length === 0 && (
+              <div className="text-center py-10 opacity-60 text-[var(--text-color)]">
+                No notifications yet. 📭
               </div>
             )}
-
-            {pushStatus === "subscribed" && (
-              <p className="mb-6 text-sm text-[var(--text-color)]/70">🔔 Notifications active</p>
-            )}
-
-            {isLoadingHistory ? (
-              <p className="text-sm text-[var(--text-color)]/70">Loading history...</p>
-            ) : filteredNotifications.length === 0 ? (
-              <p className="text-sm text-[var(--text-color)]/70">No new invites from your partner yet. 💌</p>
-            ) : (
-              <div className="space-y-3">
-                {filteredNotifications.map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex items-start gap-3 bg-white/20 dark:bg-slate-900/40 border border-white/40 rounded-2xl p-4 text-left"
-                  >
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between gap-2">
-                        <p className="font-semibold text-[var(--text-color)]">{item.title}</p>
-                        <span className="text-xs text-[var(--text-color)]/60">
-                          {new Date(item.createdAt).toLocaleString()}
-                        </span>
-                      </div>
-                      <p className="text-sm text-[var(--text-color)]/80 mt-1">{item.body}</p>
-                      <p className="text-xs text-[var(--text-color)]/60 mt-2">From: {item.sender}</p>
-                    </div>
-                    <button
-                      onClick={() => handleDeleteNotification(item.id)}
-                      className="mt-1 rounded-full p-2 bg-white/20 border border-white/40 text-rose-500 hover:text-rose-600 hover:bg-white/30 transition-all"
-                      title="Delete notification"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {activeTab === "account" && (
-          <div className="space-y-6">
-            <div className="bg-[var(--card-bg)]/80 backdrop-blur-xl border border-white/40 rounded-3xl p-8 shadow-xl">
-              <h2 className="font-serif text-xl text-[var(--text-color)] font-bold mb-1">Account</h2>
-              <p className="text-sm text-[var(--text-color)]/70 mb-6">Manage your identity and admin tools.</p>
-
-              <div className="flex items-center justify-between gap-3">
+            {notifications.map((n) => (
+              <div
+                key={n.id}
+                className="bg-[var(--card-bg)] backdrop-blur-md border border-white/40 dark:border-slate-600 p-4 rounded-2xl flex justify-between items-start"
+              >
                 <div>
-                  <p className="text-sm text-[var(--text-color)]/70">Signed in as</p>
-                  <p className="text-lg font-semibold text-[var(--text-color)]">{userName || "Anonymous"}</p>
+                  <h3 className="font-bold text-[var(--text-color)]">{n.title}</h3>
+                  <p className="text-sm opacity-80 text-[var(--text-color)]">{n.body}</p>
+                  <span className="text-[10px] opacity-50 uppercase tracking-wider text-[var(--text-color)] mt-1 block">
+                    {new Date(n.createdAt).toLocaleDateString()}
+                  </span>
                 </div>
                 <button
-                  onClick={() => setShowNameModal(true)}
-                  className="px-4 py-2 rounded-full bg-white/20 border border-white/50 text-[var(--text-color)] font-semibold hover:bg-white/40 transition-all"
+                  onClick={() => deleteNoti(n.id)}
+                  className="text-slate-400 hover:text-red-500 p-1"
                 >
-                  Change Name
+                  <Trash2 size={16} />
                 </button>
               </div>
+            ))}
+          </div>
+        )}
 
-              <Link
-                href="/manage"
-                className="mt-6 inline-flex items-center gap-2 px-4 py-3 rounded-full bg-rose-500/20 border border-rose-300/70 text-[var(--text-color)] font-semibold hover:bg-rose-500/30 transition-all"
-              >
-                <Settings size={16} />
-                Open Admin Dashboard
-              </Link>
-            </div>
+        {/* --- ACCOUNT TAB (Includes Notifications) --- */}
+        {activeTab === "account" && (
+          <div className="space-y-6">
+            {/* Admin Link */}
+            <Link
+              href="/manage"
+              className="block bg-[var(--card-bg)] backdrop-blur-xl border border-white/40 dark:border-slate-600 p-5 rounded-2xl shadow-sm hover:scale-[1.02] transition-all"
+            >
+              <div className="flex items-center gap-3 text-[var(--text-color)]">
+                <div className="bg-rose-100 dark:bg-rose-900 p-2 rounded-full text-rose-500">
+                  <User size={20} />
+                </div>
+                <div className="flex-1 font-bold">Manage Database</div>
+                <ArrowLeft className="rotate-180" size={18} />
+              </div>
+            </Link>
 
-            {/* Push Notifications card */}
-            <div className="bg-[var(--card-bg)]/80 backdrop-blur-xl border border-white/40 rounded-3xl p-8 shadow-xl">
-              <div className="flex items-center gap-2 mb-4 text-[var(--text-color)]">
-                <Bell size={20} />
-                <h2 className="font-serif text-xl font-bold">Push Notifications</h2>
+            {/* Notification Status */}
+            <div className="bg-[var(--card-bg)] backdrop-blur-xl border border-white/40 dark:border-slate-600 p-6 rounded-[2rem] shadow-xl text-center">
+              <h3 className="text-lg font-bold text-[var(--text-color)] mb-4 flex items-center justify-center gap-2">
+                <Bell size={20} /> Push Notifications
+              </h3>
+
+              <div className="mb-6">
+                {pushStatus === "loading" && (
+                  <span className="text-slate-500 flex items-center justify-center gap-2">
+                    <Loader2 className="animate-spin" size={16} /> Checking...
+                  </span>
+                )}
+                {pushStatus === "blocked" && (
+                  <span className="text-red-500 font-medium">
+                    ⚠️ Blocked. Please reset browser permissions.
+                  </span>
+                )}
+                {pushStatus === "unsupported" && (
+                  <span className="text-slate-400">Not supported on this device.</span>
+                )}
+                {pushStatus === "subscribed" && (
+                  <span className="text-emerald-500 font-bold flex items-center justify-center gap-2">
+                    ✅ Active on this device
+                  </span>
+                )}
+                {pushStatus === "unsubscribed" && (
+                  <span className="text-amber-500 font-medium">🔕 Not active</span>
+                )}
               </div>
 
-              {pushStatus === "loading" && (
-                <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Checking status...</p>
-              )}
-
-              {pushStatus === "blocked" && (
-                <>
-                  <p className="text-sm text-red-600 dark:text-red-400 mb-2">
-                    ⚠️ Notifications blocked by browser. Please reset permissions in your browser settings.
-                  </p>
-                  <p className="text-xs text-[var(--text-color)]/60">
-                    In Chrome: Settings → Privacy and security → Site settings → Notifications. Find this site and set to &quot;Allow&quot;.
-                  </p>
-                </>
+              {pushStatus === "unsubscribed" && (
+                <button
+                  onClick={enableNotifications}
+                  className="w-full py-3 bg-gradient-to-r from-rose-400 to-purple-500 text-white rounded-xl font-bold shadow-lg hover:scale-105 transition-all"
+                >
+                  Enable Notifications
+                </button>
               )}
 
               {pushStatus === "subscribed" && (
-                <>
-                  <p className="text-sm text-emerald-600 dark:text-emerald-400 mb-4">✅ Active on this device</p>
-                  <button
-                    onClick={handleTestNotification}
-                    disabled={isSendingTest}
-                    className="px-6 py-3 rounded-xl bg-white/20 border border-white/50 text-[var(--text-color)] font-semibold hover:bg-white/40 transition-all disabled:opacity-50"
-                  >
-                    {isSendingTest ? "Sending…" : "Test Notification"}
-                  </button>
-                  {pushMessage && <p className="mt-2 text-sm text-[var(--text-color)]/80">{pushMessage}</p>}
-                </>
+                <button
+                  onClick={sendTestNotification}
+                  className="text-xs text-slate-400 underline hover:text-purple-500"
+                >
+                  Test Notification
+                </button>
               )}
-
-              {pushStatus === "unsubscribed" && (
-                <>
-                  <p className="text-sm text-amber-600 dark:text-amber-400 mb-4">🔕 Not active</p>
-                  <button
-                    onClick={handleEnableNotifications}
-                    disabled={isEnablingPush}
-                    className="w-full sm:w-auto px-8 py-4 rounded-xl bg-rose-500 text-white font-bold shadow-lg hover:bg-rose-600 transition-all disabled:opacity-50"
-                  >
-                    {isEnablingPush ? "⏳ Connecting..." : "Enable Notifications"}
-                  </button>
-                  {pushMessage && <p className="mt-2 text-sm text-[var(--text-color)]/80">{pushMessage}</p>}
-                </>
-              )}
-
             </div>
+
+            {/* Logout */}
+            <button
+              onClick={() => signOut({ callbackUrl: "/" })}
+              className="w-full py-4 rounded-2xl border-2 border-red-100 dark:border-red-900/30 text-red-500 font-bold hover:bg-red-50 dark:hover:bg-red-900/20 transition-all flex items-center justify-center gap-2"
+            >
+              <LogOut size={20} /> Log Out Admin
+            </button>
           </div>
         )}
       </div>
-
-      {showNameModal && (
-        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-[var(--card-bg)] rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl">
-            <h3 className="text-2xl font-serif font-bold mb-2">Who are you?</h3>
-            <p className="text-slate-500 mb-4 text-sm">Enter your name so we know who reviewed this!</p>
-            <input
-              value={nameInput}
-              onChange={(e) => setNameInput(e.target.value)}
-              className="w-full border rounded-xl p-3 mb-4 text-center bg-[var(--input-bg)] text-[var(--text-color)] placeholder:text-slate-400"
-              placeholder="Your Name"
-            />
-            <button
-              onClick={() => {
-                if (nameInput.trim()) {
-                  localStorage.setItem("userName", nameInput.trim());
-                  setUserName(nameInput.trim());
-                  setShowNameModal(false);
-                }
-              }}
-              className="w-full bg-rose-500 text-white py-3 rounded-xl font-bold"
-            >
-              Save Name
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
@@ -488,8 +347,8 @@ export default function SettingsPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-screen items-center justify-center text-rose-500 font-serif">
-          Loading your compass...
+        <div className="flex min-h-screen items-center justify-center text-slate-400">
+          Loading...
         </div>
       }
     >
