@@ -63,13 +63,30 @@ function SettingsContent() {
     if (storedName) setUserName(storedName);
   }, []);
 
-  const saveName = () => {
-    if (userName.trim()) {
-      localStorage.setItem("userName", userName.trim());
-      setUserName(userName.trim());
-      setNameSaved(true);
-      setTimeout(() => setNameSaved(false), 2000);
+  const saveName = async () => {
+    if (!userName.trim()) return;
+    const trimmed = userName.trim();
+    localStorage.setItem("userName", trimmed);
+    setUserName(trimmed);
+
+    try {
+      if ("serviceWorker" in navigator && "PushManager" in window) {
+        const reg = await navigator.serviceWorker.ready;
+        const sub = await reg.pushManager.getSubscription();
+        if (sub) {
+          await fetch("/api/push/subscribe", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ subscription: sub, user: trimmed }),
+          });
+        }
+      }
+    } catch (e) {
+      console.error("Sync name to push subscription failed:", e);
     }
+
+    setNameSaved(true);
+    setTimeout(() => setNameSaved(false), 2000);
   };
 
   useEffect(() => {
