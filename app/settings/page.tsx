@@ -22,7 +22,7 @@ type NotificationItem = {
   createdAt: string;
 };
 
-type PushStatus = "loading" | "subscribed" | "not-subscribed";
+type PushStatus = "loading" | "subscribed" | "unsubscribed" | "blocked";
 
 function SettingsContent() {
   const router = useRouter();
@@ -32,6 +32,7 @@ function SettingsContent() {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   const [pushStatus, setPushStatus] = useState<PushStatus>("loading");
+  const [isSendingTest, setIsSendingTest] = useState(false);
   const [pushMessage, setPushMessage] = useState<string | null>(null);
   const [isEnablingPush, setIsEnablingPush] = useState(false);
   const [userName, setUserName] = useState<string | null>(null);
@@ -57,15 +58,23 @@ function SettingsContent() {
   useEffect(() => {
     const checkSubscription = async () => {
       if (typeof window === "undefined") return;
+      if (!("Notification" in window)) {
+        setPushStatus("unsubscribed");
+        return;
+      }
+      if (Notification.permission === "denied") {
+        setPushStatus("blocked");
+        return;
+      }
       if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
-        setPushStatus("not-subscribed");
+        setPushStatus("unsubscribed");
         return;
       }
       try {
         const reg = await navigator.serviceWorker.ready;
         const sub = await reg.pushManager.getSubscription();
         if (!sub) {
-          setPushStatus("not-subscribed");
+          setPushStatus("unsubscribed");
           return;
         }
         const response = await fetch("/api/push/check", {
@@ -74,13 +83,13 @@ function SettingsContent() {
           body: JSON.stringify({ endpoint: sub.endpoint }),
         });
         if (!response.ok) {
-          setPushStatus("not-subscribed");
+          setPushStatus("unsubscribed");
           return;
         }
         const data = await response.json().catch(() => ({}));
-        setPushStatus(data?.subscribed ? "subscribed" : "not-subscribed");
+        setPushStatus(data?.subscribed ? "subscribed" : "unsubscribed");
       } catch {
-        setPushStatus("not-subscribed");
+        setPushStatus("unsubscribed");
       }
     };
 
@@ -187,7 +196,7 @@ function SettingsContent() {
         return;
       }
       setPushStatus("subscribed");
-      setPushMessage("✅ Notifications Active");
+      setPushMessage("✅ Notifications active");
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unknown error";
       setPushMessage(`Couldn't enable notifications: ${message}`);
@@ -208,6 +217,34 @@ function SettingsContent() {
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
     router.push(`/settings?tab=${tab}`);
+  };
+
+  const handleTestNotification = async () => {
+    const resolvedName = userName || "Anonymous";
+    setIsSendingTest(true);
+    setPushMessage(null);
+    try {
+      const res = await fetch("/api/push/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sender: resolvedName,
+          message: `Test notification from ${resolvedName} 🔔`,
+          url: "/settings",
+          ignoreCooldown: true,
+        }),
+      });
+      if (res.ok) {
+        setPushMessage("Test sent! Check your other device or ask your partner.");
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setPushMessage(data?.error || "Failed to send test.");
+      }
+    } catch {
+      setPushMessage("Failed to send test.");
+    } finally {
+      setIsSendingTest(false);
+    }
   };
 
   const handleDeleteNotification = async (id: number) => {
@@ -280,7 +317,7 @@ function SettingsContent() {
               <h2 className="font-serif text-xl font-bold">Notification History</h2>
             </div>
 
-            {pushStatus === "not-subscribed" && (
+            {pushStatus === "unsubscribed" && (
               <div className="mb-6">
                 <button
                   onClick={handleEnableNotifications}
@@ -296,7 +333,7 @@ function SettingsContent() {
             )}
 
             {pushStatus === "subscribed" && (
-              <p className="mb-6 text-sm text-[var(--text-color)]/70">🔔 Notifications Active</p>
+              <p className="mb-6 text-sm text-[var(--text-color)]/70">🔔 Notifications active</p>
             )}
 
             {isLoadingHistory ? (
@@ -335,32 +372,84 @@ function SettingsContent() {
         )}
 
         {activeTab === "account" && (
-          <div className="bg-[var(--card-bg)]/80 backdrop-blur-xl border border-white/40 rounded-3xl p-8 shadow-xl space-y-6">
-            <div>
+          <div className="space-y-6">
+            <div className="bg-[var(--card-bg)]/80 backdrop-blur-xl border border-white/40 rounded-3xl p-8 shadow-xl">
               <h2 className="font-serif text-xl text-[var(--text-color)] font-bold mb-1">Account</h2>
-              <p className="text-sm text-[var(--text-color)]/70">Manage your identity and admin tools.</p>
-            </div>
+              <p className="text-sm text-[var(--text-color)]/70 mb-6">Manage your identity and admin tools.</p>
 
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-sm text-[var(--text-color)]/70">Signed in as</p>
-                <p className="text-lg font-semibold text-[var(--text-color)]">{userName || "Anonymous"}</p>
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm text-[var(--text-color)]/70">Signed in as</p>
+                  <p className="text-lg font-semibold text-[var(--text-color)]">{userName || "Anonymous"}</p>
+                </div>
+                <button
+                  onClick={() => setShowNameModal(true)}
+                  className="px-4 py-2 rounded-full bg-white/20 border border-white/50 text-[var(--text-color)] font-semibold hover:bg-white/40 transition-all"
+                >
+                  Change Name
+                </button>
               </div>
-              <button
-                onClick={() => setShowNameModal(true)}
-                className="px-4 py-2 rounded-full bg-white/20 border border-white/50 text-[var(--text-color)] font-semibold hover:bg-white/40 transition-all"
+
+              <Link
+                href="/manage"
+                className="mt-6 inline-flex items-center gap-2 px-4 py-3 rounded-full bg-rose-500/20 border border-rose-300/70 text-[var(--text-color)] font-semibold hover:bg-rose-500/30 transition-all"
               >
-                Change Name
-              </button>
+                <Settings size={16} />
+                Open Admin Dashboard
+              </Link>
             </div>
 
-            <Link
-              href="/manage"
-              className="inline-flex items-center gap-2 px-4 py-3 rounded-full bg-rose-500/20 border border-rose-300/70 text-[var(--text-color)] font-semibold hover:bg-rose-500/30 transition-all"
-            >
-              <Settings size={16} />
-              Open Admin Dashboard
-            </Link>
+            {/* Push Notifications card */}
+            <div className="bg-[var(--card-bg)]/80 backdrop-blur-xl border border-white/40 rounded-3xl p-8 shadow-xl">
+              <div className="flex items-center gap-2 mb-4 text-[var(--text-color)]">
+                <Bell size={20} />
+                <h2 className="font-serif text-xl font-bold">Push Notifications</h2>
+              </div>
+
+              {pushStatus === "loading" && (
+                <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Checking status...</p>
+              )}
+
+              {pushStatus === "blocked" && (
+                <>
+                  <p className="text-sm text-red-600 dark:text-red-400 mb-2">
+                    ⚠️ Notifications blocked by browser. Please reset permissions in your browser settings.
+                  </p>
+                  <p className="text-xs text-[var(--text-color)]/60">
+                    In Chrome: Settings → Privacy and security → Site settings → Notifications. Find this site and set to &quot;Allow&quot;.
+                  </p>
+                </>
+              )}
+
+              {pushStatus === "subscribed" && (
+                <>
+                  <p className="text-sm text-emerald-600 dark:text-emerald-400 mb-4">✅ Active on this device</p>
+                  <button
+                    onClick={handleTestNotification}
+                    disabled={isSendingTest}
+                    className="px-6 py-3 rounded-xl bg-white/20 border border-white/50 text-[var(--text-color)] font-semibold hover:bg-white/40 transition-all disabled:opacity-50"
+                  >
+                    {isSendingTest ? "Sending…" : "Test Notification"}
+                  </button>
+                  {pushMessage && <p className="mt-2 text-sm text-[var(--text-color)]/80">{pushMessage}</p>}
+                </>
+              )}
+
+              {pushStatus === "unsubscribed" && (
+                <>
+                  <p className="text-sm text-amber-600 dark:text-amber-400 mb-4">🔕 Not active</p>
+                  <button
+                    onClick={handleEnableNotifications}
+                    disabled={isEnablingPush}
+                    className="w-full sm:w-auto px-8 py-4 rounded-xl bg-rose-500 text-white font-bold shadow-lg hover:bg-rose-600 transition-all disabled:opacity-50"
+                  >
+                    {isEnablingPush ? "⏳ Connecting..." : "Enable Notifications"}
+                  </button>
+                  {pushMessage && <p className="mt-2 text-sm text-[var(--text-color)]/80">{pushMessage}</p>}
+                </>
+              )}
+
+            </div>
           </div>
         )}
       </div>
