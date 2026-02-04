@@ -80,7 +80,7 @@ export default function ThemeProvider({ children }: { children: React.ReactNode 
 
   return (
     <ThemeContext.Provider value={value}>
-      <RomanticBackground mode={theme} />
+      <RomanticBackground />
       {content}
     </ThemeContext.Provider>
   );

@@ -2,64 +2,57 @@
 import { useEffect, useState } from "react";
 import { Heart, Star } from "lucide-react";
 
-interface RomanticBackgroundProps {
-  mode: "day" | "night";
-}
-
-type Particle = {
-  id: number;
-  left: string;
-  size: number;
-  duration: string;
-  delay: string;
-};
-
-export default function RomanticBackground({ mode }: RomanticBackgroundProps) {
+export default function RomanticBackground() {
   const [mounted, setMounted] = useState(false);
-  const [particles, setParticles] = useState<Particle[]>([]);
-  useEffect(() => setMounted(true), []);
+  const [isDark, setIsDark] = useState(false);
+  const [particles, setParticles] = useState<any[]>([]);
 
   useEffect(() => {
-    if (!mounted) return;
-    const count = 50;
-    const nextParticles = Array.from({ length: count }).map((_, i) => ({
+    setMounted(true);
+
+    const checkTheme = () => {
+      setIsDark(document.documentElement.classList.contains("dark"));
+    };
+    checkTheme();
+
+    const observer = new MutationObserver(checkTheme);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+
+    const newParticles = Array.from({ length: 50 }).map((_, i) => ({
       id: i,
       left: `${Math.random() * 100}%`,
-      size: Math.random() * (mode === "night" ? 10 : 20) + (mode === "night" ? 6 : 10),
-      duration: `${Math.random() * 12 + 8}s`,
-      delay: `${Math.random() * 4}s`,
+      size: Math.random() * 20 + 10,
+      duration: `${Math.random() * 9 + 6}s`,
+      delay: `${Math.random() * 5}s`,
     }));
-    setParticles(nextParticles);
-  }, [mode, mounted]);
+    setParticles(newParticles);
 
-  const backgroundStyle =
-    mode === "night"
-      ? "linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)"
-      : "linear-gradient(135deg, #fdc2d6 0%, #cbcbff 50%, #caf4fa 100%)";
+    return () => observer.disconnect();
+  }, []);
 
   if (!mounted) return null;
 
   return (
     <div className="fixed inset-0 pointer-events-none z-[-10] overflow-hidden">
-      <div className="absolute inset-0" style={{ background: "var(--bg-gradient)" }} />
-      {particles.map((particle) => (
+      {particles.map((p) => (
         <div
-          key={particle.id}
+          key={p.id}
           className="particle"
           style={{
-            left: particle.left,
-            width: particle.size,
-            height: particle.size,
-            animationDuration: particle.duration,
-            animationDelay: particle.delay,
-            opacity: 0.6,
-            color: mode === "night" ? "#fde047" : "#fb7185",
+            left: p.left,
+            width: p.size,
+            height: p.size,
+            animationDuration: p.duration,
+            animationDelay: p.delay,
           }}
         >
-          {mode === "night" ? (
-            <Star fill="#fde047" size={particle.size} />
+          {isDark ? (
+            <Star fill="#fde047" className="text-yellow-300 opacity-70" size={p.size} />
           ) : (
-            <Heart fill="#fb7185" size={particle.size} />
+            <Heart fill="#fb7185" className="text-rose-400 opacity-60" size={p.size} />
           )}
         </div>
       ))}

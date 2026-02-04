@@ -2,9 +2,8 @@
 
 import { Suspense, useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import { ArrowLeft, Moon, Sun, Bell, User, Trash2, LogOut, Loader2 } from "lucide-react";
+import { ArrowLeft, Moon, Sun, Bell, User, Trash2, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { signOut } from "next-auth/react";
 
 // Helper function to convert VAPID key
 function urlBase64ToUint8Array(base64String: string) {
@@ -35,12 +34,21 @@ function SettingsContent() {
     "loading" | "subscribed" | "unsubscribed" | "blocked" | "unsupported"
   >("loading");
   const [notifications, setNotifications] = useState<any[]>([]);
+  const [userName, setUserName] = useState("");
+  const [nameSaved, setNameSaved] = useState(false);
 
   // --- 1. THEME LOGIC ---
   useEffect(() => {
     if (typeof window === "undefined") return;
     const stored = localStorage.getItem("theme") as "day" | "night" | null;
     if (stored === "day" || stored === "night") setTheme(stored);
+    else if (document.documentElement.classList.contains("dark")) setTheme("night");
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const name = localStorage.getItem("userName") || "";
+    setUserName(name);
   }, []);
 
   const toggleTheme = () => {
@@ -75,7 +83,17 @@ function SettingsContent() {
           return;
         }
 
-        const reg = await navigator.serviceWorker.ready;
+        const reg = await Promise.race([
+          navigator.serviceWorker.ready,
+          new Promise<ServiceWorkerRegistration>((_, reject) =>
+            setTimeout(() => reject(new Error("timeout")), 1000)
+          ),
+        ]).catch(() => {
+          setPushStatus("unsubscribed");
+          return null;
+        });
+        if (!reg) return;
+
         const sub = await reg.pushManager.getSubscription();
 
         if (sub) {
@@ -266,6 +284,37 @@ function SettingsContent() {
         {/* --- ACCOUNT TAB (Includes Notifications) --- */}
         {activeTab === "account" && (
           <div className="space-y-6">
+            {/* Your Name */}
+            <div className="bg-[var(--card-bg)] backdrop-blur-xl border border-white/40 dark:border-slate-600 p-6 rounded-[2rem] shadow-xl">
+              <h3 className="text-lg font-bold text-[var(--text-color)] mb-3">Your Name</h3>
+              <p className="text-sm text-[var(--text-color)]/70 mb-3">
+                Used for memories, shopping list, and push notifications.
+              </p>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={userName}
+                  onChange={(e) => setUserName(e.target.value)}
+                  placeholder="e.g. Dani"
+                  className="flex-1 bg-[var(--input-bg)] border border-white/40 dark:border-slate-600 rounded-xl px-4 py-3 text-[var(--text-color)] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-rose-300"
+                />
+                <button
+                  onClick={() => {
+                    const trimmed = userName.trim();
+                    if (trimmed) {
+                      localStorage.setItem("userName", trimmed);
+                      setUserName(trimmed);
+                      setNameSaved(true);
+                      setTimeout(() => setNameSaved(false), 2000);
+                    }
+                  }}
+                  className="px-5 py-3 rounded-xl bg-rose-500 text-white font-bold hover:bg-rose-600 transition-all"
+                >
+                  {nameSaved ? "Saved!" : "Save"}
+                </button>
+              </div>
+            </div>
+
             {/* Admin Link */}
             <Link
               href="/manage"
@@ -275,7 +324,7 @@ function SettingsContent() {
                 <div className="bg-rose-100 dark:bg-rose-900 p-2 rounded-full text-rose-500">
                   <User size={20} />
                 </div>
-                <div className="flex-1 font-bold">Manage Database</div>
+                <div className="flex-1 font-bold">Admin Access</div>
                 <ArrowLeft className="rotate-180" size={18} />
               </div>
             </Link>
@@ -328,14 +377,6 @@ function SettingsContent() {
                 </button>
               )}
             </div>
-
-            {/* Logout */}
-            <button
-              onClick={() => signOut({ callbackUrl: "/" })}
-              className="w-full py-4 rounded-2xl border-2 border-red-100 dark:border-red-900/30 text-red-500 font-bold hover:bg-red-50 dark:hover:bg-red-900/20 transition-all flex items-center justify-center gap-2"
-            >
-              <LogOut size={20} /> Log Out Admin
-            </button>
           </div>
         )}
       </div>
