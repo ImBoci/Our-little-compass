@@ -126,17 +126,21 @@ export default function ShopPage() {
   };
 
   const sendShopNotification = async (itemName: string) => {
-    const resolvedName = userName || "Anonymous";
+    const resolvedName =
+      userName && String(userName).trim().length > 0 ? String(userName).trim() : "A mystery shopper";
+    console.log("🛒 Sending push for:", itemName);
     try {
-      await fetch("/api/push/send", {
+      const res = await fetch("/api/push/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           sender: resolvedName,
           message: `${resolvedName} picked up: ${itemName} 🛒`,
           url: "/shop",
+          ignoreCooldown: true,
         }),
       });
+      console.log("🛒 Push response status:", res.status);
     } catch (e) {
       console.error("Failed to send shop notification", e);
     }

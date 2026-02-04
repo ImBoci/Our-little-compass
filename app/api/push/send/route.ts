@@ -15,7 +15,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { sender, message, url } = body || {};
+    const { sender, message, url, ignoreCooldown } = body || {};
     const resolvedSender =
       typeof sender === "string" && sender.trim().length > 0 ? sender.trim() : "Anonymous";
 
@@ -23,23 +23,27 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Message is required." }, { status: 400 });
     }
 
-    const latestNotification = await prisma.appNotification.findFirst({
-      where: { sender: resolvedSender },
-      orderBy: { createdAt: "desc" },
-    });
-    if (latestNotification) {
-      const elapsedMs = Date.now() - latestNotification.createdAt.getTime();
-      const cooldownMs = 5 * 60 * 1000;
-      if (elapsedMs < cooldownMs) {
-        const remainingSeconds = Math.ceil((cooldownMs - elapsedMs) / 1000);
-        console.log(`[Push] Cooldown check for ${resolvedSender}: Blocked`);
-        return NextResponse.json(
-          { error: "Cooldown active", remainingSeconds },
-          { status: 429 }
-        );
+    console.log("[Push] Bypass cooldown?", !!ignoreCooldown);
+
+    if (!ignoreCooldown) {
+      const latestNotification = await prisma.appNotification.findFirst({
+        where: { sender: resolvedSender },
+        orderBy: { createdAt: "desc" },
+      });
+      if (latestNotification) {
+        const elapsedMs = Date.now() - latestNotification.createdAt.getTime();
+        const cooldownMs = 5 * 60 * 1000;
+        if (elapsedMs < cooldownMs) {
+          const remainingSeconds = Math.ceil((cooldownMs - elapsedMs) / 1000);
+          console.log(`[Push] Cooldown check for ${resolvedSender}: Blocked`);
+          return NextResponse.json(
+            { error: "Cooldown active", remainingSeconds },
+            { status: 429 }
+          );
+        }
       }
+      console.log(`[Push] Cooldown check for ${resolvedSender}: Passed`);
     }
-    console.log(`[Push] Cooldown check for ${resolvedSender}: Passed`);
 
     console.log("Using Public Key:", `${vapidPublicKey.substring(0, 10)}...`);
     webpush.setVapidDetails(vapidSubject, vapidPublicKey, vapidPrivateKey);
