@@ -2,19 +2,25 @@
 
 import { Suspense, useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import { ArrowLeft, Moon, Sun, Bell, User, Trash2, Loader2 } from "lucide-react";
+import {
+  ArrowLeft,
+  Moon,
+  Sun,
+  Bell,
+  User,
+  Trash2,
+  LogOut,
+  Loader2,
+  CheckCircle,
+} from "lucide-react";
 import Link from "next/link";
+import { signOut } from "next-auth/react";
 
-// Helper function to convert VAPID key
 function urlBase64ToUint8Array(base64String: string) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
-  const base64 = (base64String + padding)
-    .replace(/-/g, "+")
-    .replace(/_/g, "/");
-
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
   const rawData = window.atob(base64);
   const outputArray = new Uint8Array(rawData.length);
-
   for (let i = 0; i < rawData.length; ++i) {
     outputArray[i] = rawData.charCodeAt(i);
   }
@@ -29,7 +35,6 @@ function SettingsContent() {
   );
   const [theme, setTheme] = useState<"day" | "night">("day");
 
-  // Notification State
   const [pushStatus, setPushStatus] = useState<
     "loading" | "subscribed" | "unsubscribed" | "blocked" | "unsupported"
   >("loading");
@@ -37,43 +42,46 @@ function SettingsContent() {
   const [userName, setUserName] = useState("");
   const [nameSaved, setNameSaved] = useState(false);
 
-  // --- 1. THEME LOGIC ---
   useEffect(() => {
     if (typeof window === "undefined") return;
     const stored = localStorage.getItem("theme") as "day" | "night" | null;
-    if (stored === "day" || stored === "night") setTheme(stored);
-    else if (document.documentElement.classList.contains("dark")) setTheme("night");
-  }, []);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const name = localStorage.getItem("userName") || "";
-    setUserName(name);
+    if (stored === "day" || stored === "night") {
+      setTheme(stored);
+      if (stored === "night") document.documentElement.classList.add("dark");
+    }
   }, []);
 
   const toggleTheme = () => {
     const newTheme = theme === "day" ? "night" : "day";
     setTheme(newTheme);
     localStorage.setItem("theme", newTheme);
-    if (typeof document !== "undefined") {
-      if (newTheme === "night") document.documentElement.classList.add("dark");
-      else document.documentElement.classList.remove("dark");
+    if (newTheme === "night") document.documentElement.classList.add("dark");
+    else document.documentElement.classList.remove("dark");
+  };
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const storedName = localStorage.getItem("userName");
+    if (storedName) setUserName(storedName);
+  }, []);
+
+  const saveName = () => {
+    if (userName.trim()) {
+      localStorage.setItem("userName", userName.trim());
+      setUserName(userName.trim());
+      setNameSaved(true);
+      setTimeout(() => setNameSaved(false), 2000);
     }
   };
 
-  // --- 2. NOTIFICATION CHECK LOGIC (ROBUST) ---
   useEffect(() => {
     const checkStatus = async () => {
       try {
-        if (typeof window === "undefined") {
-          setPushStatus("unsubscribed");
-          return;
-        }
-        if (!("Notification" in window)) {
-          setPushStatus("unsupported");
-          return;
-        }
-        if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+        if (
+          typeof window === "undefined" ||
+          !("serviceWorker" in navigator) ||
+          !("PushManager" in window)
+        ) {
           setPushStatus("unsupported");
           return;
         }
@@ -83,17 +91,17 @@ function SettingsContent() {
           return;
         }
 
-        const reg = await Promise.race([
-          navigator.serviceWorker.ready,
-          new Promise<ServiceWorkerRegistration>((_, reject) =>
-            setTimeout(() => reject(new Error("timeout")), 1000)
-          ),
-        ]).catch(() => {
-          setPushStatus("unsubscribed");
-          return null;
-        });
-        if (!reg) return;
+        const timeout = new Promise<null>((resolve) => setTimeout(() => resolve(null), 1000));
+        const swReady = navigator.serviceWorker.ready;
 
+        const result = await Promise.race([swReady, timeout]);
+
+        if (!result) {
+          setPushStatus("unsubscribed");
+          return;
+        }
+
+        const reg = result as ServiceWorkerRegistration;
         const sub = await reg.pushManager.getSubscription();
 
         if (sub) {
@@ -107,14 +115,9 @@ function SettingsContent() {
       }
     };
 
-    const timeoutId = setTimeout(() => {
-      setPushStatus((prev) => (prev === "loading" ? "unsubscribed" : prev));
-    }, 2000);
-
-    checkStatus().finally(() => clearTimeout(timeoutId));
+    checkStatus();
   }, []);
 
-  // --- 3. ENABLE NOTIFICATIONS ---
   const enableNotifications = async () => {
     try {
       setPushStatus("loading");
@@ -124,7 +127,9 @@ function SettingsContent() {
         return;
       }
 
-      const reg = await navigator.serviceWorker.ready;
+      const reg = await navigator.serviceWorker.register("/sw.js");
+      await navigator.serviceWorker.ready;
+
       const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY?.trim();
       if (!vapidKey) throw new Error("Missing Public Key");
 
@@ -133,12 +138,12 @@ function SettingsContent() {
         applicationServerKey: urlBase64ToUint8Array(vapidKey),
       });
 
-      const userName = localStorage.getItem("userName") || "Anonymous";
+      const currentName = localStorage.getItem("userName") || "Anonymous";
 
       const res = await fetch("/api/push/subscribe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ subscription: sub, user: userName }),
+        body: JSON.stringify({ subscription: sub, user: currentName }),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
@@ -149,12 +154,11 @@ function SettingsContent() {
       alert("Notifications Enabled! 🔔");
     } catch (error) {
       console.error("Enable failed:", error);
-      alert("Failed to enable notifications. Check console.");
+      alert("Failed to enable notifications. Try resetting browser permissions.");
       setPushStatus("unsubscribed");
     }
   };
 
-  // --- 4. HISTORY LOGIC ---
   useEffect(() => {
     if (activeTab === "history") {
       fetch("/api/notifications")
@@ -190,14 +194,13 @@ function SettingsContent() {
 
   return (
     <div className="min-h-screen p-4 flex flex-col items-center bg-transparent">
-      {/* Header */}
       <header className="w-full max-w-lg flex items-center justify-between mb-8 gap-4 px-2">
         <Link
           href="/"
-          className="flex items-center justify-center p-3 bg-[var(--card-bg)] backdrop-blur-md border border-white/40 dark:border-slate-600 rounded-full text-[var(--text-color)] hover:bg-white/50 transition-all shadow-sm group"
+          className="flex items-center gap-2 px-5 py-2.5 bg-white/30 backdrop-blur-md border border-white/40 rounded-full text-[var(--text-color)] font-medium shadow-sm hover:bg-white/60 hover:scale-105 hover:shadow-md transition-all duration-300 group z-50"
         >
-          <ArrowLeft size={20} className="transition-transform group-hover:-translate-x-1" />
-          <span className="hidden md:inline ml-2 pr-1 font-medium">Home</span>
+          <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
+          <span className="hidden md:inline ml-1">Back Home</span>
         </Link>
 
         <h1 className="font-serif text-2xl md:text-3xl font-bold text-center flex-1 text-[var(--text-color)]">
@@ -207,8 +210,13 @@ function SettingsContent() {
         <div className="w-12"></div>
       </header>
 
-      {/* Tabs */}
       <div className="flex bg-[var(--card-bg)] p-1 rounded-full mb-8 backdrop-blur-md border border-white/40 dark:border-slate-600 shadow-sm">
+        <button
+          onClick={() => setActiveTab("account")}
+          className={`px-4 py-2 rounded-full text-sm font-bold transition-all ${activeTab === "account" ? "bg-emerald-500 text-white shadow-md" : "text-[var(--text-color)] opacity-70"}`}
+        >
+          Account
+        </button>
         <button
           onClick={() => setActiveTab("vibe")}
           className={`px-4 py-2 rounded-full text-sm font-bold transition-all ${activeTab === "vibe" ? "bg-rose-500 text-white shadow-md" : "text-[var(--text-color)] opacity-70"}`}
@@ -221,101 +229,31 @@ function SettingsContent() {
         >
           History
         </button>
-        <button
-          onClick={() => setActiveTab("account")}
-          className={`px-4 py-2 rounded-full text-sm font-bold transition-all ${activeTab === "account" ? "bg-emerald-500 text-white shadow-md" : "text-[var(--text-color)] opacity-70"}`}
-        >
-          Account
-        </button>
       </div>
 
       <div className="w-full max-w-lg space-y-6">
-        {/* --- VIBE TAB --- */}
-        {activeTab === "vibe" && (
-          <div className="bg-[var(--card-bg)] backdrop-blur-xl border border-white/40 dark:border-slate-600 p-6 rounded-[2rem] shadow-xl flex flex-col gap-6 items-center text-center">
-            <h2 className="text-xl font-bold text-[var(--text-color)]">App Theme</h2>
-            <button
-              onClick={toggleTheme}
-              className="w-24 h-24 rounded-full bg-gradient-to-br from-amber-200 to-orange-400 dark:from-slate-700 dark:to-slate-900 flex items-center justify-center shadow-inner transition-all hover:scale-105"
-            >
-              {theme === "day" ? (
-                <Sun size={40} className="text-white" />
-              ) : (
-                <Moon size={40} className="text-yellow-100" />
-              )}
-            </button>
-            <p className="text-sm opacity-70 text-[var(--text-color)]">
-              {theme === "day" ? "Romantic Day" : "Starry Night"}
-            </p>
-          </div>
-        )}
-
-        {/* --- HISTORY TAB --- */}
-        {activeTab === "history" && (
-          <div className="space-y-3">
-            {notifications.length === 0 && (
-              <div className="text-center py-10 opacity-60 text-[var(--text-color)]">
-                No notifications yet. 📭
-              </div>
-            )}
-            {notifications.map((n) => (
-              <div
-                key={n.id}
-                className="bg-[var(--card-bg)] backdrop-blur-md border border-white/40 dark:border-slate-600 p-4 rounded-2xl flex justify-between items-start"
-              >
-                <div>
-                  <h3 className="font-bold text-[var(--text-color)]">{n.title}</h3>
-                  <p className="text-sm opacity-80 text-[var(--text-color)]">{n.body}</p>
-                  <span className="text-[10px] opacity-50 uppercase tracking-wider text-[var(--text-color)] mt-1 block">
-                    {new Date(n.createdAt).toLocaleDateString()}
-                  </span>
-                </div>
-                <button
-                  onClick={() => deleteNoti(n.id)}
-                  className="text-slate-400 hover:text-red-500 p-1"
-                >
-                  <Trash2 size={16} />
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* --- ACCOUNT TAB (Includes Notifications) --- */}
         {activeTab === "account" && (
           <div className="space-y-6">
-            {/* Your Name */}
             <div className="bg-[var(--card-bg)] backdrop-blur-xl border border-white/40 dark:border-slate-600 p-6 rounded-[2rem] shadow-xl">
-              <h3 className="text-lg font-bold text-[var(--text-color)] mb-3">Your Name</h3>
-              <p className="text-sm text-[var(--text-color)]/70 mb-3">
-                Used for memories, shopping list, and push notifications.
-              </p>
+              <h3 className="text-lg font-bold text-[var(--text-color)] mb-4 flex items-center gap-2">
+                <User size={20} /> Your Name
+              </h3>
               <div className="flex gap-2">
                 <input
-                  type="text"
                   value={userName}
                   onChange={(e) => setUserName(e.target.value)}
-                  placeholder="e.g. Dani"
-                  className="flex-1 bg-[var(--input-bg)] border border-white/40 dark:border-slate-600 rounded-xl px-4 py-3 text-[var(--text-color)] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-rose-300"
+                  placeholder="Enter your name"
+                  className="flex-1 bg-[var(--input-bg)] border border-white/40 dark:border-slate-500 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-400 text-[var(--text-color)]"
                 />
                 <button
-                  onClick={() => {
-                    const trimmed = userName.trim();
-                    if (trimmed) {
-                      localStorage.setItem("userName", trimmed);
-                      setUserName(trimmed);
-                      setNameSaved(true);
-                      setTimeout(() => setNameSaved(false), 2000);
-                    }
-                  }}
-                  className="px-5 py-3 rounded-xl bg-rose-500 text-white font-bold hover:bg-rose-600 transition-all"
+                  onClick={saveName}
+                  className="bg-emerald-500 text-white px-4 py-2 rounded-xl font-bold hover:bg-emerald-600 transition-all shadow-md flex items-center justify-center"
                 >
-                  {nameSaved ? "Saved!" : "Save"}
+                  {nameSaved ? <CheckCircle size={20} /> : "Save"}
                 </button>
               </div>
             </div>
 
-            {/* Admin Link */}
             <Link
               href="/manage"
               className="block bg-[var(--card-bg)] backdrop-blur-xl border border-white/40 dark:border-slate-600 p-5 rounded-2xl shadow-sm hover:scale-[1.02] transition-all"
@@ -324,12 +262,11 @@ function SettingsContent() {
                 <div className="bg-rose-100 dark:bg-rose-900 p-2 rounded-full text-rose-500">
                   <User size={20} />
                 </div>
-                <div className="flex-1 font-bold">Admin Access</div>
+                <div className="flex-1 font-bold">Manage Database</div>
                 <ArrowLeft className="rotate-180" size={18} />
               </div>
             </Link>
 
-            {/* Notification Status */}
             <div className="bg-[var(--card-bg)] backdrop-blur-xl border border-white/40 dark:border-slate-600 p-6 rounded-[2rem] shadow-xl text-center">
               <h3 className="text-lg font-bold text-[var(--text-color)] mb-4 flex items-center justify-center gap-2">
                 <Bell size={20} /> Push Notifications
@@ -377,6 +314,62 @@ function SettingsContent() {
                 </button>
               )}
             </div>
+
+            <button
+              onClick={() => signOut({ callbackUrl: "/" })}
+              className="w-full py-4 rounded-2xl border-2 border-red-100 dark:border-red-900/30 text-red-500 font-bold hover:bg-red-50 dark:hover:bg-red-900/20 transition-all flex items-center justify-center gap-2"
+            >
+              <LogOut size={20} /> Log Out Admin
+            </button>
+          </div>
+        )}
+
+        {activeTab === "vibe" && (
+          <div className="bg-[var(--card-bg)] backdrop-blur-xl border border-white/40 dark:border-slate-600 p-6 rounded-[2rem] shadow-xl flex flex-col gap-6 items-center text-center">
+            <h2 className="text-xl font-bold text-[var(--text-color)]">App Theme</h2>
+            <button
+              onClick={toggleTheme}
+              className="w-24 h-24 rounded-full bg-gradient-to-br from-amber-200 to-orange-400 dark:from-slate-700 dark:to-slate-900 flex items-center justify-center shadow-inner transition-all hover:scale-105"
+            >
+              {theme === "day" ? (
+                <Sun size={40} className="text-white" />
+              ) : (
+                <Moon size={40} className="text-yellow-100" />
+              )}
+            </button>
+            <p className="text-sm opacity-70 text-[var(--text-color)]">
+              {theme === "day" ? "Romantic Day" : "Starry Night"}
+            </p>
+          </div>
+        )}
+
+        {activeTab === "history" && (
+          <div className="space-y-3">
+            {notifications.length === 0 && (
+              <div className="text-center py-10 opacity-60 text-[var(--text-color)]">
+                No notifications yet. 📭
+              </div>
+            )}
+            {notifications.map((n) => (
+              <div
+                key={n.id}
+                className="bg-[var(--card-bg)] backdrop-blur-md border border-white/40 dark:border-slate-600 p-4 rounded-2xl flex justify-between items-start"
+              >
+                <div>
+                  <h3 className="font-bold text-[var(--text-color)]">{n.title}</h3>
+                  <p className="text-sm opacity-80 text-[var(--text-color)]">{n.body}</p>
+                  <span className="text-[10px] opacity-50 uppercase tracking-wider text-[var(--text-color)] mt-1 block">
+                    {new Date(n.createdAt).toLocaleDateString()}
+                  </span>
+                </div>
+                <button
+                  onClick={() => deleteNoti(n.id)}
+                  className="text-slate-400 hover:text-red-500 p-1"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
+            ))}
           </div>
         )}
       </div>
