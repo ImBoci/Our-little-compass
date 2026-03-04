@@ -76,7 +76,7 @@ export default function MilestonesPage() {
         </h1>
       </div>
 
-      <div className="w-full max-w-2xl space-y-6">
+      <div className="w-full max-w-2xl flex flex-col flex-1">
         {/* Main Journey Card */}
         <div className="bg-gradient-to-br from-rose-50/90 to-white/40 dark:from-rose-900/30 dark:to-slate-900/40 backdrop-blur-xl border border-rose-200/60 dark:border-rose-700/30 p-8 rounded-[2.5rem] shadow-xl text-center relative overflow-hidden group">
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-rose-400 to-transparent opacity-50"></div>
@@ -96,28 +96,33 @@ export default function MilestonesPage() {
           </div>
         </div>
 
-        {/* Pets Grid */}
-        <h3 className="text-center text-xl font-serif font-bold text-[var(--text-color)] opacity-80 pt-4">Our Furry Friends</h3>
+        {/* Spacer for 3D model (Tubbs) */}
+        <div className="h-56 md:h-72 w-full pointer-events-none shrink-0"></div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Boci */}
-          <div className="bg-gradient-to-br from-orange-50/90 to-white/40 dark:from-orange-900/30 dark:to-slate-900/40 backdrop-blur-md border border-orange-200/60 dark:border-orange-700/30 p-6 rounded-3xl shadow-lg text-center hover:scale-[1.02] transition-transform">
-            <div className="inline-flex p-3 rounded-full bg-orange-100 dark:bg-orange-900/50 text-orange-500 mb-3">
-              <Cat size={24} />
-            </div>
-            <h3 className="text-2xl font-serif font-bold text-slate-800 dark:text-slate-200 mb-1">Boci</h3>
-            <div className="text-orange-500 font-bold text-3xl tabular-nums mb-2">{bociDays} days</div>
-            <p className="text-xs text-slate-500 dark:text-slate-400">The wise one 🐱</p>
-          </div>
+        {/* Pets Section */}
+        <div className="w-full mt-auto pb-12">
+          <h3 className="text-center text-xl font-serif font-bold text-[var(--text-color)] opacity-80 mb-4">Our Furry Friends</h3>
 
-          {/* Pipi */}
-          <div className="bg-gradient-to-br from-purple-50/90 to-white/40 dark:from-purple-900/30 dark:to-slate-900/40 backdrop-blur-md border border-purple-200/60 dark:border-purple-700/30 p-6 rounded-3xl shadow-lg text-center hover:scale-[1.02] transition-transform">
-            <div className="inline-flex p-3 rounded-full bg-purple-100 dark:bg-purple-900/50 text-purple-500 mb-3">
-              <Cat size={24} />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Boci */}
+            <div className="bg-gradient-to-br from-orange-50/90 to-white/40 dark:from-orange-900/30 dark:to-slate-900/40 backdrop-blur-md border border-orange-200/60 dark:border-orange-700/30 p-6 rounded-3xl shadow-lg text-center hover:scale-[1.02] transition-transform">
+              <div className="inline-flex p-3 rounded-full bg-orange-100 dark:bg-orange-900/50 text-orange-500 mb-3">
+                <Cat size={24} />
+              </div>
+              <h3 className="text-2xl font-serif font-bold text-slate-800 dark:text-slate-200 mb-1">Boci</h3>
+              <div className="text-orange-500 font-bold text-3xl tabular-nums mb-2">{bociDays} days</div>
+              <p className="text-xs text-slate-500 dark:text-slate-400">The wise one 🐱</p>
             </div>
-            <h3 className="text-2xl font-serif font-bold text-slate-800 dark:text-slate-200 mb-1">Pipi</h3>
-            <div className="text-purple-500 font-bold text-3xl tabular-nums mb-2">{pipiDays} days</div>
-            <p className="text-xs text-slate-500 dark:text-slate-400">The chaotic one 😺</p>
+
+            {/* Pipi */}
+            <div className="bg-gradient-to-br from-purple-50/90 to-white/40 dark:from-purple-900/30 dark:to-slate-900/40 backdrop-blur-md border border-purple-200/60 dark:border-purple-700/30 p-6 rounded-3xl shadow-lg text-center hover:scale-[1.02] transition-transform">
+              <div className="inline-flex p-3 rounded-full bg-purple-100 dark:bg-purple-900/50 text-purple-500 mb-3">
+                <Cat size={24} />
+              </div>
+              <h3 className="text-2xl font-serif font-bold text-slate-800 dark:text-slate-200 mb-1">Pipi</h3>
+              <div className="text-purple-500 font-bold text-3xl tabular-nums mb-2">{pipiDays} days</div>
+              <p className="text-xs text-slate-500 dark:text-slate-400">The chaotic one 😺</p>
+            </div>
           </div>
         </div>
       </div>
