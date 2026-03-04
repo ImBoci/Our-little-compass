@@ -47,23 +47,38 @@ export default function ActiveShape() {
   const targetColor = useMemo(() => new THREE.Color(config.color), [config.color]);
   const currentColor = useRef(new THREE.Color(config.color));
 
-  useFrame((_state, delta) => {
+  useFrame((state) => {
     if (!meshRef.current) return;
 
-    meshRef.current.rotation.x += delta * 0.2;
-    meshRef.current.rotation.y += delta * 0.3;
+    // Mouse/pointer follow (-1 to 1 range, * 0.5 to limit twist)
+    const targetRotX = -state.pointer.y * 0.5;
+    const targetRotY = state.pointer.x * 0.5;
 
-    // Scroll-driven rotation on Z
+    // Breathing idle motion so it feels alive when pointer is still
+    const breathing = Math.sin(state.clock.elapsedTime * 0.5) * 0.05;
+
+    // Smooth lerp toward pointer target + breathing offset
+    meshRef.current.rotation.x = THREE.MathUtils.lerp(
+      meshRef.current.rotation.x,
+      targetRotX + breathing,
+      0.1
+    );
+    meshRef.current.rotation.y = THREE.MathUtils.lerp(
+      meshRef.current.rotation.y,
+      targetRotY + breathing,
+      0.1
+    );
+
+    // Scroll-driven Z rotation
     const targetRotZ = scrollProgress * Math.PI * 0.5;
     meshRef.current.rotation.z = THREE.MathUtils.lerp(meshRef.current.rotation.z, targetRotZ, 0.05);
 
-    // Smooth scale transition (scroll expands slightly)
+    // Smooth scale transition (route target + scroll expansion)
     const scrollScale = config.scale + scrollProgress * 0.3;
-    const s = meshRef.current.scale.x;
-    const newS = THREE.MathUtils.lerp(s, scrollScale, 0.04);
+    const newS = THREE.MathUtils.lerp(meshRef.current.scale.x, scrollScale, 0.04);
     meshRef.current.scale.setScalar(newS);
 
-    // Smooth color transition
+    // Smooth color transition between routes
     if (materialRef.current) {
       currentColor.current.lerp(targetColor, 0.03);
       materialRef.current.color.copy(currentColor.current);
@@ -71,10 +86,10 @@ export default function ActiveShape() {
   });
 
   return (
-    <Float speed={config.speed} rotationIntensity={1} floatIntensity={1}>
+    <Float speed={2} rotationIntensity={0.5} floatIntensity={0.5}>
       <mesh ref={meshRef} scale={config.scale}>
         {config.geometry === "icosahedron" && <icosahedronGeometry args={[1.5, 0]} />}
-        {config.geometry === "torus" && <torusGeometry args={[1, 0.4, 16, 100]} />}
+        {config.geometry === "torus" && <torusGeometry args={[0.8, 0.3, 16, 100]} />}
         {config.geometry === "cone" && <coneGeometry args={[1, 2, 32]} />}
         {config.geometry === "sphere" && <sphereGeometry args={[1.2, 32, 32]} />}
         {config.geometry === "octahedron" && <octahedronGeometry args={[1.3, 0]} />}
@@ -82,9 +97,9 @@ export default function ActiveShape() {
         <MeshDistortMaterial
           ref={materialRef}
           color={config.color}
-          speed={config.speed}
+          speed={2}
           distort={config.distort}
-          roughness={0.2}
+          roughness={0.1}
           metalness={0.1}
           transparent
           opacity={0.7}
