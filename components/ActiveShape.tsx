@@ -10,14 +10,15 @@ type ModelConfig = {
   file: string;
   scale: number;
   position: [number, number, number];
+  rotation: [number, number, number];
 };
 
 const MODEL_CONFIG: Record<string, ModelConfig> = {
-  "/":           { file: "Heart.glb",       scale: 3.5, position: [0, 0, 0] },
-  "/cook":       { file: "Food.glb",        scale: 8,   position: [0, -1, 0] },
-  "/date":       { file: "Explorer.glb",    scale: 1.2, position: [0, -1.5, 0] },
-  "/milestones": { file: "Tubbs.glb",       scale: 1.8, position: [0, -0.5, 0] },
-  "/memories":   { file: "Polaroids.glb",   scale: 3.5, position: [0, 0, 0] },
+  "/":           { file: "Heart.glb",     scale: 4.5, position: [0, 0, 0],    rotation: [0, 0, 0] },
+  "/cook":       { file: "Food.glb",      scale: 8,   position: [0, -1, 0],   rotation: [0, 0, 0] },
+  "/date":       { file: "Explorer.glb",  scale: 1.5, position: [0, -1.5, 0], rotation: [0, -Math.PI / 4, 0] },
+  "/milestones": { file: "Tubbs.glb",     scale: 15,  position: [0, -0.5, 0], rotation: [0, Math.PI, 0] },
+  "/memories":   { file: "Polaroids.glb", scale: 4,   position: [0, 0, 0],    rotation: [Math.PI / 2, Math.PI / 2, 0] },
 };
 
 const DEFAULT_CONFIG = MODEL_CONFIG["/"];
@@ -50,19 +51,17 @@ export default function ActiveShape() {
 
     groupRef.current.rotation.x = THREE.MathUtils.lerp(groupRef.current.rotation.x, targetRotX, 0.1);
     groupRef.current.rotation.y = THREE.MathUtils.lerp(groupRef.current.rotation.y, targetRotY, 0.1);
-    groupRef.current.position.y = THREE.MathUtils.lerp(
-      groupRef.current.position.y,
-      config.position[1] + breath,
-      0.1
-    );
+    groupRef.current.position.y = THREE.MathUtils.lerp(groupRef.current.position.y, config.position[1] + breath, 0.1);
   });
 
   return (
-    <group ref={groupRef} scale={config.scale} position={[config.position[0], 0, config.position[2]]}>
-      <Model config={config} />
+    <group ref={groupRef} position={[config.position[0], config.position[1], config.position[2]]}>
+      {/* Inner group: base scale + rotation correction (not affected by mouse) */}
+      <group scale={config.scale} rotation={config.rotation}>
+        <Model config={config} />
+      </group>
     </group>
   );
 }
 
-// Preload all models for instant route switching
 Object.values(MODEL_CONFIG).forEach((c) => useGLTF.preload(modelPath(c.file)));
