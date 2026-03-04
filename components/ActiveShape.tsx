@@ -50,6 +50,7 @@ function makeHeartGeometry() {
 
 export default function ActiveShape() {
   const pathname = usePathname();
+  const groupRef = useRef<THREE.Group>(null!);
   const meshRef = useRef<THREE.Mesh>(null!);
   const materialRef = useRef<any>(null!);
 
@@ -71,75 +72,61 @@ export default function ActiveShape() {
   const targetColor = useMemo(() => new THREE.Color(config.color), [config.color]);
   const currentColor = useRef(new THREE.Color(config.color));
 
-  // Base rotation offsets so the heart faces forward (flipped upright)
-  const baseRotX = isHeart ? Math.PI : 0;
-  const baseRotZ = isHeart ? Math.PI : 0;
-
   useFrame((state) => {
-    if (!meshRef.current) return;
-
     const time = state.clock.elapsedTime;
 
-    // Mouse follow — stronger multiplier (0.8) for obvious effect
-    const targetRotX = baseRotX + state.pointer.y * 0.8;
-    const targetRotY = state.pointer.x * 0.8;
+    // --- GROUP: Mouse follow + floating (no conflict with mesh scroll) ---
+    if (groupRef.current) {
+      const targetRotX = -state.pointer.y * 0.5;
+      const targetRotY = state.pointer.x * 0.5;
+      const floatY = Math.sin(time * 0.5) * 0.1;
 
-    // Floating bob on Y position
-    const floatY = Math.sin(time * 0.5) * 0.2;
-    // Gentle breathing twist
-    const breathTwist = Math.sin(time * 0.3) * 0.1;
+      groupRef.current.rotation.x = THREE.MathUtils.lerp(groupRef.current.rotation.x, targetRotX, 0.1);
+      groupRef.current.rotation.y = THREE.MathUtils.lerp(groupRef.current.rotation.y, targetRotY, 0.1);
+      groupRef.current.position.y = THREE.MathUtils.lerp(groupRef.current.position.y, floatY, 0.1);
+    }
 
-    // Smooth lerp — 0.1 factor for weighted/glassy feel
-    meshRef.current.rotation.x = THREE.MathUtils.lerp(
-      meshRef.current.rotation.x,
-      targetRotX + breathTwist,
-      0.1
-    );
-    meshRef.current.rotation.y = THREE.MathUtils.lerp(
-      meshRef.current.rotation.y,
-      targetRotY + breathTwist,
-      0.1
-    );
-    meshRef.current.position.y = THREE.MathUtils.lerp(
-      meshRef.current.position.y,
-      floatY,
-      0.1
-    );
+    // --- MESH: Scroll twist + scale + heart orientation + color morph ---
+    if (meshRef.current) {
+      const heartOffsetX = isHeart ? Math.PI : 0;
+      const heartOffsetZ = isHeart ? Math.PI : 0;
 
-    // Scroll: Z rotation + scale expansion
-    const targetRotZ = baseRotZ + scrollProgress * Math.PI * 0.5;
-    meshRef.current.rotation.z = THREE.MathUtils.lerp(meshRef.current.rotation.z, targetRotZ, 0.05);
+      const targetRotZ = heartOffsetZ + scrollProgress * Math.PI * 0.5;
+      meshRef.current.rotation.x = THREE.MathUtils.lerp(meshRef.current.rotation.x, heartOffsetX, 0.05);
+      meshRef.current.rotation.z = THREE.MathUtils.lerp(meshRef.current.rotation.z, targetRotZ, 0.05);
 
-    const scrollScale = config.scale + scrollProgress * 0.3;
-    const newS = THREE.MathUtils.lerp(meshRef.current.scale.x, scrollScale, 0.04);
-    meshRef.current.scale.setScalar(newS);
+      const scrollScale = config.scale + scrollProgress * 0.3;
+      const newS = THREE.MathUtils.lerp(meshRef.current.scale.x, scrollScale, 0.04);
+      meshRef.current.scale.setScalar(newS);
 
-    // Smooth color morph between routes
-    if (materialRef.current) {
-      currentColor.current.lerp(targetColor, 0.03);
-      materialRef.current.color.copy(currentColor.current);
+      if (materialRef.current) {
+        currentColor.current.lerp(targetColor, 0.03);
+        materialRef.current.color.copy(currentColor.current);
+      }
     }
   });
 
   return (
-    <mesh ref={meshRef} scale={config.scale}>
-      {config.geometry === "heart" && <primitive object={heartGeo} attach="geometry" />}
-      {config.geometry === "knot" && <torusKnotGeometry args={[0.6, 0.2, 100, 16]} />}
-      {config.geometry === "diamond" && <octahedronGeometry args={[1.2, 0]} />}
-      {config.geometry === "gem" && <icosahedronGeometry args={[1.2, 0]} />}
-      {config.geometry === "sphere" && <sphereGeometry args={[1.2, 32, 32]} />}
-      {config.geometry === "torus" && <torusGeometry args={[0.8, 0.3, 16, 100]} />}
+    <group ref={groupRef}>
+      <mesh ref={meshRef} scale={config.scale}>
+        {config.geometry === "heart" && <primitive object={heartGeo} attach="geometry" />}
+        {config.geometry === "knot" && <torusKnotGeometry args={[0.6, 0.2, 100, 16]} />}
+        {config.geometry === "diamond" && <octahedronGeometry args={[1.2, 0]} />}
+        {config.geometry === "gem" && <icosahedronGeometry args={[1.2, 0]} />}
+        {config.geometry === "sphere" && <sphereGeometry args={[1.2, 32, 32]} />}
+        {config.geometry === "torus" && <torusGeometry args={[0.8, 0.3, 16, 100]} />}
 
-      <MeshDistortMaterial
-        ref={materialRef}
-        color={config.color}
-        speed={2}
-        distort={config.distort}
-        roughness={0.1}
-        metalness={0.1}
-        transparent
-        opacity={0.7}
-      />
-    </mesh>
+        <MeshDistortMaterial
+          ref={materialRef}
+          color={config.color}
+          speed={2}
+          distort={config.distort}
+          roughness={0.1}
+          metalness={0.1}
+          transparent
+          opacity={0.7}
+        />
+      </mesh>
+    </group>
   );
 }
