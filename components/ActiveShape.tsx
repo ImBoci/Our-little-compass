@@ -13,11 +13,11 @@ type ModelConfig = {
 };
 
 const MODEL_CONFIG: Record<string, ModelConfig> = {
-  "/":           { file: "Heart.glb",            scale: 0.6,  position: [0, -0.5, 0] },
-  "/cook":       { file: "Food.glb",             scale: 8,    position: [0, -1, 0] },
-  "/date":       { file: "Explorer.glb",    scale: 1.2,  position: [0, -1.5, 0] },
-  "/milestones": { file: "Tubbs.glb",    scale: 0.08, position: [0, -1, 0] },
-  "/memories":   { file: "Polaroids.glb",        scale: 0.8,  position: [0, 0, 0] },
+  "/":           { file: "Heart.glb",       scale: 3.5, position: [0, 0, 0] },
+  "/cook":       { file: "Food.glb",        scale: 8,   position: [0, -1, 0] },
+  "/date":       { file: "Explorer.glb",    scale: 1.2, position: [0, -1.5, 0] },
+  "/milestones": { file: "Tubbs.glb",       scale: 1.8, position: [0, -0.5, 0] },
+  "/memories":   { file: "Polaroids.glb",   scale: 3.5, position: [0, 0, 0] },
 };
 
 const DEFAULT_CONFIG = MODEL_CONFIG["/"];
@@ -43,18 +43,13 @@ export default function ActiveShape() {
 
     const time = state.clock.elapsedTime;
 
-    // Mouse follow (look-at)
-    const targetRotX = -state.pointer.y * 0.3;
-    const targetRotY = state.pointer.x * 0.3;
+    const targetRotX = -state.pointer.y * 0.5;
+    const targetRotY = state.pointer.x * 0.5;
 
-    // Slow continuous spin layered on top of mouse Y
-    const spin = time * 0.2;
-
-    // Floating breath on Y
     const breath = Math.sin(time * 0.8) * 0.1;
 
     groupRef.current.rotation.x = THREE.MathUtils.lerp(groupRef.current.rotation.x, targetRotX, 0.1);
-    groupRef.current.rotation.y = THREE.MathUtils.lerp(groupRef.current.rotation.y, targetRotY + spin, 0.1);
+    groupRef.current.rotation.y = THREE.MathUtils.lerp(groupRef.current.rotation.y, targetRotY, 0.1);
     groupRef.current.position.y = THREE.MathUtils.lerp(
       groupRef.current.position.y,
       config.position[1] + breath,
