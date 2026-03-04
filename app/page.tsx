@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { UtensilsCrossed, CalendarHeart, BookHeart, Menu, HeartPulse, ShoppingBasket } from "lucide-react";
+import SmoothFade from "@/components/SmoothFade";
 
 export default function Home() {
   const [userName, setUserName] = useState<string | null>(null);
@@ -30,10 +31,13 @@ export default function Home() {
         <Menu size={28} />
       </Link>
       <div className="w-full flex flex-col items-center pt-20">
-        <h1 className="font-serif text-4xl md:text-6xl text-[var(--text-color)] mb-2 tracking-tight drop-shadow-sm text-balance px-2">
-          Our Little Compass
-        </h1>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 max-w-5xl w-full px-4 mt-8">
+        <SmoothFade delay={0}>
+          <h1 className="font-serif text-4xl md:text-6xl text-[var(--text-color)] mb-2 tracking-tight drop-shadow-sm text-balance px-2">
+            Our Little Compass
+          </h1>
+        </SmoothFade>
+        <SmoothFade delay={0.2} className="w-full">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 max-w-5xl w-full px-4 mt-8 mx-auto">
         {/* Food Card - Rose Neon */}
         <Link href="/cook" className="group">
           <div
@@ -109,6 +113,7 @@ export default function Home() {
           </div>
         </Link>
         </div>
+        </SmoothFade>
       </div>
     </div>
   );
