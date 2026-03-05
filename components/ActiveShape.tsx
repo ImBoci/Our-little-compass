@@ -90,7 +90,6 @@ export default function ActiveShape() {
 
       interactiveRef.current.rotation.x = THREE.MathUtils.lerp(interactiveRef.current.rotation.x, targetRotX, 0.1);
       interactiveRef.current.rotation.y = THREE.MathUtils.lerp(interactiveRef.current.rotation.y, targetRotY, 0.1);
-      interactiveRef.current.position.y = THREE.MathUtils.lerp(interactiveRef.current.position.y, config.position[1], 0.1);
     }
   });
 
