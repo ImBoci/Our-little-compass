@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useMemo } from "react";
+import { useRef, useMemo, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { useFrame } from "@react-three/fiber";
 import { useGLTF } from "@react-three/drei";
@@ -16,9 +16,9 @@ type ModelConfig = {
 const MODEL_CONFIG: Record<string, ModelConfig> = {
   "/":           { file: "Heart.glb",     scale: 4.5, position: [0, 0, 0],    rotation: [0, 0, 0] },
   "/cook":       { file: "Food.glb",      scale: 8,   position: [0, -1, 0],   rotation: [0, 0, 0] },
-  "/date":       { file: "Explorer.glb",  scale: 1.5, position: [0, -1.5, 0], rotation: [0, -Math.PI / 4, 0] },
-  "/milestones": { file: "Tubbs.glb",     scale: 10,  position: [0, -0.5, 0], rotation: [0, Math.PI, 0] },
-  "/memories":   { file: "Polaroids.glb", scale: 4,   position: [0, 0, 0],    rotation: [Math.PI / 2, 0, 0] },
+  "/date":       { file: "Explorer.glb",  scale: 1.5, position: [0, 0, 0],    rotation: [0, Math.PI / 2, 0] },
+  "/milestones": { file: "Tubbs.glb",     scale: 6,   position: [0, -0.5, 0], rotation: [0, Math.PI, 0] },
+  "/memories":   { file: "Polaroids.glb", scale: 4,   position: [0, 0, 0],    rotation: [0, -Math.PI / 2, 0] },
 };
 
 const DEFAULT_CONFIG = MODEL_CONFIG["/"];
@@ -37,6 +37,24 @@ export default function ActiveShape() {
   const pathname = usePathname();
   const groupRef = useRef<THREE.Group>(null!);
 
+  // Gyroscope tracking
+  const tilt = useRef({ x: 0, y: 0 });
+  const hasGyro = useRef(false);
+
+  useEffect(() => {
+    const handleOrientation = (e: DeviceOrientationEvent) => {
+      if (e.gamma !== null && e.beta !== null) {
+        hasGyro.current = true;
+        tilt.current = {
+          x: THREE.MathUtils.clamp(e.beta! / 45, -1, 1),
+          y: THREE.MathUtils.clamp(e.gamma! / 45, -1, 1),
+        };
+      }
+    };
+    window.addEventListener("deviceorientation", handleOrientation, true);
+    return () => window.removeEventListener("deviceorientation", handleOrientation, true);
+  }, []);
+
   const config = MODEL_CONFIG[pathname] || DEFAULT_CONFIG;
 
   useFrame((state) => {
@@ -44,9 +62,17 @@ export default function ActiveShape() {
 
     const time = state.clock.elapsedTime;
 
-    const targetRotX = -state.pointer.y * 0.5;
-    const targetRotY = state.pointer.x * 0.5;
+    // Use gyroscope on mobile, mouse on desktop
+    let pointerX = state.pointer.x;
+    let pointerY = state.pointer.y;
 
+    if (hasGyro.current) {
+      pointerX = tilt.current.y;
+      pointerY = -tilt.current.x;
+    }
+
+    const targetRotX = -pointerY * 0.5;
+    const targetRotY = pointerX * 0.5;
     const breath = Math.sin(time * 0.8) * 0.1;
 
     groupRef.current.rotation.x = THREE.MathUtils.lerp(groupRef.current.rotation.x, targetRotX, 0.1);
@@ -56,7 +82,6 @@ export default function ActiveShape() {
 
   return (
     <group ref={groupRef} position={[config.position[0], config.position[1], config.position[2]]}>
-      {/* Inner group: base scale + rotation correction (not affected by mouse) */}
       <group scale={config.scale} rotation={config.rotation}>
         <Model config={config} />
       </group>
