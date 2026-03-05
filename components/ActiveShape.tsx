@@ -17,7 +17,7 @@ const MODEL_CONFIG: Record<string, ModelConfig> = {
   "/":           { file: "Heart.glb",     scale: 4.0, position: [0, 0, 0],    rotation: [0, 0, 0] },
   "/cook":       { file: "Food.glb",      scale: 6.0, position: [0, -0.5, 0], rotation: [0, 0, 0] },
   "/date":       { file: "Explorer.glb",  scale: 1.2, position: [0, -0.5, 0], rotation: [0, Math.PI / 2, 0] },
-  "/milestones": { file: "Cat.glb",       scale: 10.0, position: [0, -0.5, 0], rotation: [0, 0, 0] },
+  "/milestones": { file: "Cat2.glb",      scale: 10.0, position: [0, -1, 0],   rotation: [0, 0, 0] },
   "/memories":   { file: "Polaroids.glb", scale: 3.5, position: [0, 0, 0],    rotation: [0, -Math.PI / 2, 0] },
 };
 
