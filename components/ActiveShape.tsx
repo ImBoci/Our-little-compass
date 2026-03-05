@@ -14,11 +14,11 @@ type ModelConfig = {
 };
 
 const MODEL_CONFIG: Record<string, ModelConfig> = {
-  "/":           { file: "Heart.glb",     scale: 4.0, position: [0, 0, 0],  rotation: [0, 0, 0] },
-  "/cook":       { file: "Food.glb",      scale: 6.0, position: [0, -1, 0],  rotation: [0, 0, 0] },
-  "/date":       { file: "Explorer.glb",  scale: 1.2, position: [0, -0.5, 0],  rotation: [0, Math.PI / 2, 0] },
-  "/milestones": { file: "Dingus.glb",    scale: 0.7, position: [0, -1.8, 0],   rotation: [0, Math.PI / 4, 0] },
-  "/memories":   { file: "Polaroids.glb", scale: 3.5, position: [0, -0.2, 0],  rotation: [0, -Math.PI / 2, 0] },
+  "/":           { file: "Heart.glb",     scale: 4.0, position: [0, 2.5, 0],  rotation: [0, 0, 0] },
+  "/cook":       { file: "Food.glb",      scale: 6.0, position: [0, 2.5, 0],  rotation: [0, 0, 0] },
+  "/date":       { file: "Explorer.glb",  scale: 1.2, position: [0, 2.5, 0],  rotation: [0, Math.PI / 2, 0] },
+  "/milestones": { file: "Dingus.glb",    scale: 0.6, position: [0, -1.5, 0], rotation: [0, 0, 0] },
+  "/memories":   { file: "Polaroids.glb", scale: 3.5, position: [0, 2.5, 0],  rotation: [0, -Math.PI / 2, 0] },
 };
 
 const DEFAULT_CONFIG = MODEL_CONFIG["/"];
@@ -35,7 +35,6 @@ function Model({ config }: { config: ModelConfig }) {
 
 export default function ActiveShape() {
   const pathname = usePathname();
-  const scaleRef = useRef<THREE.Group>(null!);
   const interactiveRef = useRef<THREE.Group>(null!);
   const { size } = useThree();
 
@@ -47,7 +46,6 @@ export default function ActiveShape() {
       if (typeof window !== "undefined" && localStorage.getItem("gyroEnabled") === "true") {
         if (e.gamma !== null && e.beta !== null) {
           hasGyro.current = true;
-          // Subtract 45 so holding phone at natural ~45deg angle is "center"
           const normalizedBeta = e.beta - 45;
           tilt.current = {
             x: THREE.MathUtils.clamp(normalizedBeta / 40, -1, 1),
@@ -63,38 +61,29 @@ export default function ActiveShape() {
   }, []);
 
   const config = MODEL_CONFIG[pathname] || DEFAULT_CONFIG;
-
   const isMobile = size.width < 768;
   const responsiveScale = isMobile ? config.scale * 0.6 : config.scale;
 
   useFrame((state) => {
-    // Level 1: Smooth responsive scale
-    if (scaleRef.current) {
-      const s = scaleRef.current.scale.x;
-      const newS = THREE.MathUtils.lerp(s, responsiveScale, 0.06);
-      scaleRef.current.scale.setScalar(newS);
+    if (!interactiveRef.current) return;
+
+    let pointerX = state.pointer.x;
+    let pointerY = state.pointer.y;
+
+    if (hasGyro.current) {
+      pointerX = tilt.current.y;
+      pointerY = -tilt.current.x;
     }
 
-    // Level 2: Mouse/Gyro + breathing
-    if (interactiveRef.current) {
-      let pointerX = state.pointer.x;
-      let pointerY = state.pointer.y;
+    const targetRotX = -pointerY * 0.4;
+    const targetRotY = pointerX * 0.4;
 
-      if (hasGyro.current) {
-        pointerX = tilt.current.y;
-        pointerY = -tilt.current.x;
-      }
-
-      const targetRotX = -pointerY * 0.4;
-      const targetRotY = pointerX * 0.4;
-
-      interactiveRef.current.rotation.x = THREE.MathUtils.lerp(interactiveRef.current.rotation.x, targetRotX, 0.1);
-      interactiveRef.current.rotation.y = THREE.MathUtils.lerp(interactiveRef.current.rotation.y, targetRotY, 0.1);
-    }
+    interactiveRef.current.rotation.x = THREE.MathUtils.lerp(interactiveRef.current.rotation.x, targetRotX, 0.1);
+    interactiveRef.current.rotation.y = THREE.MathUtils.lerp(interactiveRef.current.rotation.y, targetRotY, 0.1);
   });
 
   return (
-    <group ref={scaleRef} scale={responsiveScale}>
+    <group scale={responsiveScale}>
       <group ref={interactiveRef}>
         <group position={config.position} rotation={config.rotation}>
           <Center>
