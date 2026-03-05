@@ -16,9 +16,9 @@ type ModelConfig = {
 const MODEL_CONFIG: Record<string, ModelConfig> = {
   "/":           { file: "Heart.glb",     scale: 4.5, position: [0, 0, 0],    rotation: [0, 0, 0] },
   "/cook":       { file: "Food.glb",      scale: 8,   position: [0, -1, 0],   rotation: [0, 0, 0] },
-  "/date":       { file: "Explorer.glb",  scale: 1.5, position: [0, 0, 0],    rotation: [0, Math.PI / 2, 0] },
+  "/date":       { file: "Explorer.glb",  scale: 1.5, position: [0, -1.5, 0], rotation: [0, -Math.PI / 4, 0] },
   "/milestones": { file: "Cat.glb",       scale: 2.0, position: [0, -1, 0],   rotation: [0, 0, 0] },
-  "/memories":   { file: "Polaroids.glb", scale: 4,   position: [0, 0, 0],    rotation: [0, -Math.PI / 2, 0] },
+  "/memories":   { file: "Polaroids.glb", scale: 4,   position: [0, 0, 0],    rotation: [Math.PI / 2, Math.PI / 2, 0] },
 };
 
 const DEFAULT_CONFIG = MODEL_CONFIG["/"];
@@ -35,7 +35,8 @@ function Model({ config }: { config: ModelConfig }) {
 
 export default function ActiveShape() {
   const pathname = usePathname();
-  const groupRef = useRef<THREE.Group>(null!);
+  const scaleRef = useRef<THREE.Group>(null!);
+  const interactiveRef = useRef<THREE.Group>(null!);
 
   // Gyroscope tracking
   const tilt = useRef({ x: 0, y: 0 });
@@ -43,11 +44,11 @@ export default function ActiveShape() {
 
   useEffect(() => {
     const handleOrientation = (e: DeviceOrientationEvent) => {
-      if (e.gamma !== null && e.beta !== null) {
+      if (e.gamma && e.beta && (e.gamma !== 0 || e.beta !== 0)) {
         hasGyro.current = true;
         tilt.current = {
-          x: THREE.MathUtils.clamp(e.beta! / 45, -1, 1),
-          y: THREE.MathUtils.clamp(e.gamma! / 45, -1, 1),
+          x: THREE.MathUtils.clamp(e.beta / 45, -1, 1),
+          y: THREE.MathUtils.clamp(e.gamma / 45, -1, 1),
         };
       }
     };
@@ -58,32 +59,42 @@ export default function ActiveShape() {
   const config = MODEL_CONFIG[pathname] || DEFAULT_CONFIG;
 
   useFrame((state) => {
-    if (!groupRef.current) return;
-
-    const time = state.clock.elapsedTime;
-
-    // Use gyroscope on mobile, mouse on desktop
-    let pointerX = state.pointer.x;
-    let pointerY = state.pointer.y;
-
-    if (hasGyro.current) {
-      pointerX = tilt.current.y;
-      pointerY = -tilt.current.x;
+    // Level 1: Smooth scale animation on route change
+    if (scaleRef.current) {
+      const s = scaleRef.current.scale.x;
+      const newS = THREE.MathUtils.lerp(s, config.scale, 0.06);
+      scaleRef.current.scale.setScalar(newS);
     }
 
-    const targetRotX = -pointerY * 0.5;
-    const targetRotY = pointerX * 0.5;
-    const breath = Math.sin(time * 0.8) * 0.1;
+    // Level 2: Mouse/Gyro rotation + breathing
+    if (interactiveRef.current) {
+      let pointerX = state.pointer.x;
+      let pointerY = state.pointer.y;
 
-    groupRef.current.rotation.x = THREE.MathUtils.lerp(groupRef.current.rotation.x, targetRotX, 0.1);
-    groupRef.current.rotation.y = THREE.MathUtils.lerp(groupRef.current.rotation.y, targetRotY, 0.1);
-    groupRef.current.position.y = THREE.MathUtils.lerp(groupRef.current.position.y, config.position[1] + breath, 0.1);
+      if (hasGyro.current) {
+        pointerX = tilt.current.y;
+        pointerY = -tilt.current.x;
+      }
+
+      const targetRotX = -pointerY * 0.5;
+      const targetRotY = pointerX * 0.5;
+      const breath = Math.sin(state.clock.elapsedTime * 0.8) * 0.1;
+
+      interactiveRef.current.rotation.x = THREE.MathUtils.lerp(interactiveRef.current.rotation.x, targetRotX, 0.1);
+      interactiveRef.current.rotation.y = THREE.MathUtils.lerp(interactiveRef.current.rotation.y, targetRotY, 0.1);
+      interactiveRef.current.position.y = THREE.MathUtils.lerp(interactiveRef.current.position.y, breath, 0.1);
+    }
   });
 
   return (
-    <group ref={groupRef} position={[config.position[0], config.position[1], config.position[2]]}>
-      <group scale={config.scale} rotation={config.rotation}>
-        <Model config={config} />
+    // Level 1: Scale animation (route change)
+    <group ref={scaleRef} scale={config.scale}>
+      {/* Level 2: Mouse/Gyro interaction + breathing */}
+      <group ref={interactiveRef}>
+        {/* Level 3: Static model offset (position + rotation) */}
+        <group position={config.position} rotation={config.rotation}>
+          <Model config={config} />
+        </group>
       </group>
     </group>
   );
