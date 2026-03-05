@@ -39,6 +39,7 @@ function SettingsContent() {
   const [notifications, setNotifications] = useState<any[]>([]);
   const [userName, setUserName] = useState("");
   const [nameSaved, setNameSaved] = useState(false);
+  const [gyroEnabled, setGyroEnabled] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -61,7 +62,32 @@ function SettingsContent() {
     if (typeof window === "undefined") return;
     const storedName = localStorage.getItem("userName");
     if (storedName) setUserName(storedName);
+    setGyroEnabled(localStorage.getItem("gyroEnabled") === "true");
   }, []);
+
+  const toggleGyro = async () => {
+    if (!gyroEnabled) {
+      if (typeof (DeviceOrientationEvent as any) !== "undefined" && typeof (DeviceOrientationEvent as any).requestPermission === "function") {
+        try {
+          const permission = await (DeviceOrientationEvent as any).requestPermission();
+          if (permission === "granted") {
+            localStorage.setItem("gyroEnabled", "true");
+            setGyroEnabled(true);
+          } else {
+            alert("Permission denied. You can still swipe to rotate!");
+          }
+        } catch (error) {
+          console.error(error);
+        }
+      } else {
+        localStorage.setItem("gyroEnabled", "true");
+        setGyroEnabled(true);
+      }
+    } else {
+      localStorage.setItem("gyroEnabled", "false");
+      setGyroEnabled(false);
+    }
+  };
 
   const saveName = async () => {
     if (!userName.trim()) return;
@@ -333,21 +359,40 @@ function SettingsContent() {
         )}
 
         {activeTab === "vibe" && (
-          <div className="bg-[var(--card-bg)] backdrop-blur-xl border border-white/40 dark:border-slate-600 p-6 rounded-[2rem] shadow-xl flex flex-col gap-6 items-center text-center">
-            <h2 className="text-xl font-bold text-[var(--text-color)]">App Theme</h2>
-            <button
-              onClick={toggleTheme}
-              className="w-24 h-24 rounded-full bg-gradient-to-br from-amber-200 to-orange-400 dark:from-slate-700 dark:to-slate-900 flex items-center justify-center shadow-inner transition-all hover:scale-105"
-            >
-              {theme === "day" ? (
-                <Sun size={40} className="text-white" />
-              ) : (
-                <Moon size={40} className="text-yellow-100" />
-              )}
-            </button>
-            <p className="text-sm opacity-70 text-[var(--text-color)]">
-              {theme === "day" ? "Romantic Day" : "Starry Night"}
-            </p>
+          <div className="space-y-6">
+            <div className="bg-[var(--card-bg)] backdrop-blur-xl border border-white/40 dark:border-slate-600 p-6 rounded-[2rem] shadow-xl flex flex-col gap-6 items-center text-center">
+              <h2 className="text-xl font-bold text-[var(--text-color)]">App Theme</h2>
+              <button
+                onClick={toggleTheme}
+                className="w-24 h-24 rounded-full bg-gradient-to-br from-amber-200 to-orange-400 dark:from-slate-700 dark:to-slate-900 flex items-center justify-center shadow-inner transition-all hover:scale-105"
+              >
+                {theme === "day" ? (
+                  <Sun size={40} className="text-white" />
+                ) : (
+                  <Moon size={40} className="text-yellow-100" />
+                )}
+              </button>
+              <p className="text-sm opacity-70 text-[var(--text-color)]">
+                {theme === "day" ? "Romantic Day" : "Starry Night"}
+              </p>
+            </div>
+
+            <div className="bg-[var(--card-bg)] backdrop-blur-xl border border-white/40 dark:border-slate-600 p-6 rounded-[2rem] shadow-xl flex flex-col gap-4 items-center text-center">
+              <h2 className="text-xl font-bold text-[var(--text-color)]">3D Phone Tilt</h2>
+              <p className="text-sm opacity-70 text-[var(--text-color)]">
+                Tilt your phone to rotate the 3D models
+              </p>
+              <button
+                onClick={toggleGyro}
+                className={`px-6 py-3 rounded-xl font-bold shadow-md transition-all hover:scale-105 ${
+                  gyroEnabled
+                    ? "bg-emerald-500 text-white"
+                    : "bg-white/40 dark:bg-slate-700/40 text-[var(--text-color)] border border-white/50 dark:border-slate-600"
+                }`}
+              >
+                {gyroEnabled ? "ON" : "OFF"}
+              </button>
+            </div>
           </div>
         )}
 

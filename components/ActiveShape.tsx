@@ -44,12 +44,16 @@ export default function ActiveShape() {
 
   useEffect(() => {
     const handleOrientation = (e: DeviceOrientationEvent) => {
-      if (e.gamma && e.beta && (e.gamma !== 0 || e.beta !== 0)) {
-        hasGyro.current = true;
-        tilt.current = {
-          x: THREE.MathUtils.clamp(e.beta / 45, -1, 1),
-          y: THREE.MathUtils.clamp(e.gamma / 45, -1, 1),
-        };
+      if (typeof window !== "undefined" && localStorage.getItem("gyroEnabled") === "true") {
+        if (e.gamma && e.beta && (e.gamma !== 0 || e.beta !== 0)) {
+          hasGyro.current = true;
+          tilt.current = {
+            x: THREE.MathUtils.clamp(e.beta / 45, -1, 1),
+            y: THREE.MathUtils.clamp(e.gamma / 45, -1, 1),
+          };
+        }
+      } else {
+        hasGyro.current = false;
       }
     };
     window.addEventListener("deviceorientation", handleOrientation, true);

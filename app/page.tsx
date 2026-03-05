@@ -6,16 +6,68 @@ import SmoothFade from "@/components/SmoothFade";
 
 export default function Home() {
   const [userName, setUserName] = useState<string | null>(null);
+  const [showGyroPrompt, setShowGyroPrompt] = useState(false);
 
   useEffect(() => {
     const stored = typeof window !== "undefined" ? localStorage.getItem("userName") : null;
     if (stored) {
       setUserName(stored);
     }
+    if (typeof window !== "undefined" && !localStorage.getItem("gyroPrompted")) {
+      setShowGyroPrompt(true);
+    }
   }, []);
+
+  const handleGyroEnable = async () => {
+    if (typeof (DeviceOrientationEvent as any) !== "undefined" && typeof (DeviceOrientationEvent as any).requestPermission === "function") {
+      try {
+        const permission = await (DeviceOrientationEvent as any).requestPermission();
+        if (permission === "granted") {
+          localStorage.setItem("gyroEnabled", "true");
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    } else {
+      localStorage.setItem("gyroEnabled", "true");
+    }
+    localStorage.setItem("gyroPrompted", "true");
+    setShowGyroPrompt(false);
+  };
+
+  const handleGyroDismiss = () => {
+    localStorage.setItem("gyroPrompted", "true");
+    localStorage.setItem("gyroEnabled", "false");
+    setShowGyroPrompt(false);
+  };
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4 text-center bg-transparent">
+      {showGyroPrompt && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/30 backdrop-blur-sm p-4">
+          <div className="bg-white/80 dark:bg-slate-800/90 backdrop-blur-2xl border border-white/50 dark:border-slate-600 rounded-3xl p-8 max-w-sm w-full shadow-2xl text-center space-y-4">
+            <div className="text-4xl">🔮</div>
+            <h2 className="font-serif text-2xl font-bold text-slate-800 dark:text-white">Enable 3D Magic?</h2>
+            <p className="text-sm text-slate-600 dark:text-slate-300">
+              Allow the compass to move when you tilt your phone.
+            </p>
+            <div className="flex gap-3 pt-2">
+              <button
+                onClick={handleGyroDismiss}
+                className="flex-1 py-3 rounded-xl font-bold border border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all"
+              >
+                Not Now
+              </button>
+              <button
+                onClick={handleGyroEnable}
+                className="flex-1 py-3 rounded-xl font-bold bg-gradient-to-r from-rose-400 to-purple-500 text-white shadow-lg hover:scale-105 transition-all"
+              >
+                Enable
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <Link
         href="/shop"
         className="fixed bottom-6 left-6 z-[100] flex items-center justify-center w-14 h-14 bg-emerald-100/80 dark:bg-emerald-900/50 backdrop-blur-md border-2 border-emerald-300/70 dark:border-emerald-500/50 rounded-full text-emerald-600 dark:text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.2)] hover:scale-110 transition-all duration-300"
