@@ -87,11 +87,10 @@ export default function ActiveShape() {
 
       const targetRotX = -pointerY * 0.4;
       const targetRotY = pointerX * 0.4;
-      const breath = Math.sin(state.clock.elapsedTime * 0.8) * 0.1;
 
       interactiveRef.current.rotation.x = THREE.MathUtils.lerp(interactiveRef.current.rotation.x, targetRotX, 0.1);
       interactiveRef.current.rotation.y = THREE.MathUtils.lerp(interactiveRef.current.rotation.y, targetRotY, 0.1);
-      interactiveRef.current.position.y = THREE.MathUtils.lerp(interactiveRef.current.position.y, breath, 0.1);
+      interactiveRef.current.position.y = THREE.MathUtils.lerp(interactiveRef.current.position.y, config.position[1], 0.1);
     }
   });
 
