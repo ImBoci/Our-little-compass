@@ -1,8 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Pencil, Trash2, X, Plus, Save, ArrowLeft, LogOut } from "lucide-react";
+import { Pencil, Trash2, X, Plus, Save, ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { signOut } from "next-auth/react";
 import Link from "next/link";
 
 export default function ManageClient() {
@@ -106,24 +105,21 @@ export default function ManageClient() {
     <div className="min-h-screen p-4 md:p-8 flex flex-col items-center">
       <header className="w-full max-w-4xl flex items-center justify-between mb-8 gap-4 px-2">
         <Link
-          href="/"
-          className="flex items-center justify-center p-3 bg-[var(--card-bg)] backdrop-blur-md border border-white/50 rounded-full text-[var(--text-color)] hover:bg-white/50 transition-all shadow-sm"
+          href="/settings?tab=manage"
+          className="flex items-center justify-center p-3 bg-[var(--card-bg)] backdrop-blur-md border border-white/50 rounded-full text-[var(--text-color)] hover:bg-white/50 transition-all shadow-sm hover:scale-105 duration-300"
         >
           <ArrowLeft size={20} />
-          <span className="hidden md:inline ml-2 pr-1">Home</span>
+          <span className="hidden md:inline ml-2 pr-1">Settings</span>
         </Link>
 
         <h1 className="font-serif text-xl md:text-3xl text-slate-800 font-bold text-center flex-1">
           Manage
         </h1>
 
-        <button
-          onClick={() => signOut({ callbackUrl: '/' })}
-          className="flex items-center justify-center p-3 bg-[var(--card-bg)] backdrop-blur-md border border-white/50 rounded-full text-[var(--text-color)] hover:bg-white/50 transition-all shadow-sm"
-        >
-          <LogOut size={20} />
-          <span className="hidden md:inline ml-2 pr-1">Logout</span>
-        </button>
+        <div className="flex items-center justify-center p-3 invisible select-none pointer-events-none">
+          <ArrowLeft size={20} />
+          <span className="hidden md:inline ml-2 pr-1">Settings</span>
+        </div>
       </header>
 
       {/* Tabs */}

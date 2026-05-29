@@ -309,8 +309,14 @@ function SettingsContent() {
         )}
 
         {/* MY SPACE TAB */}
-        {activeTab === "space" && couple && (
-          <div className="space-y-6 animate-in fade-in zoom-in duration-300">
+        {activeTab === "space" && (
+          !couple ? (
+            <div className="bg-[var(--card-bg)] backdrop-blur-xl border border-white/40 dark:border-slate-600 p-12 rounded-[2rem] shadow-xl flex flex-col items-center justify-center text-center animate-in fade-in duration-300">
+              <Loader2 className="animate-spin text-purple-600 mb-4" size={40} />
+              <p className="text-sm font-medium text-[var(--text-color)] opacity-70">Loading your space details...</p>
+            </div>
+          ) : (
+            <div className="space-y-6 animate-in fade-in zoom-in duration-300">
             {/* Invite Code */}
             <div className="bg-[var(--card-bg)] backdrop-blur-xl border border-white/40 dark:border-slate-600 p-6 rounded-[2rem] shadow-xl text-center">
               <h3 className="text-lg font-bold text-[var(--text-color)] mb-2 flex items-center justify-center gap-2"><LinkIcon size={20} /> Invite Code</h3>
@@ -383,7 +389,8 @@ function SettingsContent() {
               <button onClick={() => setShowLeaveModal(true)} className="w-full py-3 bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 rounded-xl font-bold hover:bg-red-200 transition-all">Leave Current Space</button>
             </div>
           </div>
-        )}
+        )
+      )}
 
         {/* PROFILE & ALERTS TAB */}
         {activeTab === "profile" && (

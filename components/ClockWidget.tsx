@@ -9,12 +9,12 @@ export default function ClockWidget() {
   useEffect(() => {
     setMounted(true);
     const interval = setInterval(() => {
-      const budapestTime = new Date().toLocaleTimeString("en-US", {
+      const budapestTime = new Date().toLocaleTimeString("en-GB", {
         timeZone: "Europe/Budapest",
-        hour: "numeric",
+        hour: "2-digit",
         minute: "2-digit",
         second: "2-digit",
-        hour12: true,
+        hour12: false,
       });
       setTime(budapestTime);
     }, 1000);
