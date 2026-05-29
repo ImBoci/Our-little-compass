@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import webpush from "web-push";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -10,6 +12,12 @@ const vapidSubject = "mailto:admin@our-little-compass.app";
 
 export async function POST(request: Request) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session || !(session.user as any)?.coupleId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const coupleId = (session.user as any).coupleId;
+
     if (!vapidPublicKey || !vapidPrivateKey) {
       return NextResponse.json({ error: "Missing VAPID keys." }, { status: 500 });
     }
@@ -27,7 +35,7 @@ export async function POST(request: Request) {
 
     if (!ignoreCooldown) {
       const latestNotification = await prisma.appNotification.findFirst({
-        where: { sender: resolvedSender },
+        where: { sender: resolvedSender, coupleId },
         orderBy: { createdAt: "desc" },
       });
       if (latestNotification) {
@@ -48,8 +56,12 @@ export async function POST(request: Request) {
     console.log("Using Public Key:", `${vapidPublicKey.substring(0, 10)}...`);
     webpush.setVapidDetails(vapidSubject, vapidPublicKey, vapidPrivateKey);
 
+    // Only send to subscriptions within the same couple, excluding the sender
     const subscriptions = await prisma.pushSubscription.findMany({
-      where: resolvedSender ? { user: { not: resolvedSender } } : undefined,
+      where: {
+        coupleId,
+        ...(resolvedSender ? { user: { not: resolvedSender } } : {}),
+      },
     });
     console.log("[Push] subscriptions in DB:", subscriptions.length);
     const targets = subscriptions;
@@ -102,6 +114,7 @@ export async function POST(request: Request) {
           title,
           body: message,
           sender: resolvedSender,
+          coupleId,
         },
       });
     }

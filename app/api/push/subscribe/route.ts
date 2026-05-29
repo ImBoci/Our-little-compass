@@ -1,10 +1,18 @@
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session || !(session.user as any)?.coupleId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const coupleId = (session.user as any).coupleId;
+
     const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY?.trim();
     const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY?.trim();
     const body = await request.json();
@@ -24,7 +32,7 @@ export async function POST(request: Request) {
 
     try {
       const existing = await prisma.pushSubscription.findFirst({
-        where: { payload: { contains: endpoint } },
+        where: { payload: { contains: endpoint }, coupleId },
       });
 
       if (existing) {
@@ -34,7 +42,7 @@ export async function POST(request: Request) {
         });
       } else {
         await prisma.pushSubscription.create({
-          data: { user: resolvedUser, payload: subscriptionData },
+          data: { user: resolvedUser, payload: subscriptionData, coupleId },
         });
       }
     } catch (dbError) {

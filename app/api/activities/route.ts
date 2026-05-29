@@ -1,11 +1,17 @@
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    const activities = await prisma.activity.findMany({ orderBy: { id: "desc" } });
+    const session = await getServerSession(authOptions);
+    if (!session || !(session.user as any)?.coupleId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const coupleId = (session.user as any).coupleId;
+
+    const activities = await prisma.activity.findMany({ where: { coupleId }, orderBy: { id: "desc" } });
     return NextResponse.json(activities);
   } catch (error) {
     console.error("Failed to fetch activities:", error);
@@ -15,6 +21,10 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session || !(session.user as any)?.coupleId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const coupleId = (session.user as any).coupleId;
+
     const body = await request.json();
     const { name, description, location, type, image_url } = body;
 
@@ -29,6 +39,7 @@ export async function POST(request: Request) {
         location: location?.trim() || null,
         type: type?.trim() || null,
         image_url: typeof image_url === "string" ? image_url.trim() || null : null,
+        coupleId,
       },
     });
 
@@ -41,6 +52,10 @@ export async function POST(request: Request) {
 
 export async function PUT(request: Request) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session || !(session.user as any)?.coupleId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const coupleId = (session.user as any).coupleId;
+
     const body = await request.json();
     const { id, name, description, location, type, image_url } = body;
 
@@ -53,8 +68,8 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: "Name is required and must be a string" }, { status: 400 });
     }
 
-    const activity = await prisma.activity.update({
-      where: { id: numId },
+    const activity = await prisma.activity.updateMany({
+      where: { id: numId, coupleId },
       data: {
         name: name.trim(),
         description: description?.trim() || null,
@@ -63,8 +78,10 @@ export async function PUT(request: Request) {
         image_url: typeof image_url === "string" ? image_url.trim() || null : null,
       },
     });
+    
+    if (activity.count === 0) return NextResponse.json({ error: "Not found or forbidden" }, { status: 403 });
 
-    return NextResponse.json(activity);
+    return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Failed to update activity:", error);
     return NextResponse.json({ error: "Failed to update activity" }, { status: 500 });
@@ -73,6 +90,10 @@ export async function PUT(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session || !(session.user as any)?.coupleId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const coupleId = (session.user as any).coupleId;
+
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
 
@@ -85,9 +106,11 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
     }
 
-    await prisma.activity.delete({
-      where: { id: numId },
+    const result = await prisma.activity.deleteMany({
+      where: { id: numId, coupleId },
     });
+    
+    if (result.count === 0) return NextResponse.json({ error: "Not found or forbidden" }, { status: 403 });
 
     return NextResponse.json({ success: true });
   } catch (error) {

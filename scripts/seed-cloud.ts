@@ -8,6 +8,14 @@ async function seedCloudDatabase() {
   try {
     console.log('☁️ Seeding cloud database...')
 
+    // Find the first couple to attach data to
+    const couple = await prisma.couple.findFirst()
+    if (!couple) {
+      console.error('❌ No couple found in database. Please create a couple first (run seed.js).')
+      return
+    }
+    console.log(`Using couple: ${couple.name} (${couple.id})`)
+
     // Read backup files
     const foodsPath = path.join(process.cwd(), 'backup_foods.json')
     const activitiesPath = path.join(process.cwd(), 'backup_activities.json')
@@ -35,7 +43,8 @@ async function seedCloudDatabase() {
           category: food.category,
           image_url: food.image_url || null,
           created_at: new Date(food.created_at),
-          updated_at: new Date(food.updated_at)
+          updated_at: new Date(food.updated_at),
+          coupleId: couple.id,
         }
       })
     )
@@ -51,7 +60,8 @@ async function seedCloudDatabase() {
           name: activity.name,
           location: activity.location || null,
           type: activity.type || null,
-          description: activity.description || null
+          description: activity.description || null,
+          coupleId: couple.id,
         }
       })
     )

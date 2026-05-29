@@ -8,6 +8,42 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Couple {
+  id          String    @id @default(uuid())
+  inviteCode  String    @unique
+  name        String?
+  anniversary DateTime?
+
+  users         User[]
+  foods         Food[]
+  activities    Activity[]
+  memories      Memory[]
+  shoppingItems ShoppingItem[]
+  pets          Pet[]
+  pushSubs      PushSubscription[]
+  notifications AppNotification[]
+}
+
+model User {
+  id       String  @id @default(uuid())
+  name     String?
+  email    String  @unique
+  password String
+
+  coupleId String?
+  couple   Couple? @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+}
+
+model Pet {
+  id        String   @id @default(uuid())
+  name      String
+  type      String?  // e.g. "Cat", "Dog"
+  startDate DateTime @default(now())
+  
+  coupleId  String
+  couple    Couple   @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+}
+
 model Food {
   id          String   @id @default(cuid())
   name        String
@@ -16,6 +52,9 @@ model Food {
   image_url   String?
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
+
+  coupleId    String
+  couple      Couple   @relation(fields: [coupleId], references: [id], onDelete: Cascade)
 }
 
 model Activity {
@@ -25,6 +64,9 @@ model Activity {
   location    String?
   type        String?
   image_url   String?
+
+  coupleId    String
+  couple      Couple   @relation(fields: [coupleId], references: [id], onDelete: Cascade)
 }
 
 model Memory {
@@ -36,6 +78,9 @@ model Memory {
   note        String?
   image_url   String?
   user        String?
+
+  coupleId    String
+  couple      Couple   @relation(fields: [coupleId], references: [id], onDelete: Cascade)
 }
 
 model PushSubscription {
@@ -43,6 +88,9 @@ model PushSubscription {
   user      String   // Name of the person (e.g., "Dani" or "Viki")
   payload   String   // The subscription JSON string
   createdAt DateTime @default(now())
+
+  coupleId  String
+  couple    Couple   @relation(fields: [coupleId], references: [id], onDelete: Cascade)
 }
 
 model AppNotification {
@@ -51,6 +99,9 @@ model AppNotification {
   body      String
   sender    String
   createdAt DateTime @default(now())
+
+  coupleId  String
+  couple    Couple   @relation(fields: [coupleId], references: [id], onDelete: Cascade)
 }
 
 model ShoppingItem {
@@ -59,4 +110,7 @@ model ShoppingItem {
   user      String?
   checked   Boolean  @default(false)
   createdAt DateTime @default(now())
+
+  coupleId  String
+  couple    Couple   @relation(fields: [coupleId], references: [id], onDelete: Cascade)
 }

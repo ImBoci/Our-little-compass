@@ -1,11 +1,18 @@
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session || !(session.user as any)?.coupleId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const coupleId = (session.user as any).coupleId;
+
     const items = await prisma.shoppingItem.findMany({
+      where: { coupleId },
       orderBy: [{ checked: "asc" }, { createdAt: "asc" }],
     });
     return NextResponse.json(items, {
@@ -25,9 +32,12 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session || !(session.user as any)?.coupleId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const coupleId = (session.user as any).coupleId;
+
     const body = await request.json();
     const { name, names, user } = body || {};
-    console.log("Saving item with data:", body);
 
     const items: string[] = Array.isArray(names)
       ? names
@@ -46,12 +56,12 @@ export async function POST(request: Request) {
     try {
       if (cleaned.length > 1) {
         const result = await prisma.shoppingItem.createMany({
-          data: cleaned.map((name) => ({ name, user: resolvedUser })),
+          data: cleaned.map((name) => ({ name, user: resolvedUser, coupleId })),
         });
         return NextResponse.json({ success: true, count: result.count });
       }
       const created = await prisma.shoppingItem.create({
-        data: { name: cleaned[0], user: resolvedUser },
+        data: { name: cleaned[0], user: resolvedUser, coupleId },
       });
       return NextResponse.json([created]);
     } catch (createError) {
@@ -70,6 +80,10 @@ export async function POST(request: Request) {
 
 export async function PUT(request: Request) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session || !(session.user as any)?.coupleId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const coupleId = (session.user as any).coupleId;
+
     const body = await request.json();
     const { id, checked } = body || {};
 
@@ -81,12 +95,14 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: "Checked must be boolean." }, { status: 400 });
     }
 
-    const updated = await prisma.shoppingItem.update({
-      where: { id: numericId },
+    const updated = await prisma.shoppingItem.updateMany({
+      where: { id: numericId, coupleId },
       data: { checked },
     });
+    
+    if (updated.count === 0) return NextResponse.json({ error: "Not found or forbidden" }, { status: 403 });
 
-    return NextResponse.json(updated);
+    return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Failed to update shopping item:", error);
     return NextResponse.json({ error: "Failed to update shopping item." }, { status: 500 });
@@ -95,12 +111,16 @@ export async function PUT(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session || !(session.user as any)?.coupleId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const coupleId = (session.user as any).coupleId;
+
     const { searchParams } = new URL(request.url);
     const action = searchParams.get("action");
     const id = searchParams.get("id");
 
     if (action === "clear_completed") {
-      await prisma.shoppingItem.deleteMany({ where: { checked: true } });
+      await prisma.shoppingItem.deleteMany({ where: { checked: true, coupleId } });
       return NextResponse.json({ success: true });
     }
 
@@ -113,7 +133,9 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: "Invalid item ID." }, { status: 400 });
     }
 
-    await prisma.shoppingItem.delete({ where: { id: numericId } });
+    const result = await prisma.shoppingItem.deleteMany({ where: { id: numericId, coupleId } });
+    if (result.count === 0) return NextResponse.json({ error: "Not found or forbidden" }, { status: 403 });
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Failed to delete shopping item(s):", error);

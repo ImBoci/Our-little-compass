@@ -6,6 +6,7 @@ import { LockKeyhole, ArrowLeft, Heart } from "lucide-react";
 import Link from "next/link";
 
 export default function LoginPage() {
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
@@ -17,6 +18,7 @@ export default function LoginPage() {
     setError(false);
 
     const result = await signIn("credentials", {
+      email,
       password,
       redirect: false,
     });
@@ -25,7 +27,7 @@ export default function LoginPage() {
       setError(true);
       setLoading(false);
     } else {
-      router.push("/manage");
+      router.push("/onboarding");
     }
   };
 
@@ -51,11 +53,22 @@ export default function LoginPage() {
         </div>
 
         <div className="text-center mb-8">
-          <h1 className="font-serif text-3xl font-bold text-slate-800 mb-2">Admin Access</h1>
-          <p className="text-slate-600 text-sm">Enter the secret password to manage our adventures.</p>
+          <h1 className="font-serif text-3xl font-bold text-slate-800 mb-2">Welcome Back</h1>
+          <p className="text-slate-600 text-sm">Sign in to manage your adventures.</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full bg-white/50 border-2 rounded-full px-6 py-4 outline-none focus:ring-2 focus:ring-rose-300 transition-all text-slate-800 placeholder:text-slate-400 border-white/60 focus:border-rose-300"
+              placeholder="Email Address"
+              required
+            />
+          </div>
+
           <div className="space-y-2">
             <div className="relative">
                 <input
@@ -63,7 +76,7 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className={`w-full bg-white/50 border-2 rounded-full px-6 py-4 outline-none focus:ring-2 focus:ring-rose-300 transition-all text-slate-800 placeholder:text-slate-400 ${error ? 'border-red-400 focus:border-red-400' : 'border-white/60 focus:border-rose-300'}`}
-                  placeholder="Secret Password"
+                  placeholder="Password"
                   required
                 />
                 {/* Decorative Heart inside input */}
@@ -71,7 +84,7 @@ export default function LoginPage() {
             </div>
             {error && (
               <p className="text-red-500 text-sm text-center font-medium animate-pulse">
-                Incorrect password. Try again!
+                Incorrect email or password.
               </p>
             )}
           </div>
@@ -79,11 +92,18 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-gradient-to-r from-rose-400 to-purple-500 text-white font-bold py-4 rounded-full shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-70 disabled:cursor-not-allowed"
+            className="w-full mt-2 bg-gradient-to-r from-rose-400 to-purple-500 text-white font-bold py-4 rounded-full shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-70 disabled:cursor-not-allowed"
           >
-            {loading ? "Unlocking..." : "Sign In"}
+            {loading ? "Signing In..." : "Sign In"}
           </button>
         </form>
+
+        <div className="mt-6 text-center text-sm text-slate-600">
+          Don't have an account?{" "}
+          <Link href="/register" className="font-bold text-rose-600 hover:text-rose-700 underline">
+            Sign Up
+          </Link>
+        </div>
       </div>
     </div>
   );

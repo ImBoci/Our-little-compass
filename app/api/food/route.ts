@@ -14,7 +14,15 @@ const normalizeFoodId = (value: unknown) => {
 
 export async function GET() {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session || !(session.user as any)?.coupleId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const coupleId = (session.user as any).coupleId;
+
     const foods = await prisma.food.findMany({
+      where: { coupleId },
       orderBy: { created_at: "desc" },
     });
     return NextResponse.json(foods);
@@ -27,9 +35,10 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session) {
+    if (!session || !(session.user as any)?.coupleId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+    const coupleId = (session.user as any).coupleId;
 
     const body = await request.json();
     const { name, description, category = "Other", image_url } = body;
@@ -44,6 +53,7 @@ export async function POST(request: NextRequest) {
         description: description?.trim() || null,
         category: typeof category === "string" ? category.trim() || "Other" : "Other",
         image_url: typeof image_url === "string" ? image_url.trim() || null : null,
+        coupleId,
       },
     });
 
@@ -57,9 +67,10 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session) {
+    if (!session || !(session.user as any)?.coupleId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+    const coupleId = (session.user as any).coupleId;
 
     const body = await request.json();
     const { id, name, description, category, image_url } = body;
@@ -73,8 +84,8 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: "Name is required and must be a string" }, { status: 400 });
     }
 
-    const food = await prisma.food.update({
-      where: { id: normalizedId },
+    const food = await prisma.food.updateMany({
+      where: { id: normalizedId, coupleId },
       data: {
         name: name.trim(),
         description: description?.trim() || null,
@@ -83,7 +94,9 @@ export async function PUT(request: NextRequest) {
       },
     });
 
-    return NextResponse.json(food);
+    if (food.count === 0) return NextResponse.json({ error: "Not found or forbidden" }, { status: 403 });
+
+    return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Failed to update food:", error);
     return NextResponse.json({ error: "Failed to update food" }, { status: 500 });
@@ -93,9 +106,10 @@ export async function PUT(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session) {
+    if (!session || !(session.user as any)?.coupleId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+    const coupleId = (session.user as any).coupleId;
 
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
@@ -104,9 +118,11 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "Food ID is required" }, { status: 400 });
     }
 
-    await prisma.food.delete({
-      where: { id },
+    const result = await prisma.food.deleteMany({
+      where: { id, coupleId },
     });
+
+    if (result.count === 0) return NextResponse.json({ error: "Not found or forbidden" }, { status: 403 });
 
     return NextResponse.json({ success: true });
   } catch (error) {

@@ -17,9 +17,8 @@ async function pushSchemaToTurso() {
     throw new Error('TURSO_AUTH_TOKEN environment variable is not set. Please add it to your .env file.')
   }
 
-  // Debug: Show first 5 characters of token
   console.log(`🔑 Token starts with: ${authToken.substring(0, 5)}...`)
-  console.log('🔄 Pushing schema to Turso database...')
+  console.log('🔄 Resetting and pushing schema to Turso database...')
 
   try {
     // Connect to Turso
@@ -28,20 +27,24 @@ async function pushSchemaToTurso() {
       authToken: authToken,
     })
 
+    // 1. Drop existing tables
+    console.log('🗑️ Dropping existing tables...')
+    const tablesResult = await client.execute("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'")
+    for (const row of tablesResult.rows) {
+      const tableName = row.name as string
+      console.log(`Dropping table: ${tableName}`)
+      await client.execute(`DROP TABLE IF EXISTS "${tableName}"`)
+    }
+
     // Read SQL from manual migration file
     console.log('📂 Reading SQL from migration.sql...')
     const sqlContent = fs.readFileSync('migration.sql', 'utf8')
-
-    // Debug: Show first 50 characters to verify generation
-    console.log(`📝 SQL starts with: ${sqlContent.substring(0, 50).replace(/\n/g, ' ')}...`)
 
     // Simple split by semicolon and clean up
     const statements = sqlContent
       .split(';')
       .map(stmt => stmt.trim())
       .filter(stmt => stmt.length > 0)
-
-    console.log(`📄 Parsed ${statements.length} statements from SQL`)
 
     console.log(`📄 Found ${statements.length} SQL statements to execute`)
 
@@ -53,7 +56,6 @@ async function pushSchemaToTurso() {
           console.log(`⚡ Executing statement ${i + 1}/${statements.length}...`)
           await client.execute(statement)
         } catch (error) {
-          // Log the error but continue with other statements
           console.error(`❌ Failed to execute statement ${i + 1}:`, error)
           console.error('Statement:', statement.substring(0, 100) + '...')
         }
