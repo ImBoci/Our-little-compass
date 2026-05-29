@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import backupFoods from "@/../backup_foods.json";
+import backupActivities from "@/../backup_activities.json";
 
 export async function GET() {
   try {
@@ -58,6 +60,29 @@ export async function POST(req: Request) {
         }
       }
     });
+
+    // Populate with default backup catalog
+    try {
+      const foodData = backupFoods.map((f: any) => ({
+        name: f.name,
+        description: f.description,
+        category: f.category,
+        image_url: f.image_url,
+        coupleId: couple.id,
+      }));
+      await prisma.food.createMany({ data: foodData });
+
+      const activityData = backupActivities.map((a: any) => ({
+        name: a.name,
+        location: a.location,
+        type: a.type,
+        description: a.description,
+        coupleId: couple.id,
+      }));
+      await prisma.activity.createMany({ data: activityData });
+    } catch (err) {
+      console.error("Failed to seed default catalog for new couple:", err);
+    }
 
     return NextResponse.json({ success: true, couple });
   } catch (error) {

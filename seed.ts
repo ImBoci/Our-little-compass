@@ -1,11 +1,10 @@
-const { PrismaClient } = require('@prisma/client')
-const bcrypt = require('bcryptjs')
-const fs = require('fs')
-const path = require('path')
-
-const prisma = new PrismaClient()
+import { prisma } from './src/lib/prisma'
+import bcrypt from 'bcryptjs'
+import fs from 'fs'
+import path from 'path'
 
 async function main() {
+  console.log("Connecting to database to seed data...");
   // 1. Create sample users
   const hashedPassword = await bcrypt.hash('password123', 10)
 
@@ -56,13 +55,13 @@ async function main() {
   console.log('✅ Pets added: Boci, Pipi')
 
   // 4. Seed sample foods and activities from backups
-  const foodsPath = path.join(__dirname, 'backup_foods.json')
-  const activitiesPath = path.join(__dirname, 'backup_activities.json')
+  const foodsPath = path.join(process.cwd(), 'backup_foods.json')
+  const activitiesPath = path.join(process.cwd(), 'backup_activities.json')
 
   let foodsCount = 0;
   if (fs.existsSync(foodsPath)) {
     const backupFoods = JSON.parse(fs.readFileSync(foodsPath, 'utf-8'))
-    const foodData = backupFoods.map(f => ({
+    const foodData = backupFoods.map((f: any) => ({
       name: f.name,
       description: f.description,
       category: f.category,
@@ -71,12 +70,14 @@ async function main() {
     }))
     await prisma.food.createMany({ data: foodData })
     foodsCount = foodData.length
+  } else {
+    console.warn("⚠️ backup_foods.json not found")
   }
 
   let activitiesCount = 0;
   if (fs.existsSync(activitiesPath)) {
     const backupActivities = JSON.parse(fs.readFileSync(activitiesPath, 'utf-8'))
-    const activityData = backupActivities.map(a => ({
+    const activityData = backupActivities.map((a: any) => ({
       name: a.name,
       location: a.location,
       type: a.type,
@@ -85,6 +86,8 @@ async function main() {
     }))
     await prisma.activity.createMany({ data: activityData })
     activitiesCount = activityData.length
+  } else {
+    console.warn("⚠️ backup_activities.json not found")
   }
 
   console.log(`✅ Restored from backups: ${foodsCount} foods, ${activitiesCount} activities`)
