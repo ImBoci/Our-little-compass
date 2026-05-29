@@ -70,7 +70,7 @@ export default function Home() {
       )}
       <Link
         href="/shop"
-        className="fixed bottom-6 left-6 z-[100] flex items-center justify-center w-14 h-14 bg-emerald-100/80 dark:bg-emerald-900/50 backdrop-blur-md border-2 border-emerald-300/70 dark:border-emerald-500/50 rounded-full text-emerald-600 dark:text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.2)] hover:scale-110 transition-all duration-300"
+        className="fixed bottom-6 right-6 z-[100] flex items-center justify-center w-14 h-14 bg-emerald-100/80 dark:bg-emerald-900/50 backdrop-blur-md border-2 border-emerald-300/70 dark:border-emerald-500/50 rounded-full text-emerald-600 dark:text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.2)] hover:scale-110 transition-all duration-300"
         title="Shopping List"
       >
         <ShoppingBasket size={26} />

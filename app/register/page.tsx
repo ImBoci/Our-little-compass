@@ -126,6 +126,7 @@ export default function RegisterPage() {
               />
               <button
                 type="button"
+                tabIndex={-1}
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-5 top-1/2 -translate-y-1/2 text-purple-400 hover:text-purple-600 focus:outline-none transition-colors"
               >
@@ -146,6 +147,7 @@ export default function RegisterPage() {
               />
               <button
                 type="button"
+                tabIndex={-1}
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 className="absolute right-5 top-1/2 -translate-y-1/2 text-purple-400 hover:text-purple-600 focus:outline-none transition-colors"
               >

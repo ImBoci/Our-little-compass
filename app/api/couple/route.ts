@@ -15,7 +15,7 @@ export async function GET() {
     const coupleId = (session.user as any).coupleId;
     const couple = await prisma.couple.findUnique({
       where: { id: coupleId },
-      include: { pets: true }
+      include: { pets: true, users: { select: { id: true, name: true, email: true } } }
     });
 
     if (!couple) {
@@ -51,12 +51,14 @@ export async function POST(req: Request) {
     const inviteCode = Math.random().toString(36).substring(2, 8).toUpperCase();
 
     // Create the Couple and attach the user
+    const userId = (session.user as any).id;
     const couple = await prisma.couple.create({
       data: {
         name: name || "Our Space",
         inviteCode,
+        ownerId: userId,
         users: {
-          connect: { id: (session.user as any).id }
+          connect: { id: userId }
         }
       }
     });
@@ -126,6 +128,84 @@ export async function DELETE(req: Request) {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Leave couple error:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
+}
+
+export async function PATCH(req: Request) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const userId = (session.user as any).id;
+    const coupleId = (session.user as any).coupleId;
+
+    if (!coupleId) {
+      return NextResponse.json({ error: "Not part of any space" }, { status: 400 });
+    }
+
+    const body = await req.json();
+
+    const couple = await prisma.couple.findUnique({
+      where: { id: coupleId }
+    });
+
+    if (!couple) {
+      return NextResponse.json({ error: "Couple not found" }, { status: 404 });
+    }
+
+    // 1. Update anniversary
+    if (body.anniversary !== undefined) {
+      await prisma.couple.update({
+        where: { id: coupleId },
+        data: { anniversary: body.anniversary ? new Date(body.anniversary) : null }
+      });
+      return NextResponse.json({ success: true });
+    }
+
+    // Must be owner for the following actions
+    if (couple.ownerId !== userId) {
+      return NextResponse.json({ error: "Forbidden: Not the owner" }, { status: 403 });
+    }
+
+    // 2. Transfer Ownership
+    if (body.transferOwnerId) {
+      // Ensure the target user is in the couple
+      const targetUser = await prisma.user.findFirst({
+        where: { id: body.transferOwnerId, coupleId }
+      });
+      if (!targetUser) return NextResponse.json({ error: "User not found in space" }, { status: 400 });
+
+      await prisma.couple.update({
+        where: { id: coupleId },
+        data: { ownerId: body.transferOwnerId }
+      });
+      return NextResponse.json({ success: true });
+    }
+
+    // 3. Kick member
+    if (body.kickUserId) {
+      if (body.kickUserId === userId) {
+         return NextResponse.json({ error: "Cannot kick yourself" }, { status: 400 });
+      }
+      
+      const targetUser = await prisma.user.findFirst({
+        where: { id: body.kickUserId, coupleId }
+      });
+      if (!targetUser) return NextResponse.json({ error: "User not found in space" }, { status: 400 });
+
+      await prisma.user.update({
+        where: { id: body.kickUserId },
+        data: { coupleId: null }
+      });
+      return NextResponse.json({ success: true });
+    }
+
+    return NextResponse.json({ error: "No valid action provided" }, { status: 400 });
+  } catch (error) {
+    console.error("Patch couple error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

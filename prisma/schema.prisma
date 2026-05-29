@@ -13,6 +13,7 @@ model Couple {
   inviteCode  String    @unique
   name        String?
   anniversary DateTime?
+  ownerId     String?
 
   users         User[]
   foods         Food[]

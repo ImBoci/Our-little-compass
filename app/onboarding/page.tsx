@@ -41,7 +41,7 @@ export default function OnboardingPage() {
         throw new Error(data.error || "Failed to create space");
       }
       await update();
-      router.push("/settings"); // Redirect to settings to see invite code
+      window.location.href = "/settings?tab=account"; // Force full reload
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -66,7 +66,7 @@ export default function OnboardingPage() {
         throw new Error(data.error || "Failed to join space");
       }
       await update();
-      router.push("/");
+      window.location.href = "/"; // Force full reload to update middleware cookies
     } catch (err: any) {
       setError(err.message);
     } finally {

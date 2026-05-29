@@ -13,20 +13,14 @@ export default withAuth(
     // /api/auth is needed for NextAuth
     const isNextAuth = pathname.startsWith('/api/auth');
 
-    // If no token and trying to access a protected route
-    // Note: withAuth already handles unauthenticated access by redirecting to /login,
-    // but we can leave a safety net just in case, while ensuring we don't break NextAuth APIs
-    if (!token && !isAuthRoute && !isPublic && !isNextAuth) {
-      return NextResponse.redirect(new URL('/login', req.url));
-    }
-
+    // If user is logged in
     if (token) {
-      // If user is authenticated but has no coupleId, force them to onboarding
+      // User without space must go to onboarding
       if (!token.coupleId && !isOnboarding && !isAuthRoute && !isPublic) {
         return NextResponse.redirect(new URL('/onboarding', req.url));
       }
 
-      // If user is authenticated and HAS a coupleId, don't let them go to onboarding or login
+      // User with space cannot go to auth or onboarding routes
       if (token.coupleId && (isOnboarding || isAuthRoute)) {
          return NextResponse.redirect(new URL('/', req.url));
       }

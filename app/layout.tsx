@@ -5,6 +5,7 @@ import "lenis/dist/lenis.css";
 import "./globals.css";
 import ThemeProvider from "@/components/ThemeProvider";
 import SmoothScroll from "@/components/SmoothScroll";
+import ClockWidget from "@/components/ClockWidget";
 
 const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfair" });
 const lato = Lato({ weight: ["400", "700"], subsets: ["latin"], variable: "--font-lato" });
@@ -49,6 +50,7 @@ export default function RootLayout({
             <main className="relative z-10 min-h-screen flex flex-col">
               {children}
             </main>
+            <ClockWidget />
           </SmoothScroll>
         </ThemeProvider>
       </body>
