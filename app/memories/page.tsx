@@ -30,17 +30,19 @@ export default function MemoriesPage() {
 
   return (
     <div className="min-h-screen p-4 flex flex-col items-center bg-transparent">
-      <div className="w-full max-w-2xl flex items-center justify-between mb-8 gap-4 relative z-50 pt-4">
+      <header className="w-full max-w-2xl relative flex items-center justify-center mb-8 pt-4 min-h-[50px] z-50">
         <Link 
           href="/" 
-          className="flex items-center gap-2 px-5 py-2.5 bg-white/30 backdrop-blur-md border border-white/40 rounded-full text-[var(--text-color)] font-medium shadow-sm hover:bg-white/60 hover:scale-105 hover:shadow-md transition-all duration-300 group z-50"
+          className="absolute left-0 flex items-center gap-2 px-5 py-2.5 bg-white/30 dark:bg-slate-800/40 backdrop-blur-md border border-white/40 dark:border-slate-600 rounded-full text-[var(--text-color)] font-medium shadow-sm hover:bg-white/60 dark:hover:bg-slate-700/60 hover:scale-105 hover:shadow-md transition-all duration-300 group z-50"
         >
           <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
           <span className="hidden md:inline ml-1">Back Home</span>
         </Link>
-        <h1 className="font-serif text-4xl text-[var(--text-color)] font-bold drop-shadow-sm text-center flex-1 md:pr-24">Our Memories</h1>
-        <div className="w-[52px] md:w-[88px]" />
-      </div>
+        
+        <h1 className="font-serif text-3xl md:text-4xl font-bold drop-shadow-sm text-[var(--text-color)] text-center">
+          Our Memories
+        </h1>
+      </header>
 
       {/* Tabs */}
       <div className="flex bg-[var(--card-bg)] p-1 rounded-full mb-8 backdrop-blur-md border border-white/50 shadow-sm relative z-40">

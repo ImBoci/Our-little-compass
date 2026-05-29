@@ -10,8 +10,13 @@ export default withAuth(
     const isOnboarding = pathname.startsWith('/onboarding');
     const isPublic = pathname.startsWith('/api') || pathname.startsWith('/manifest') || pathname.startsWith('/favicon') || pathname.startsWith('/models');
 
+    // /api/auth is needed for NextAuth
+    const isNextAuth = pathname.startsWith('/api/auth');
+
     // If no token and trying to access a protected route
-    if (!token && !isAuthRoute && !isPublic) {
+    // Note: withAuth already handles unauthenticated access by redirecting to /login,
+    // but we can leave a safety net just in case, while ensuring we don't break NextAuth APIs
+    if (!token && !isAuthRoute && !isPublic && !isNextAuth) {
       return NextResponse.redirect(new URL('/login', req.url));
     }
 
@@ -26,6 +31,8 @@ export default withAuth(
          return NextResponse.redirect(new URL('/', req.url));
       }
     }
+    
+    return NextResponse.next();
   },
   {
     callbacks: {

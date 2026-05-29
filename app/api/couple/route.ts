@@ -90,3 +90,42 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
+
+export async function DELETE(req: Request) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const userId = (session.user as any).id;
+    const coupleId = (session.user as any).coupleId;
+
+    if (!coupleId) {
+      return NextResponse.json({ error: "Not part of any space" }, { status: 400 });
+    }
+
+    // Detach user from the couple
+    await prisma.user.update({
+      where: { id: userId },
+      data: { coupleId: null },
+    });
+
+    // Check if there are any remaining users
+    const remainingUsers = await prisma.user.count({
+      where: { coupleId },
+    });
+
+    // If no one is left, delete the couple entirely (which cascades to foods, activities, etc.)
+    if (remainingUsers === 0) {
+      await prisma.couple.delete({
+        where: { id: coupleId },
+      });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Leave couple error:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
+}

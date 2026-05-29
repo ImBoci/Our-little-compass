@@ -11,8 +11,13 @@ import {
   Trash2,
   Loader2,
   CheckCircle,
+  Copy,
+  LogOut,
+  AlertTriangle,
+  Link as LinkIcon
 } from "lucide-react";
 import Link from "next/link";
+import { useSession, signOut } from "next-auth/react";
 
 function urlBase64ToUint8Array(base64String: string) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
@@ -37,9 +42,18 @@ function SettingsContent() {
     "loading" | "subscribed" | "unsubscribed" | "blocked" | "unsupported"
   >("loading");
   const [notifications, setNotifications] = useState<any[]>([]);
+  
+  const { data: session, update } = useSession();
   const [userName, setUserName] = useState("");
   const [nameSaved, setNameSaved] = useState(false);
   const [gyroEnabled, setGyroEnabled] = useState(false);
+  const [inviteCode, setInviteCode] = useState<string | null>(null);
+  const [copyPulse, setCopyPulse] = useState(false);
+  
+  // Danger Zone states
+  const [showLeaveModal, setShowLeaveModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [dangerLoading, setDangerLoading] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -59,11 +73,28 @@ function SettingsContent() {
   };
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    const storedName = localStorage.getItem("userName");
-    if (storedName) setUserName(storedName);
-    setGyroEnabled(localStorage.getItem("gyroEnabled") === "true");
-  }, []);
+    if (session?.user && (session.user as any).name) {
+      setUserName((session.user as any).name);
+    } else if (typeof window !== "undefined") {
+      const storedName = localStorage.getItem("userName");
+      if (storedName) setUserName(storedName);
+    }
+    
+    if (typeof window !== "undefined") {
+      setGyroEnabled(localStorage.getItem("gyroEnabled") === "true");
+    }
+  }, [session]);
+
+  useEffect(() => {
+    if (session?.user && (session.user as any).coupleId) {
+      fetch("/api/couple")
+        .then(res => res.json())
+        .then(data => {
+          if (data.inviteCode) setInviteCode(data.inviteCode);
+        })
+        .catch(console.error);
+    }
+  }, [session]);
 
   const toggleGyro = async () => {
     if (!gyroEnabled) {
@@ -94,6 +125,18 @@ function SettingsContent() {
     const trimmed = userName.trim();
     localStorage.setItem("userName", trimmed);
     setUserName(trimmed);
+
+    // Patch to DB
+    try {
+      await fetch("/api/user", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: trimmed }),
+      });
+      await update({ name: trimmed });
+    } catch (e) {
+      console.error("Failed to update name in DB", e);
+    }
 
     try {
       if ("serviceWorker" in navigator && "PushManager" in window) {
@@ -235,20 +278,18 @@ function SettingsContent() {
 
   return (
     <div className="min-h-screen p-4 flex flex-col items-center bg-transparent">
-      <header className="w-full max-w-lg flex items-center justify-between mb-8 gap-4 px-2">
+      <header className="w-full max-w-lg relative flex items-center justify-center mb-8 pt-4 min-h-[50px]">
         <Link
           href="/"
-          className="flex items-center gap-2 px-5 py-2.5 bg-white/30 backdrop-blur-md border border-white/40 rounded-full text-[var(--text-color)] font-medium shadow-sm hover:bg-white/60 hover:scale-105 hover:shadow-md transition-all duration-300 group z-50"
+          className="absolute left-0 flex items-center gap-2 px-5 py-2.5 bg-white/30 dark:bg-slate-800/40 backdrop-blur-md border border-white/40 dark:border-slate-600 rounded-full text-[var(--text-color)] font-medium shadow-sm hover:bg-white/60 dark:hover:bg-slate-700/60 hover:scale-105 hover:shadow-md transition-all duration-300 group z-50"
         >
           <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
           <span className="hidden md:inline ml-1">Back Home</span>
         </Link>
 
-        <h1 className="font-serif text-2xl md:text-3xl font-bold text-center flex-1 text-[var(--text-color)]">
+        <h1 className="font-serif text-2xl md:text-3xl font-bold text-[var(--text-color)] text-center">
           Settings
         </h1>
-
-        <div className="w-12"></div>
       </header>
 
       <div className="flex bg-[var(--card-bg)] p-1 rounded-full mb-8 backdrop-blur-md border border-white/40 dark:border-slate-600 shadow-sm">
@@ -275,6 +316,32 @@ function SettingsContent() {
       <div className="w-full max-w-lg space-y-6">
         {activeTab === "account" && (
           <div className="space-y-6">
+            {inviteCode && (
+              <div className="bg-[var(--card-bg)] backdrop-blur-xl border border-white/40 dark:border-slate-600 p-6 rounded-[2rem] shadow-xl text-center">
+                <h3 className="text-lg font-bold text-[var(--text-color)] mb-2 flex items-center justify-center gap-2">
+                  <LinkIcon size={20} /> Your Space Invite Code
+                </h3>
+                <p className="text-sm opacity-80 text-[var(--text-color)] mb-4">
+                  Share this code with your partner so they can join your space.
+                </p>
+                <div className="flex justify-center items-center gap-3">
+                  <div className="bg-[var(--input-bg)] border border-white/40 dark:border-slate-500 rounded-xl px-6 py-3 font-mono font-bold tracking-widest text-xl text-[var(--text-color)]">
+                    {inviteCode}
+                  </div>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(inviteCode);
+                      setCopyPulse(true);
+                      setTimeout(() => setCopyPulse(false), 2000);
+                    }}
+                    className={`p-3 rounded-xl transition-all shadow-md flex items-center justify-center ${copyPulse ? "bg-emerald-500 text-white" : "bg-purple-600 text-white hover:bg-purple-700"}`}
+                  >
+                    {copyPulse ? <CheckCircle size={24} /> : <Copy size={24} />}
+                  </button>
+                </div>
+              </div>
+            )}
+
             <div className="bg-[var(--card-bg)] backdrop-blur-xl border border-white/40 dark:border-slate-600 p-6 rounded-[2rem] shadow-xl">
               <h3 className="text-lg font-bold text-[var(--text-color)] mb-4 flex items-center gap-2">
                 <User size={20} /> Your Name
@@ -355,6 +422,36 @@ function SettingsContent() {
                 </button>
               )}
             </div>
+
+            <button
+              onClick={() => signOut({ callbackUrl: "/login" })}
+              className="w-full py-4 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl font-bold shadow-md hover:bg-slate-300 dark:hover:bg-slate-700 hover:scale-[1.02] transition-all flex items-center justify-center gap-2"
+            >
+              <LogOut size={20} /> Sign Out
+            </button>
+
+            <div className="bg-red-50/50 dark:bg-red-950/20 border border-red-200 dark:border-red-900 p-6 rounded-[2rem] text-center space-y-4">
+              <h3 className="text-lg font-bold text-red-600 flex items-center justify-center gap-2">
+                <AlertTriangle size={20} /> Danger Zone
+              </h3>
+              <p className="text-sm text-red-500/80 mb-4">
+                These actions are permanent and cannot be undone.
+              </p>
+              
+              <button
+                onClick={() => setShowLeaveModal(true)}
+                className="w-full py-3 bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 rounded-xl font-bold hover:bg-red-200 dark:hover:bg-red-800/60 transition-all"
+              >
+                Leave Current Space
+              </button>
+
+              <button
+                onClick={() => setShowDeleteModal(true)}
+                className="w-full py-3 bg-red-500 text-white rounded-xl font-bold hover:bg-red-600 shadow-md transition-all"
+              >
+                Delete My Profile
+              </button>
+            </div>
           </div>
         )}
 
@@ -426,6 +523,82 @@ function SettingsContent() {
           </div>
         )}
       </div>
+
+      {/* Leave Space Modal */}
+      {showLeaveModal && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-[var(--card-bg)] rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl border border-white/20">
+            <AlertTriangle size={48} className="mx-auto text-amber-500 mb-4" />
+            <h3 className="text-2xl font-serif font-bold mb-2 text-[var(--text-color)]">Leave Space?</h3>
+            <p className="text-slate-500 dark:text-slate-400 mb-6 text-sm">
+              You will be removed from this space. If you are the last member, all memories, foods, and dates will be permanently deleted.
+            </p>
+            <div className="flex gap-3">
+              <button 
+                onClick={() => setShowLeaveModal(false)}
+                className="flex-1 py-3 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-bold"
+                disabled={dangerLoading}
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={async () => {
+                  setDangerLoading(true);
+                  try {
+                    await fetch("/api/couple", { method: "DELETE" });
+                    window.location.href = "/onboarding";
+                  } catch (e) {
+                    console.error(e);
+                    setDangerLoading(false);
+                  }
+                }}
+                className="flex-1 py-3 bg-amber-500 text-white rounded-xl font-bold hover:bg-amber-600 shadow-md flex items-center justify-center"
+                disabled={dangerLoading}
+              >
+                {dangerLoading ? <Loader2 size={20} className="animate-spin" /> : "Leave"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Profile Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-[var(--card-bg)] rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl border border-red-500/30">
+            <AlertTriangle size={48} className="mx-auto text-red-500 mb-4" />
+            <h3 className="text-2xl font-serif font-bold mb-2 text-[var(--text-color)]">Delete Profile?</h3>
+            <p className="text-red-500/80 mb-6 text-sm font-medium">
+              This will permanently delete your account and all personal data.
+            </p>
+            <div className="flex gap-3">
+              <button 
+                onClick={() => setShowDeleteModal(false)}
+                className="flex-1 py-3 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-bold"
+                disabled={dangerLoading}
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={async () => {
+                  setDangerLoading(true);
+                  try {
+                    await fetch("/api/user", { method: "DELETE" });
+                    signOut({ callbackUrl: "/login" });
+                  } catch (e) {
+                    console.error(e);
+                    setDangerLoading(false);
+                  }
+                }}
+                className="flex-1 py-3 bg-red-500 text-white rounded-xl font-bold hover:bg-red-600 shadow-md flex items-center justify-center"
+                disabled={dangerLoading}
+              >
+                {dangerLoading ? <Loader2 size={20} className="animate-spin" /> : "Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

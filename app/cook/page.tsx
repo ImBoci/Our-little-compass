@@ -232,17 +232,18 @@ export default function CookPage() {
 
   return (
     <div className="flex flex-col items-center min-h-screen p-4 bg-transparent">
-      <header className="w-full max-w-5xl flex flex-col gap-4 mb-6">
-        <div className="flex justify-between items-center w-full">
-          <Link href="/" className="flex items-center gap-2 px-4 py-2 bg-[var(--card-bg)] backdrop-blur-md border border-white/50 rounded-full text-[var(--text-color)] text-sm sm:text-base font-medium shadow-sm hover:bg-white/60 hover:scale-105 hover:shadow-md transition-all duration-300 group">
-            <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
-            <span className="hidden sm:inline">Back Home</span>
-          </Link>
-          <div className="h-10" />
-        </div>
-        <div className="text-center w-full">
-          <h1 className="font-serif text-2xl md:text-4xl text-[var(--text-color)] font-bold drop-shadow-sm">Tonight's Menu</h1>
-        </div>
+      <header className="w-full max-w-5xl relative flex items-center justify-center mb-8 pt-4 min-h-[50px]">
+        <Link 
+          href="/" 
+          className="absolute left-0 flex items-center gap-2 px-5 py-2.5 bg-white/30 dark:bg-slate-800/40 backdrop-blur-md border border-white/40 dark:border-slate-600 rounded-full text-[var(--text-color)] font-medium shadow-sm hover:bg-white/60 dark:hover:bg-slate-700/60 hover:scale-105 hover:shadow-md transition-all duration-300 group z-50"
+        >
+          <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
+          <span className="hidden md:inline ml-1">Back Home</span>
+        </Link>
+        
+        <h1 className="font-serif text-3xl md:text-4xl font-bold drop-shadow-sm text-[var(--text-color)]">
+          Tonight's Menu
+        </h1>
       </header>
 
       <div className="flex justify-center mb-8">
