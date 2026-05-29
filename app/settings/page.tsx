@@ -37,6 +37,7 @@ function SettingsContent() {
   const [nameSaved, setNameSaved] = useState(false);
   const [gyroEnabled, setGyroEnabled] = useState(false);
   const [couple, setCouple] = useState<any>(null);
+  const [coupleLoading, setCoupleLoading] = useState(true);
   const [copyPulse, setCopyPulse] = useState(false);
   
   // Danger Zone states
@@ -79,14 +80,23 @@ function SettingsContent() {
   }, [session]);
 
   const fetchCouple = async () => {
-    if (session?.user && (session.user as any).coupleId) {
-      try {
-        const res = await fetch("/api/couple");
+    // Don't attempt if session is still loading (null)
+    if (session === null) return;
+    setCoupleLoading(true);
+    try {
+      const res = await fetch("/api/couple");
+      if (res.ok) {
         const data = await res.json();
-        if (res.ok) setCouple(data);
-      } catch (err) {
-        console.error(err);
+        setCouple(data);
+      } else {
+        // 401 = no couple assigned yet — not an error, just no space
+        setCouple(null);
       }
+    } catch (err) {
+      console.error("Failed to fetch couple data:", err);
+      setCouple(null);
+    } finally {
+      setCoupleLoading(false);
     }
   };
 
@@ -310,10 +320,17 @@ function SettingsContent() {
 
         {/* MY SPACE TAB */}
         {activeTab === "space" && (
-          !couple ? (
+          coupleLoading ? (
             <div className="bg-[var(--card-bg)] backdrop-blur-xl border border-white/40 dark:border-slate-600 p-12 rounded-[2rem] shadow-xl flex flex-col items-center justify-center text-center animate-in fade-in duration-300">
               <Loader2 className="animate-spin text-purple-600 mb-4" size={40} />
               <p className="text-sm font-medium text-[var(--text-color)] opacity-70">Loading your space details...</p>
+            </div>
+          ) : !couple ? (
+            <div className="bg-[var(--card-bg)] backdrop-blur-xl border border-white/40 dark:border-slate-600 p-12 rounded-[2rem] shadow-xl flex flex-col items-center justify-center text-center animate-in fade-in duration-300">
+              <Heart size={40} className="text-rose-400 mb-4" />
+              <h3 className="text-lg font-bold text-[var(--text-color)] mb-2">No Space Yet</h3>
+              <p className="text-sm text-[var(--text-color)] opacity-70 mb-4">Create or join a space from the onboarding page to manage your shared settings.</p>
+              <Link href="/onboarding" className="bg-purple-600 text-white px-6 py-2.5 rounded-xl font-bold shadow-md hover:bg-purple-700 hover:scale-105 transition-all">Go to Onboarding</Link>
             </div>
           ) : (
             <div className="space-y-6 animate-in fade-in zoom-in duration-300">
@@ -389,8 +406,8 @@ function SettingsContent() {
               <button onClick={() => setShowLeaveModal(true)} className="w-full py-3 bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 rounded-xl font-bold hover:bg-red-200 transition-all">Leave Current Space</button>
             </div>
           </div>
-        )
-      )}
+          )
+        )}
 
         {/* PROFILE & ALERTS TAB */}
         {activeTab === "profile" && (
