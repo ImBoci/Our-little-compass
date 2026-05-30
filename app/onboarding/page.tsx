@@ -102,7 +102,9 @@ export default function OnboardingPage() {
         </div>
 
         <div className="text-center mb-8">
-          <h1 className="font-serif text-3xl font-bold text-slate-800 dark:text-slate-100 mb-2">Welcome!</h1>
+          <h1 className="font-serif text-3xl font-bold text-slate-800 dark:text-slate-100 mb-2">
+            {session?.user?.name ? `Welcome, ${session.user.name}!` : "Welcome!"}
+          </h1>
           <p className="text-slate-600 dark:text-slate-300 text-sm">You need a shared space to start adding memories and meals.</p>
         </div>
 

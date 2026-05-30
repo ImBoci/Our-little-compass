@@ -9,7 +9,7 @@ export async function GET() {
   try {
     const session = await getServerSession(authOptions);
     if (!session || !(session.user as any)?.coupleId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ couple: null });
     }
     
     const coupleId = (session.user as any).coupleId;
