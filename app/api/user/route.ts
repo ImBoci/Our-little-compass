@@ -18,9 +18,9 @@ export async function PATCH(req: Request) {
     });
 
     return NextResponse.json({ success: true, user: { id: updatedUser.id, name: updatedUser.name } });
-  } catch (error) {
-    console.error("Update user error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  } catch (error: any) {
+    console.error("CRITICAL API ERROR IN [/api/user PATCH]:", error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
 
@@ -60,8 +60,8 @@ export async function DELETE(req: Request) {
     }
 
     return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error("Delete user error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  } catch (error: any) {
+    console.error("CRITICAL API ERROR IN [/api/user DELETE]:", error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

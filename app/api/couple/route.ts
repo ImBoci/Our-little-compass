@@ -23,9 +23,9 @@ export async function GET() {
     }
 
     return NextResponse.json(couple);
-  } catch (error) {
-    console.error("Get couple error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  } catch (error: any) {
+    console.error("CRITICAL API ERROR IN [/api/couple]:", error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
 
@@ -87,9 +87,9 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({ success: true, couple });
-  } catch (error) {
-    console.error("Create couple error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  } catch (error: any) {
+    console.error("CRITICAL API ERROR IN [/api/couple POST]:", error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
 
@@ -126,9 +126,9 @@ export async function DELETE(req: Request) {
     }
 
     return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error("Leave couple error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  } catch (error: any) {
+    console.error("CRITICAL API ERROR IN [/api/couple DELETE]:", error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
 
@@ -204,8 +204,8 @@ export async function PATCH(req: Request) {
     }
 
     return NextResponse.json({ error: "No valid action provided" }, { status: 400 });
-  } catch (error) {
-    console.error("Patch couple error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  } catch (error: any) {
+    console.error("CRITICAL API ERROR IN [/api/couple PATCH]:", error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
