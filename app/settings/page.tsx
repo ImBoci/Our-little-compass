@@ -415,9 +415,11 @@ function SettingsContent() {
             </div>
 
             {/* Anniversary */}
-            <div className="bg-[var(--card-bg)] backdrop-blur-xl border border-white/40 dark:border-slate-600 p-6 rounded-[2rem] shadow-xl w-full max-w-full flex-wrap">
+            <div className="bg-[var(--card-bg)] backdrop-blur-xl border border-white/40 dark:border-slate-600 p-6 rounded-[2rem] shadow-xl">
               <h3 className="text-lg font-bold text-[var(--text-color)] mb-4 flex items-center gap-2"><Heart size={20} className="text-rose-500" /> Anniversary Date</h3>
-              <input type="date" value={couple.anniversary ? new Date(couple.anniversary).toISOString().split('T')[0] : ''} onChange={handleUpdateAnniversary} className="w-full sm:w-auto max-w-md bg-[var(--input-bg)] border border-white/40 dark:border-slate-500 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-400 text-[var(--text-color)]" />
+              <div className="w-full flex justify-start mt-2">
+                <input type="date" value={couple.anniversary ? new Date(couple.anniversary).toISOString().split('T')[0] : ''} onChange={handleUpdateAnniversary} className="w-full max-w-xs md:max-w-sm bg-[var(--input-bg)] border border-white/40 dark:border-slate-500 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-400 text-[var(--text-color)]" />
+              </div>
             </div>
 
             {/* Pets */}
@@ -434,11 +436,11 @@ function SettingsContent() {
                   </div>
                 ))}
               </div>
-              <form onSubmit={handleAddPet} className="flex flex-col sm:flex-row gap-2">
-                <input type="text" placeholder="Name" value={newPetName} onChange={(e) => setNewPetName(e.target.value)} className="flex-1 bg-[var(--input-bg)] border border-white/40 dark:border-slate-500 rounded-xl px-3 py-2 text-sm text-[var(--text-color)]" />
-                <input type="text" placeholder="Type (e.g. Dog)" value={newPetType} onChange={(e) => setNewPetType(e.target.value)} className="flex-1 bg-[var(--input-bg)] border border-white/40 dark:border-slate-500 rounded-xl px-3 py-2 text-sm text-[var(--text-color)]" />
-                <input type="date" value={newPetStartDate} onChange={(e) => setNewPetStartDate(e.target.value)} className="w-full sm:w-auto flex-none bg-[var(--input-bg)] border border-white/40 dark:border-slate-500 rounded-xl px-3 py-2 text-sm text-[var(--text-color)]" />
-                <button type="submit" disabled={!newPetName.trim()} className="w-full sm:w-auto bg-orange-500 text-white px-4 py-2 rounded-xl font-bold disabled:opacity-50">+</button>
+              <form onSubmit={handleAddPet} className="flex flex-col md:flex-row items-stretch md:items-center gap-3 w-full">
+                <input type="text" placeholder="Name" value={newPetName} onChange={(e) => setNewPetName(e.target.value)} className="flex-1 min-w-0 bg-[var(--input-bg)] border border-white/40 dark:border-slate-500 rounded-xl px-4 py-2 text-sm text-[var(--text-color)] focus:outline-none focus:ring-2 focus:ring-pink-500" />
+                <input type="text" placeholder="Type (e.g. Dog)" value={newPetType} onChange={(e) => setNewPetType(e.target.value)} className="flex-1 min-w-0 bg-[var(--input-bg)] border border-white/40 dark:border-slate-500 rounded-xl px-4 py-2 text-sm text-[var(--text-color)] focus:outline-none focus:ring-2 focus:ring-pink-500" />
+                <input type="date" value={newPetStartDate} onChange={(e) => setNewPetStartDate(e.target.value)} className="w-full md:w-auto bg-[var(--input-bg)] border border-white/40 dark:border-slate-500 rounded-xl px-4 py-2 text-sm text-[var(--text-color)] focus:outline-none focus:ring-2 focus:ring-pink-500" />
+                <button type="submit" disabled={!newPetName.trim()} className="w-full md:w-12 h-10 flex items-center justify-center bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl disabled:opacity-50 transition-colors flex-shrink-0">+</button>
               </form>
             </div>
 
