@@ -38,6 +38,9 @@ export default function RegisterPage() {
 
       if (!res.ok) {
         const data = await res.json();
+        if (res.status === 403 || (data.error && data.error.toLowerCase().includes("restricted"))) {
+          throw new Error("⚠️ Email not whitelisted. This application is private and registration is restricted.");
+        }
         throw new Error(data.error || "Failed to register");
       }
 
@@ -157,9 +160,9 @@ export default function RegisterPage() {
           </div>
           
           {error && (
-            <p className="text-red-500 text-sm text-center font-medium animate-pulse">
+            <div className={`p-4 rounded-xl text-sm text-center font-medium ${error.includes("whitelisted") || error.includes("restricted") ? 'bg-amber-100/80 border border-amber-300 text-amber-800 dark:bg-amber-950/20 dark:border-amber-900/40 dark:text-amber-300' : 'text-red-500 animate-pulse'}`}>
               {error}
-            </p>
+            </div>
           )}
 
           <button

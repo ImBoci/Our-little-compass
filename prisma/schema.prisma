@@ -30,9 +30,12 @@ model User {
   name     String?
   email    String  @unique
   password String
+  role     String  @default("USER") // "USER" or "ADMIN"
 
   coupleId String?
   couple   Couple? @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+
+  pushSubs PushSubscription[]
 }
 
 model Pet {
@@ -92,6 +95,9 @@ model PushSubscription {
 
   coupleId  String
   couple    Couple   @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+
+  userId    String?
+  userRel   User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model AppNotification {
@@ -114,4 +120,10 @@ model ShoppingItem {
 
   coupleId  String
   couple    Couple   @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+}
+
+model WhitelistedEmail {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  createdAt DateTime @default(now())
 }

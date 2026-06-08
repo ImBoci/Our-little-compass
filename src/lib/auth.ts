@@ -51,15 +51,17 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id
         token.coupleId = (user as any).coupleId
         token.name = user.name
+        token.role = (user as any).role
       } else if (token.id) {
-        // Refresh coupleId from DB on each token access in case they just created/joined a space
+        // Refresh coupleId and role from DB on each token access in case they just created/joined a space
         const dbUser = await prisma.user.findUnique({
           where: { id: token.id as string },
-          select: { coupleId: true, name: true }
+          select: { coupleId: true, name: true, role: true }
         })
         if (dbUser) {
           token.coupleId = dbUser.coupleId
           token.name = dbUser.name
+          token.role = dbUser.role
         }
       }
       return token
@@ -69,6 +71,7 @@ export const authOptions: NextAuthOptions = {
         (session.user as any).id = token.id;
         (session.user as any).coupleId = token.coupleId;
         (session.user as any).name = token.name;
+        (session.user as any).role = token.role;
       }
       return session
     }

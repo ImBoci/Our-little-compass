@@ -48,6 +48,12 @@ function SettingsContent() {
   // New Pet State
   const [newPetName, setNewPetName] = useState("");
   const [newPetType, setNewPetType] = useState("");
+  const [newPetStartDate, setNewPetStartDate] = useState(new Date().toISOString().split('T')[0]);
+
+  // Admin Whitelist State
+  const [whitelist, setWhitelist] = useState<any[]>([]);
+  const [newWhitelistEmail, setNewWhitelistEmail] = useState("");
+  const [whitelistLoading, setWhitelistLoading] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -244,16 +250,76 @@ function SettingsContent() {
     await fetch("/api/pets", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: newPetName, type: newPetType })
+      body: JSON.stringify({ name: newPetName, type: newPetType, startDate: newPetStartDate })
     });
     setNewPetName("");
     setNewPetType("");
+    setNewPetStartDate(new Date().toISOString().split('T')[0]);
     fetchCouple();
   };
 
   const handleDeletePet = async (id: string) => {
     await fetch(`/api/pets?id=${id}`, { method: "DELETE" });
     fetchCouple();
+  };
+
+  const fetchWhitelist = async () => {
+    if ((session?.user as any)?.role !== "ADMIN") return;
+    setWhitelistLoading(true);
+    try {
+      const res = await fetch("/api/admin/whitelist");
+      if (res.ok) {
+        const data = await res.json();
+        setWhitelist(data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch whitelist:", err);
+    } finally {
+      setWhitelistLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === "admin") {
+      fetchWhitelist();
+    }
+  }, [activeTab, session]);
+
+  const handleAddWhitelist = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newWhitelistEmail.trim()) return;
+    try {
+      const res = await fetch("/api/admin/whitelist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: newWhitelistEmail.trim() }),
+      });
+      if (res.ok) {
+        setNewWhitelistEmail("");
+        fetchWhitelist();
+      } else {
+        const data = await res.json();
+        alert(data.error || "Failed to add email to whitelist");
+      }
+    } catch (err) {
+      console.error("Add whitelist error:", err);
+    }
+  };
+
+  const handleDeleteWhitelist = async (id: string) => {
+    if (!confirm("Are you sure you want to remove this email from the whitelist?")) return;
+    try {
+      const res = await fetch(`/api/admin/whitelist?id=${id}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        fetchWhitelist();
+      } else {
+        alert("Failed to remove email from whitelist");
+      }
+    } catch (err) {
+      console.error("Delete whitelist error:", err);
+    }
   };
 
   const handleKickUser = async (targetUserId: string) => {
@@ -294,6 +360,9 @@ function SettingsContent() {
         <button onClick={() => setActiveTab("space")} className={`px-4 py-2 rounded-full text-sm font-bold transition-all flex-1 text-center ${activeTab === "space" ? "bg-purple-600 text-white shadow-md" : "text-[var(--text-color)] opacity-70"}`}>My Space</button>
         <button onClick={() => setActiveTab("profile")} className={`px-4 py-2 rounded-full text-sm font-bold transition-all flex-1 text-center ${activeTab === "profile" ? "bg-emerald-500 text-white shadow-md" : "text-[var(--text-color)] opacity-70"}`}>Profile & Alerts</button>
         <button onClick={() => setActiveTab("manage")} className={`px-4 py-2 rounded-full text-sm font-bold transition-all flex-1 text-center ${activeTab === "manage" ? "bg-blue-500 text-white shadow-md" : "text-[var(--text-color)] opacity-70"}`}>Manage Data</button>
+        {(session?.user as any)?.role === "ADMIN" && (
+          <button onClick={() => setActiveTab("admin")} className={`px-4 py-2 rounded-full text-sm font-bold transition-all flex-1 text-center ${activeTab === "admin" ? "bg-indigo-600 text-white shadow-md" : "text-[var(--text-color)] opacity-70"}`}>Admin Control</button>
+        )}
       </div>
 
       <div className="w-full max-w-lg space-y-6 pb-24">
@@ -346,9 +415,9 @@ function SettingsContent() {
             </div>
 
             {/* Anniversary */}
-            <div className="bg-[var(--card-bg)] backdrop-blur-xl border border-white/40 dark:border-slate-600 p-6 rounded-[2rem] shadow-xl">
+            <div className="bg-[var(--card-bg)] backdrop-blur-xl border border-white/40 dark:border-slate-600 p-6 rounded-[2rem] shadow-xl w-full max-w-full flex-wrap">
               <h3 className="text-lg font-bold text-[var(--text-color)] mb-4 flex items-center gap-2"><Heart size={20} className="text-rose-500" /> Anniversary Date</h3>
-              <input type="date" value={couple.anniversary ? new Date(couple.anniversary).toISOString().split('T')[0] : ''} onChange={handleUpdateAnniversary} className="w-full bg-[var(--input-bg)] border border-white/40 dark:border-slate-500 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-400 text-[var(--text-color)]" />
+              <input type="date" value={couple.anniversary ? new Date(couple.anniversary).toISOString().split('T')[0] : ''} onChange={handleUpdateAnniversary} className="w-full sm:w-auto max-w-md bg-[var(--input-bg)] border border-white/40 dark:border-slate-500 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-400 text-[var(--text-color)]" />
             </div>
 
             {/* Pets */}
@@ -365,10 +434,11 @@ function SettingsContent() {
                   </div>
                 ))}
               </div>
-              <form onSubmit={handleAddPet} className="flex gap-2">
-                <input type="text" placeholder="Name" value={newPetName} onChange={(e) => setNewPetName(e.target.value)} className="w-1/2 bg-[var(--input-bg)] border border-white/40 dark:border-slate-500 rounded-xl px-3 py-2 text-sm text-[var(--text-color)]" />
-                <input type="text" placeholder="Type (e.g. Dog)" value={newPetType} onChange={(e) => setNewPetType(e.target.value)} className="w-1/2 bg-[var(--input-bg)] border border-white/40 dark:border-slate-500 rounded-xl px-3 py-2 text-sm text-[var(--text-color)]" />
-                <button type="submit" disabled={!newPetName.trim()} className="bg-orange-500 text-white px-4 py-2 rounded-xl font-bold disabled:opacity-50">+</button>
+              <form onSubmit={handleAddPet} className="flex flex-col sm:flex-row gap-2">
+                <input type="text" placeholder="Name" value={newPetName} onChange={(e) => setNewPetName(e.target.value)} className="flex-1 bg-[var(--input-bg)] border border-white/40 dark:border-slate-500 rounded-xl px-3 py-2 text-sm text-[var(--text-color)]" />
+                <input type="text" placeholder="Type (e.g. Dog)" value={newPetType} onChange={(e) => setNewPetType(e.target.value)} className="flex-1 bg-[var(--input-bg)] border border-white/40 dark:border-slate-500 rounded-xl px-3 py-2 text-sm text-[var(--text-color)]" />
+                <input type="date" value={newPetStartDate} onChange={(e) => setNewPetStartDate(e.target.value)} className="w-full sm:w-auto flex-none bg-[var(--input-bg)] border border-white/40 dark:border-slate-500 rounded-xl px-3 py-2 text-sm text-[var(--text-color)]" />
+                <button type="submit" disabled={!newPetName.trim()} className="w-full sm:w-auto bg-orange-500 text-white px-4 py-2 rounded-xl font-bold disabled:opacity-50">+</button>
               </form>
             </div>
 
@@ -413,7 +483,10 @@ function SettingsContent() {
         {activeTab === "profile" && (
           <div className="space-y-6 animate-in fade-in zoom-in duration-300">
             <div className="bg-[var(--card-bg)] backdrop-blur-xl border border-white/40 dark:border-slate-600 p-6 rounded-[2rem] shadow-xl">
-              <h3 className="text-lg font-bold text-[var(--text-color)] mb-4 flex items-center gap-2"><User size={20} /> Your Name</h3>
+              <div className="flex flex-col mb-4">
+                <h3 className="text-lg font-bold text-[var(--text-color)] flex items-center gap-2"><User size={20} /> Your Name</h3>
+                {session?.user?.email && <span className="text-sm text-[var(--text-color)] opacity-70 ml-7">{session.user.email}</span>}
+              </div>
               <div className="flex gap-2">
                 <input value={userName} onChange={(e) => setUserName(e.target.value)} placeholder="Enter your name" className="flex-1 bg-[var(--input-bg)] border border-white/40 dark:border-slate-500 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-400 text-[var(--text-color)]" />
                 <button onClick={saveName} className="bg-emerald-500 text-white px-4 py-2 rounded-xl font-bold hover:bg-emerald-600 shadow-md flex items-center justify-center">{nameSaved ? <CheckCircle size={20} /> : "Save"}</button>
@@ -455,6 +528,52 @@ function SettingsContent() {
                 </div>
                 <p className="mt-4 text-sm opacity-70 text-[var(--text-color)]">View and manage your custom Foods, Activities, and other Space data.</p>
               </Link>
+          </div>
+        )}
+
+        {/* ADMIN CONTROL TAB */}
+        {activeTab === "admin" && (session?.user as any)?.role === "ADMIN" && (
+          <div className="space-y-6 animate-in fade-in zoom-in duration-300">
+            <div className="bg-[var(--card-bg)] backdrop-blur-xl border border-white/40 dark:border-slate-600 p-6 rounded-[2rem] shadow-xl">
+              <h3 className="text-lg font-bold text-[var(--text-color)] mb-4 flex items-center gap-2">
+                <Crown size={20} className="text-indigo-500" /> Whitelisted Emails
+              </h3>
+              
+              {whitelistLoading ? (
+                <div className="flex justify-center py-6">
+                  <Loader2 className="animate-spin text-indigo-500" size={24} />
+                </div>
+              ) : (
+                <div className="space-y-3 mb-6 max-h-60 overflow-y-auto pr-1">
+                  {whitelist.length === 0 ? (
+                    <p className="text-sm text-[var(--text-color)] opacity-60 text-center py-4">No whitelisted emails yet.</p>
+                  ) : (
+                    whitelist.map((w: any) => (
+                      <div key={w.id} className="flex items-center justify-between bg-[var(--input-bg)] border border-white/40 dark:border-slate-600 p-3 rounded-xl">
+                        <span className="text-sm font-medium text-[var(--text-color)]">{w.email}</span>
+                        <button onClick={() => handleDeleteWhitelist(w.id)} className="p-2 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg">
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+
+              <form onSubmit={handleAddWhitelist} className="flex gap-2">
+                <input 
+                  type="email" 
+                  placeholder="New Email" 
+                  value={newWhitelistEmail} 
+                  onChange={(e) => setNewWhitelistEmail(e.target.value)} 
+                  className="flex-1 bg-[var(--input-bg)] border border-white/40 dark:border-slate-500 rounded-xl px-4 py-2 text-sm text-[var(--text-color)] focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                  required
+                />
+                <button type="submit" className="bg-indigo-600 text-white px-4 py-2 rounded-xl font-bold hover:bg-indigo-700 transition-all text-sm">
+                  Add to Whitelist
+                </button>
+              </form>
+            </div>
           </div>
         )}
       </div>

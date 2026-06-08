@@ -17,6 +17,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     const coupleId = (session.user as any).coupleId;
+    const currentUserId = (session.user as any).id;
 
     if (!vapidPublicKey || !vapidPrivateKey) {
       return NextResponse.json({ error: "Missing VAPID keys." }, { status: 500 });
@@ -60,7 +61,7 @@ export async function POST(request: Request) {
     const subscriptions = await prisma.pushSubscription.findMany({
       where: {
         coupleId,
-        ...(resolvedSender ? { user: { not: resolvedSender } } : {}),
+        userId: { not: currentUserId },
       },
     });
     console.log("[Push] subscriptions in DB:", subscriptions.length);
